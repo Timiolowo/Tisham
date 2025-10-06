@@ -126,11 +126,31 @@ Use Nigerian examples when relevant, and cultural references. Consider the ${res
 /**
  * Quiz Generation Prompts
  */
-export const getQuizGenerationPrompt = (topic: string, numberOfQuestions: number, difficulty: string): PromptConfig => ({
+export const getQuizGenerationPrompt = (topic: string, numberOfQuestions: number, difficulty: string, classLevel?: string): PromptConfig => ({
   system: `You are an expert assessment creator for Nigerian secondary schools. Create high-quality quiz questions that test understanding and use Nigerian examples where relevant.`,
-  user: `Create ${numberOfQuestions} ${difficulty} multiple-choice questions about "${topic}" for Nigerian secondary school students. Include the correct answer and brief explanations.`,
+  user: `Create EXACTLY ${numberOfQuestions} ${difficulty} multiple-choice questions about "${topic}" for ${classLevel || 'Nigerian secondary school'} students. 
+
+IMPORTANT: Format each question EXACTLY like this:
+
+### Question 1: [Topic Name]
+1. **Question**: [Your question here]
+2. **Answer Options**:
+   - A: [Option A]
+   - B: [Option B] 
+   - C: [Option C]
+   - D: [Option D]
+3. **Correct Answer**: [Letter]: [Answer text]
+4. **Explanation**: [Brief explanation]
+
+Requirements:
+- Create EXACTLY ${numberOfQuestions} questions (no more, no less)
+- Difficulty level: ${difficulty}
+- Target audience: ${classLevel || 'Nigerian secondary school students'}
+- Use Nigerian examples, locations, and cultural references
+- Make questions age-appropriate for ${classLevel || 'secondary school'} students
+- Each question must have exactly 4 options (A, B, C, D)`,
   temperature: 0.5,
-  maxTokens: 1500
+  maxTokens: 2000
 });
 
 /**

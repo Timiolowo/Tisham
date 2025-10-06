@@ -172,32 +172,24 @@ export async function simplifyContent(
 export async function generateQuiz(
   topic: string,
   numberOfQuestions: number = 5,
-  difficulty: 'easy' | 'medium' | 'hard' = 'medium'
+  difficulty: 'easy' | 'medium' | 'hard' = 'medium',
+  classLevel?: string
 ): Promise<string> {
-  const prompt = `Create ${numberOfQuestions} multiple-choice questions about "${topic}" for Nigerian secondary school students.
-
-Difficulty Level: ${difficulty}
-
-For each question, provide:
-1. The question
-2. Four answer options (A, B, C, D)
-3. The correct answer
-4. A brief explanation
-
-Use Nigerian context and examples where appropriate. Format clearly.`;
-
+  const { getQuizGenerationPrompt } = await import('./prompts');
+  const promptConfig = getQuizGenerationPrompt(topic, numberOfQuestions, difficulty, classLevel);
+  
   const systemPrompt: Message = {
     role: 'system',
-    content: 'You are an expert at creating educational assessments for Nigerian students. Make questions clear, fair, and culturally relevant.'
+    content: promptConfig.system
   };
 
   return sendChatMessage([
     systemPrompt,
-    { role: 'user', content: prompt }
+    { role: 'user', content: promptConfig.user }
   ], {
     model: 'llama-3.3-70b-versatile',
-    temperature: 0.6,
-    maxTokens: 2048
+    temperature: promptConfig.temperature,
+    maxTokens: promptConfig.maxTokens
   });
 }
 
