@@ -1,0 +1,183 @@
+import { Button } from "./ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
+import { Sparkles, BookOpen, MessageSquare, TrendingUp, CheckCircle } from "lucide-react";
+import { ImageWithFallback } from "./figma/ImageWithFallback";
+import { ThemeToggle } from "./ThemeToggle";
+
+interface LandingPageProps {
+  onNavigate: (page: any, role?: any) => void;
+}
+
+export function LandingPage({ onNavigate }: LandingPageProps) {
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
+      {/* Header */}
+      <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-50">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
+              <Sparkles className="w-6 h-6 text-primary-foreground" />
+            </div>
+            <span className="text-lg font-semibold">TeachMate</span>
+          </div>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <ThemeToggle />
+            <Button variant="ghost" onClick={() => onNavigate('login')} className="hidden sm:inline-flex">Log in</Button>
+            <Button onClick={() => onNavigate('register')} className="text-sm">
+              <span className="hidden sm:inline">Register School</span>
+              <span className="sm:hidden">Register</span>
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      {/* Hero Section */}
+      <section className="container mx-auto px-4 py-16 md:py-24">
+        <div className="grid md:grid-cols-2 gap-12 items-center">
+          <div className="space-y-6">
+            <div className="inline-block px-4 py-2 bg-secondary/10 text-secondary rounded-full">
+              Your everyday teaching partner
+            </div>
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight">
+              Empowering Teachers with AI for Smarter Classrooms
+            </h1>
+            <p className="text-base text-muted-foreground">
+              Adapt to the new national curriculum (Sept 2025) with AI-powered lesson planning, 
+              real-time assistance, and multilingual support for secondary schools across Nigeria.
+            </p>
+            <div className="flex gap-4">
+              <Button size="lg" className="rounded-2xl" onClick={() => onNavigate('register')}>
+                Register School
+              </Button>
+              <Button size="lg" variant="outline" className="rounded-2xl" onClick={() => onNavigate('login')}>
+                Log in
+              </Button>
+            </div>
+            <div className="flex items-center gap-6 pt-4">
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-5 h-5 text-primary" />
+                <span className="text-sm">Free for Public Schools</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-5 h-5 text-primary" />
+                <span className="text-sm">Offline Mode Available</span>
+              </div>
+            </div>
+          </div>
+          <div className="relative">
+            <div className="rounded-3xl overflow-hidden shadow-2xl">
+              <ImageWithFallback 
+                src="https://images.unsplash.com/flagged/photo-1579133311477-9121405c78dd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhZnJpY2FuJTIwdGVhY2hlciUyMGNsYXNzcm9vbSUyMHN0dWRlbnRzfGVufDF8fHx8MTc1OTYwNDM4NHww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
+                alt="Teachers and students in classroom"
+                className="w-full h-auto"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works */}
+      <section className="container mx-auto px-4 py-16">
+        <div className="text-center mb-12">
+          <h2 className="text-base mb-4">How It Works</h2>
+          <p className="text-base text-muted-foreground">Three simple steps to transform your teaching</p>
+        </div>
+        <div className="grid md:grid-cols-3 gap-8">
+          <Card className="rounded-2xl shadow-lg hover:shadow-xl transition-shadow border-2">
+            <CardHeader>
+              <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center mb-4">
+                <BookOpen className="w-8 h-8 text-primary" />
+              </div>
+              <CardTitle>Lesson Generation</CardTitle>
+              <CardDescription>
+                Generate comprehensive lesson plans aligned with the new curriculum in seconds. 
+                Include local examples, activities, and assessments.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+          
+          <Card className="rounded-2xl shadow-lg hover:shadow-xl transition-shadow border-2">
+            <CardHeader>
+              <div className="w-14 h-14 bg-secondary/10 rounded-2xl flex items-center justify-center mb-4">
+                <MessageSquare className="w-8 h-8 text-secondary" />
+              </div>
+              <CardTitle>Real-Time Copilot</CardTitle>
+              <CardDescription>
+                Get instant help with explanations, translations to local languages, 
+                and teaching suggestions. Your AI teaching assistant is always ready.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+          
+          <Card className="rounded-2xl shadow-lg hover:shadow-xl transition-shadow border-2">
+            <CardHeader>
+              <div className="w-14 h-14 bg-accent/10 rounded-2xl flex items-center justify-center mb-4">
+                <TrendingUp className="w-8 h-8 text-accent" />
+              </div>
+              <CardTitle>Student Engagement</CardTitle>
+              <CardDescription>
+                Create assessments, track progress, and provide personalized learning materials. 
+                Students can access resources and get AI help anytime.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        </div>
+      </section>
+
+      {/* Trusted by Schools */}
+      <section className="container mx-auto px-4 py-16">
+        <div className="text-center mb-12">
+          <h2 className="text-base mb-4">Trusted by Schools Across Nigeria</h2>
+          <p className="text-base text-muted-foreground">Join thousands of teachers making a difference</p>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 items-center opacity-60">
+          {['Lagos State', 'Abuja FCT', 'Kano State', 'Rivers State'].map((state) => (
+            <div key={state} className="text-center p-6 bg-muted/50 rounded-2xl">
+              <p className="font-semibold">{state}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="container mx-auto px-4 py-16">
+        <Card className="rounded-3xl bg-gradient-to-r from-primary to-secondary text-white shadow-2xl">
+          <CardContent className="p-8 sm:p-12 text-center">
+            <h2 className="text-base mb-4">Get Started Today</h2>
+            <p className="text-base mb-8 opacity-90">
+              Transform your classroom with AI-powered teaching tools
+            </p>
+            <Button 
+              size="lg" 
+              className="rounded-2xl bg-white text-primary hover:bg-white/90"
+              onClick={() => onNavigate('register')}
+            >
+              Register Your School
+            </Button>
+          </CardContent>
+        </Card>
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t bg-gradient-to-r from-primary/5 to-secondary/5 mt-16">
+        <div className="container mx-auto px-4 py-12">
+          <div className="text-center space-y-4">
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                <Sparkles className="w-5 h-5 text-primary-foreground" />
+              </div>
+              <span className="text-lg font-semibold">TeachMate</span>
+            </div>
+            <p className="text-muted-foreground text-sm">
+              © 2025 TeachMate. Built for Nigerian Education.
+            </p>
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-full text-sm font-medium">
+              <span className="text-primary">🏆</span>
+              <span>DFA 2025 Hackathon Solution by Team Rosh</span>
+            </div>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+}
