@@ -84,11 +84,6 @@ export function AssessmentGenerator({ onNavigate, lessonPlan }: AssessmentGenera
     }
   }, [lessonPlan]);
 
-  // Debug: Log when questions state changes
-  useEffect(() => {
-    console.log('Questions state updated:', questions);
-    console.log('Number of questions in state:', questions.length);
-  }, [questions]);
 
   const handleGenerate = async () => {
     if (!topic.trim() || !subject.trim()) {
@@ -96,49 +91,44 @@ export function AssessmentGenerator({ onNavigate, lessonPlan }: AssessmentGenera
       return;
     }
 
-    // Always start with default questions
-    setQuestions(defaultQuestions);
     setGenerated(true);
-    toast.success("Assessment ready!");
+    setGenerating(true);
 
-    // If API key is configured, try to generate AI questions
+    // If API key is configured, generate AI questions
     if (isApiKeyConfigured()) {
-      setGenerating(true);
       try {
-        console.log('Generating quiz with params:', { topic, numberOfQuestions, difficulty, classLevel });
         const generatedContent = await generateQuiz(topic, numberOfQuestions, difficulty, classLevel);
-        console.log('AI Generated Content:', generatedContent);
         setAiGeneratedContent(generatedContent);
         
         // Parse the AI-generated content into the same format as hardcoded questions
-        const parsedQuestions = parseAIContent(generatedContent);
-        console.log('Parsed Questions:', parsedQuestions);
-        console.log('Number of parsed questions:', parsedQuestions.length);
-        console.log('Current questions state before update:', questions);
+        const parsedQuestions = parseAIContent(generatedContent, numberOfQuestions);
         
-        // Only replace if we got valid questions
+        // Only show AI questions if we got valid ones
         if (parsedQuestions.length > 0) {
-          console.log('Setting questions to parsed questions');
           setQuestions(parsedQuestions);
           toast.success("AI-generated assessment ready!");
         } else {
-          console.log('No valid questions found, keeping default questions');
+          // Fallback to default questions only if AI parsing fails
+          setQuestions(defaultQuestions);
           toast.info("Using sample questions (AI parsing failed)");
         }
       } catch (error) {
         console.error('Assessment generation error:', error);
+        // Fallback to default questions only if AI generation fails
+        setQuestions(defaultQuestions);
         toast.info("Using sample questions (AI generation failed)");
       } finally {
         setGenerating(false);
       }
+    } else {
+      // No API key - use default questions
+      setQuestions(defaultQuestions);
+      toast.success("Assessment ready!");
+      setGenerating(false);
     }
   };
 
-  const parseAIContent = (content: string) => {
-    console.log('AI Generated Content:', content);
-    
-    // Simple approach: Create questions based on the AI content
-    // Extract any text that looks like a question
+  const parseAIContent = (content: string, maxQuestions: number = 5) => {
     const lines = content.split('\n').filter(line => line.trim());
     const questions: any[] = [];
     
@@ -204,25 +194,20 @@ export function AssessmentGenerator({ onNavigate, lessonPlan }: AssessmentGenera
           }
         }
         
-        console.log('Parsed question:', question);
         questions.push(question);
         
-        // Limit to reasonable number of questions
-        if (questionCount >= 5) break;
+        // Limit to the requested number of questions
+        if (questionCount >= maxQuestions) break;
       }
     }
     
-    console.log('Simple parsed questions:', questions);
-    console.log('Number of questions found:', questions.length);
     
     // If we found questions, use them
     if (questions.length > 0) {
-      console.log('Using AI-generated questions:', questions);
       return questions;
     }
     
     // Fallback: Create a question from the content
-    console.log('No questions found, creating fallback from content');
     const fallbackQuestion = {
       type: "mcq",
       question: content.substring(0, 100) + "...",
@@ -394,20 +379,6 @@ export function AssessmentGenerator({ onNavigate, lessonPlan }: AssessmentGenera
               <CardTitle>Assessment Details</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {!isApiKeyConfigured() ? (
-                <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl">
-                  <p className="text-sm text-blue-700">
-                    <strong>Sample Mode:</strong> Using hardcoded questions. 
-                    Configure your Groq API key to generate custom assessments.
-                  </p>
-                </div>
-              ) : (
-                <div className="p-3 bg-green-50 border border-green-200 rounded-xl">
-                  <p className="text-sm text-green-700">
-                    <strong>AI Mode:</strong> Will generate custom questions based on your topic.
-                  </p>
-                </div>
-              )}
               
               <div className="space-y-2">
                 <Label htmlFor="subject">Subject</Label>
@@ -524,45 +495,6 @@ export function AssessmentGenerator({ onNavigate, lessonPlan }: AssessmentGenera
                 )}
               </Button>
 
-              {/* Debug: Test parsing with sample content */}
-              <Button 
-                className="w-full rounded-2xl" 
-                size="sm"
-                variant="outline"
-                onClick={() => {
-                  const testContent = `### Question 1: Test
-1. **Question**: What is 2 + 2?
-2. **Answer Options**:
-   - A: 3
-   - B: 4
-   - C: 5
-   - D: 6
-3. **Correct Answer**: B: 4
-4. **Explanation**: 2 + 2 = 4`;
-                  console.log('Testing with sample content:', testContent);
-                  const testQuestions = parseAIContent(testContent);
-                  console.log('Test parsing result:', testQuestions);
-                  setQuestions(testQuestions);
-                  toast.success("Test parsing completed!");
-                }}
-              >
-                Test Parsing
-              </Button>
-
-              {/* Debug: Show raw AI content */}
-              {aiGeneratedContent && (
-                <Button 
-                  className="w-full rounded-2xl" 
-                  size="sm"
-                  variant="outline"
-                  onClick={() => {
-                    console.log('Raw AI Content:', aiGeneratedContent);
-                    alert('Raw AI Content:\n\n' + aiGeneratedContent.substring(0, 500) + '...');
-                  }}
-                >
-                  Show Raw AI Content
-                </Button>
-              )}
             </CardContent>
           </Card>
 
@@ -630,29 +562,6 @@ export function AssessmentGenerator({ onNavigate, lessonPlan }: AssessmentGenera
                   </Button>
                 </div>
 
-                {aiGeneratedContent && (
-                  <Card className="rounded-2xl border-orange-200">
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="text-orange-700">Debug: Raw AI Content</CardTitle>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => setShowRawContent(!showRawContent)}
-                        >
-                          {showRawContent ? 'Hide' : 'Show'} Raw Content
-                        </Button>
-                      </div>
-                    </CardHeader>
-                    {showRawContent && (
-                      <CardContent>
-                        <pre className="text-xs bg-gray-50 p-4 rounded-lg overflow-auto max-h-60">
-                          {aiGeneratedContent}
-                        </pre>
-                      </CardContent>
-                    )}
-                  </Card>
-                )}
 
                 <Card className="rounded-2xl">
                   <CardHeader className="border-b">
@@ -666,10 +575,6 @@ export function AssessmentGenerator({ onNavigate, lessonPlan }: AssessmentGenera
                           ) : (
                             <span className="ml-2 text-green-600 font-medium">(AI Generated)</span>
                           )}
-                        </p>
-                        {/* Debug: Show current questions count */}
-                        <p className="text-xs text-gray-500 mt-1">
-                          Debug: {questions.length} questions in state
                         </p>
                       </div>
                       <div className="text-right">
