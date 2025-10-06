@@ -4,22 +4,153 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { ArrowLeft, CheckCircle2 } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
+import { ArrowLeft, CheckCircle2, School, GraduationCap, Users, Loader2 } from "lucide-react";
+import { toast } from "sonner@2.0.3";
+import { useAuth } from "../contexts/AuthContext";
+import OTPRegistration from './OTPRegistration';
 
-interface SchoolRegistrationProps {
+interface RegistrationProps {
   onNavigate: (page: any, role?: any) => void;
 }
 
-export function SchoolRegistration({ onNavigate }: SchoolRegistrationProps) {
+export function SchoolRegistration({ onNavigate }: RegistrationProps) {
+  const { register } = useAuth();
   const [registered, setRegistered] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [registrationType, setRegistrationType] = useState<'school' | 'teacher' | 'student'>('school');
+  const [showOTP, setShowOTP] = useState(false);
+  const [otpData, setOtpData] = useState<any>(null);
   const [schoolCode] = useState('TCN' + Math.floor(100000 + Math.random() * 900000));
+  const [classCode] = useState('CLS' + Math.floor(1000 + Math.random() * 9000));
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Form state
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+    confirmPassword: '',
+    fullName: '',
+    schoolCode: '',
+    classCode: '',
+    schoolName: '',
+    schoolType: '',
+    state: '',
+    address: '',
+    contactEmail: '',
+    contactPhone: '',
+    adminName: '',
+    subjects: [] as string[],
+    yearsExperience: 0,
+    studentId: '',
+    classLevel: '',
+    parentEmail: ''
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setRegistered(true);
+    setIsLoading(true);
+
+    try {
+      // Validate passwords match
+      if (formData.password !== formData.confirmPassword) {
+        toast.error("Passwords do not match");
+        return;
+      }
+
+      // Prepare registration data based on role
+      const registrationData = {
+        email: formData.email,
+        password: formData.password,
+        confirmPassword: formData.confirmPassword,
+        fullName: registrationType === 'school' ? formData.adminName : formData.fullName,
+        role: registrationType === 'school' ? 'school_admin' : registrationType,
+        ...(registrationType === 'school' && {
+          schoolName: formData.schoolName,
+          schoolType: formData.schoolType,
+          state: formData.state,
+          address: formData.address,
+          contactEmail: formData.contactEmail,
+          contactPhone: formData.contactPhone,
+          adminName: formData.adminName,
+        }),
+        ...(registrationType === 'teacher' && {
+          schoolCode: formData.schoolCode,
+          subjects: formData.subjects,
+          yearsExperience: formData.yearsExperience,
+        }),
+        ...(registrationType === 'student' && {
+          classCode: formData.classCode,
+          studentId: formData.studentId,
+          classLevel: formData.classLevel,
+          parentEmail: formData.parentEmail,
+        }),
+      };
+
+      console.log('Registration data being sent:', registrationData);
+      
+      // Use OTP flow instead of direct registration
+      const response = await fetch('/.netlify/functions/register-otp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(registrationData),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Registration failed');
+      }
+
+      // Show OTP screen
+      setOtpData(registrationData);
+      setShowOTP(true);
+      toast.success("OTP sent to your email. Please check your inbox.");
+    } catch (error) {
+      console.error('Registration error:', error);
+      toast.error("Registration failed. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
+  if (showOTP && otpData) {
+    return <OTPRegistration onBack={() => setShowOTP(false)} registrationData={otpData} />;
+  }
+
   if (registered) {
+    const getSuccessMessage = () => {
+      switch (registrationType) {
+        case 'school':
+          return {
+            title: "School Registration Successful!",
+            description: "Your school has been registered successfully. Use this code to invite teachers.",
+            codeLabel: "Your School Code",
+            code: schoolCode,
+            buttonText: "Invite Teachers"
+          };
+        case 'teacher':
+          return {
+            title: "Teacher Registration Successful!",
+            description: "Welcome to TeachMate! You can now access the teacher dashboard.",
+            codeLabel: "Your Teacher ID",
+            code: "TCH" + Math.floor(10000 + Math.random() * 90000),
+            buttonText: "Go to Dashboard"
+          };
+        case 'student':
+          return {
+            title: "Student Registration Successful!",
+            description: "Welcome to TeachMate! You can now access your student dashboard.",
+            codeLabel: "Your Student ID",
+            code: "STU" + Math.floor(10000 + Math.random() * 90000),
+            buttonText: "Go to Dashboard"
+          };
+      }
+    };
+
+    const success = getSuccessMessage();
+
     return (
       <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 flex items-center justify-center p-4">
         <Card className="w-full max-w-lg rounded-3xl shadow-2xl">
@@ -27,21 +158,23 @@ export function SchoolRegistration({ onNavigate }: SchoolRegistrationProps) {
             <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
               <CheckCircle2 className="w-12 h-12 text-primary" />
             </div>
-            <h2 className="text-base sm:text-base mb-4">Registration Successful!</h2>
+            <h2 className="text-base sm:text-base mb-4">{success.title}</h2>
             <p className="text-muted-foreground mb-8">
-              Your school has been registered successfully. Use this code to invite teachers.
+              {success.description}
             </p>
             <div className="bg-muted p-6 rounded-2xl mb-8">
-              <p className="text-sm text-muted-foreground mb-2">Your School Code</p>
-              <p className="text-base sm:text-base tracking-wider">{schoolCode}</p>
+              <p className="text-sm text-muted-foreground mb-2">{success.codeLabel}</p>
+              <p className="text-base sm:text-base tracking-wider">{success.code}</p>
             </div>
             <div className="space-y-3">
               <Button className="w-full rounded-2xl" size="lg" onClick={() => onNavigate('login')}>
                 Continue to Dashboard
               </Button>
+              {registrationType === 'school' && (
               <Button variant="outline" className="w-full rounded-2xl" size="lg">
-                Invite Teachers
+                  {success.buttonText}
               </Button>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -63,12 +196,29 @@ export function SchoolRegistration({ onNavigate }: SchoolRegistrationProps) {
 
         <Card className="rounded-3xl shadow-xl">
           <CardHeader className="pb-6">
-            <CardTitle className="text-base sm:text-base">Register Your School</CardTitle>
+            <CardTitle className="text-base sm:text-base">Create Account</CardTitle>
             <CardDescription>
-              Join thousands of schools using TeachMate across Nigeria
+              Join TeachMate as a School, Teacher, or Student
             </CardDescription>
           </CardHeader>
           <CardContent>
+            <Tabs value={registrationType} onValueChange={(value) => setRegistrationType(value as 'school' | 'teacher' | 'student')} className="w-full">
+              <TabsList className="grid w-full grid-cols-3 rounded-xl">
+                <TabsTrigger value="school" className="rounded-lg">
+                  <School className="w-4 h-4 mr-2" />
+                  School
+                </TabsTrigger>
+                <TabsTrigger value="teacher" className="rounded-lg">
+                  <GraduationCap className="w-4 h-4 mr-2" />
+                  Teacher
+                </TabsTrigger>
+                <TabsTrigger value="student" className="rounded-lg">
+                  <Users className="w-4 h-4 mr-2" />
+                  Student
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="school" className="mt-6">
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="schoolName">School Name</Label>
@@ -76,6 +226,8 @@ export function SchoolRegistration({ onNavigate }: SchoolRegistrationProps) {
                   id="schoolName" 
                   placeholder="e.g., Government Secondary School"
                   className="rounded-xl"
+                  value={formData.schoolName}
+                  onChange={(e) => setFormData({...formData, schoolName: e.target.value})}
                   required
                 />
               </div>
@@ -83,7 +235,7 @@ export function SchoolRegistration({ onNavigate }: SchoolRegistrationProps) {
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="schoolType">School Type</Label>
-                  <Select required>
+                  <Select required onValueChange={(value) => setFormData({...formData, schoolType: value})}>
                     <SelectTrigger id="schoolType" className="rounded-xl">
                       <SelectValue placeholder="Select type" />
                     </SelectTrigger>
@@ -97,7 +249,7 @@ export function SchoolRegistration({ onNavigate }: SchoolRegistrationProps) {
 
                 <div className="space-y-2">
                   <Label htmlFor="state">State</Label>
-                  <Select required>
+                  <Select required onValueChange={(value) => setFormData({...formData, state: value})}>
                     <SelectTrigger id="state" className="rounded-xl">
                       <SelectValue placeholder="Select state" />
                     </SelectTrigger>
@@ -119,6 +271,8 @@ export function SchoolRegistration({ onNavigate }: SchoolRegistrationProps) {
                   id="lga" 
                   placeholder="e.g., Ikeja"
                   className="rounded-xl"
+                  value={formData.address}
+                  onChange={(e) => setFormData({...formData, address: e.target.value})}
                   required
                 />
               </div>
@@ -131,6 +285,8 @@ export function SchoolRegistration({ onNavigate }: SchoolRegistrationProps) {
                     type="email"
                     placeholder="admin@school.edu.ng"
                     className="rounded-xl"
+                    value={formData.email}
+                    onChange={(e) => setFormData({...formData, email: e.target.value})}
                     required
                   />
                 </div>
@@ -142,6 +298,8 @@ export function SchoolRegistration({ onNavigate }: SchoolRegistrationProps) {
                     type="tel"
                     placeholder="+234 XXX XXX XXXX"
                     className="rounded-xl"
+                    value={formData.contactPhone}
+                    onChange={(e) => setFormData({...formData, contactPhone: e.target.value})}
                     required
                   />
                 </div>
@@ -156,6 +314,8 @@ export function SchoolRegistration({ onNavigate }: SchoolRegistrationProps) {
                       id="adminName" 
                       placeholder="e.g., Dr. Adewale Johnson"
                       className="rounded-xl"
+                      value={formData.adminName}
+                      onChange={(e) => setFormData({...formData, adminName: e.target.value, fullName: e.target.value})}
                       required
                     />
                   </div>
@@ -165,7 +325,10 @@ export function SchoolRegistration({ onNavigate }: SchoolRegistrationProps) {
                     <Input 
                       id="password" 
                       type="password"
+                      placeholder="Create a strong password"
                       className="rounded-xl"
+                      value={formData.password}
+                      onChange={(e) => setFormData({...formData, password: e.target.value})}
                       required
                     />
                   </div>
@@ -175,17 +338,232 @@ export function SchoolRegistration({ onNavigate }: SchoolRegistrationProps) {
                     <Input 
                       id="confirmPassword" 
                       type="password"
+                      placeholder="Re-enter your password"
                       className="rounded-xl"
+                      value={formData.confirmPassword}
+                      onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
                       required
                     />
                   </div>
                 </div>
               </div>
 
-              <Button type="submit" className="w-full rounded-2xl" size="lg">
-                Create School Account
+                  <Button type="submit" className="w-full rounded-2xl" size="lg" disabled={isLoading}>
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Creating Account...
+                      </>
+                    ) : (
+                      'Create School Account'
+                    )}
+                  </Button>
+                </form>
+              </TabsContent>
+
+              <TabsContent value="teacher" className="mt-6">
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="schoolCode">School Code</Label>
+                    <Input 
+                      id="schoolCode" 
+                      placeholder="Enter your school code (e.g., TCN123456)"
+                      className="rounded-xl"
+                      value={formData.schoolCode}
+                      onChange={(e) => setFormData({...formData, schoolCode: e.target.value})}
+                      required
+                    />
+                    <p className="text-xs text-muted-foreground">Get this code from your school administrator</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="teacherName">Full Name</Label>
+                    <Input 
+                      id="teacherName" 
+                      placeholder="e.g., Mrs. Sarah Adebayo"
+                      className="rounded-xl"
+                      value={formData.fullName}
+                      onChange={(e) => setFormData({...formData, fullName: e.target.value})}
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="teacherEmail">Email Address</Label>
+                    <Input 
+                      id="teacherEmail" 
+                      type="email"
+                      placeholder="teacher@school.edu.ng"
+                      className="rounded-xl"
+                      value={formData.email}
+                      onChange={(e) => setFormData({...formData, email: e.target.value})}
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="subject">Subject Teaching</Label>
+                    <Select required onValueChange={(value) => setFormData({...formData, subjects: [value]})}>
+                      <SelectTrigger className="rounded-xl">
+                        <SelectValue placeholder="Select subject" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="mathematics">Mathematics</SelectItem>
+                        <SelectItem value="english">English</SelectItem>
+                        <SelectItem value="science">Science</SelectItem>
+                        <SelectItem value="social-studies">Social Studies</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="teacherPassword">Password</Label>
+                    <Input 
+                      id="teacherPassword" 
+                      type="password"
+                      placeholder="Create a strong password"
+                      className="rounded-xl"
+                      value={formData.password}
+                      onChange={(e) => setFormData({...formData, password: e.target.value})}
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="teacherConfirmPassword">Confirm Password</Label>
+                    <Input 
+                      id="teacherConfirmPassword" 
+                      type="password"
+                      placeholder="Re-enter your password"
+                      className="rounded-xl"
+                      value={formData.confirmPassword}
+                      onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
+                      required
+                    />
+                  </div>
+
+                  <Button type="submit" className="w-full rounded-2xl" size="lg" disabled={isLoading}>
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Creating Account...
+                      </>
+                    ) : (
+                      'Create Teacher Account'
+                    )}
+                  </Button>
+                </form>
+              </TabsContent>
+
+              <TabsContent value="student" className="mt-6">
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="classCode">Class Code</Label>
+                    <Input 
+                      id="classCode" 
+                      placeholder="Enter your class code (e.g., CLS1234)"
+                      className="rounded-xl"
+                      value={formData.classCode}
+                      onChange={(e) => setFormData({...formData, classCode: e.target.value})}
+                      required
+                    />
+                    <p className="text-xs text-muted-foreground">Get this code from your teacher</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="studentName">Full Name</Label>
+                    <Input 
+                      id="studentName" 
+                      placeholder="e.g., John Adebayo"
+                      className="rounded-xl"
+                      value={formData.fullName}
+                      onChange={(e) => setFormData({...formData, fullName: e.target.value})}
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="studentId">Student ID</Label>
+                    <Input 
+                      id="studentId" 
+                      placeholder="e.g., STU001"
+                      className="rounded-xl"
+                      value={formData.studentId}
+                      onChange={(e) => setFormData({...formData, studentId: e.target.value})}
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="classLevel">Class Level</Label>
+                    <Select required onValueChange={(value) => setFormData({...formData, classLevel: value})}>
+                      <SelectTrigger className="rounded-xl">
+                        <SelectValue placeholder="Select your class" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="jss1">JSS 1</SelectItem>
+                        <SelectItem value="jss2">JSS 2</SelectItem>
+                        <SelectItem value="jss3">JSS 3</SelectItem>
+                        <SelectItem value="sss1">SSS 1</SelectItem>
+                        <SelectItem value="sss2">SSS 2</SelectItem>
+                        <SelectItem value="sss3">SSS 3</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="studentEmail">Email Address</Label>
+                    <Input 
+                      id="studentEmail" 
+                      type="email"
+                      placeholder="student@school.edu.ng"
+                      className="rounded-xl"
+                      value={formData.email}
+                      onChange={(e) => setFormData({...formData, email: e.target.value})}
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="studentPassword">Password</Label>
+                    <Input 
+                      id="studentPassword" 
+                      type="password"
+                      placeholder="Create a strong password"
+                      className="rounded-xl"
+                      value={formData.password}
+                      onChange={(e) => setFormData({...formData, password: e.target.value})}
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="studentConfirmPassword">Confirm Password</Label>
+                    <Input 
+                      id="studentConfirmPassword" 
+                      type="password"
+                      placeholder="Re-enter your password"
+                      className="rounded-xl"
+                      value={formData.confirmPassword}
+                      onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
+                      required
+                    />
+                  </div>
+
+                  <Button type="submit" className="w-full rounded-2xl" size="lg" disabled={isLoading}>
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Creating Account...
+                      </>
+                    ) : (
+                      'Create Student Account'
+                    )}
               </Button>
             </form>
+              </TabsContent>
+            </Tabs>
           </CardContent>
         </Card>
       </div>

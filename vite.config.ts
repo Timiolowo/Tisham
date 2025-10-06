@@ -5,6 +5,8 @@
 
   export default defineConfig({
     plugins: [react()],
+    root: '.',
+    publicDir: 'public',
     resolve: {
       extensions: ['.js', '.jsx', '.ts', '.tsx', '.json'],
       alias: {
@@ -52,9 +54,18 @@
     build: {
       target: 'esnext',
       outDir: 'build',
+      emptyOutDir: true,
     },
+    assetsInclude: ['**/*.html'],
     server: {
       port: 3000,
       open: true,
+      proxy: {
+        '/.netlify/functions': {
+          target: 'http://localhost:8888',
+          changeOrigin: true,
+          secure: false,
+        },
+      },
     },
   });

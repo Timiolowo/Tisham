@@ -1,3 +1,20 @@
 {
-	"liveTunnelSlug": "9fa4f190"
+	"liveTunnelSlug": "9fa4f190",
+	"geolocation": {
+		"data": {
+			"city": "Lagos",
+			"country": {
+				"code": "NG",
+				"name": "Nigeria"
+			},
+			"subdivision": {
+				"code": "LA",
+				"name": "Lagos"
+			},
+			"timezone": "Africa/Lagos",
+			"latitude": 6.4474,
+			"longitude": 3.3903
+		},
+		"timestamp": 1759770303680
+	}
 }

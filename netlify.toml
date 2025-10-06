@@ -3,6 +3,14 @@
   command = "npm run build"
   publish = "build"
 
+[dev]
+  command = "npm run dev"
+  port = 8888
+  targetPort = 3000
+  autoLaunch = true
+  framework = "vite"
+  publish = "."
+
 # SPA routing - redirect all routes to index.html
 [[redirects]]
   from = "/*"
@@ -22,6 +30,17 @@
     X-XSS-Protection = "1; mode=block"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
+
+# Headers for JavaScript modules
+[[headers]]
+  for = "*.js"
+  [headers.values]
+    Content-Type = "application/javascript"
+
+[[headers]]
+  for = "*.mjs"
+  [headers.values]
+    Content-Type = "application/javascript"
 
 # Cache static assets
 [[headers]]

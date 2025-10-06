@@ -8,18 +8,25 @@ import { createClient } from '@supabase/supabase-js';
 // Get Supabase credentials from environment variables
 const supabaseUrl = (typeof import.meta.env !== 'undefined' && import.meta.env.VITE_SUPABASE_URL) || '';
 const supabaseAnonKey = (typeof import.meta.env !== 'undefined' && import.meta.env.VITE_SUPABASE_ANON_KEY) || '';
+const supabaseServiceKey = (typeof import.meta.env !== 'undefined' && import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY) || '';
 
-// Create Supabase client
+// Create Supabase client for regular operations (with RLS)
 export const supabase = createClient(
   supabaseUrl || 'https://placeholder.supabase.co', 
   supabaseAnonKey || 'placeholder-key'
+);
+
+// Create Supabase client for admin operations (bypasses RLS)
+export const supabaseAdmin = createClient(
+  supabaseUrl || 'https://placeholder.supabase.co', 
+  supabaseServiceKey || 'placeholder-service-key'
 );
 
 /**
  * Check if Supabase is configured
  */
 export function isSupabaseConfigured(): boolean {
-  return !!(supabaseUrl && supabaseAnonKey && !supabaseUrl.includes('placeholder'));
+  return !!(supabaseUrl && supabaseAnonKey && supabaseServiceKey && !supabaseUrl.includes('placeholder'));
 }
 
 // ============================================================================
@@ -30,8 +37,10 @@ export interface Profile {
   id: string;
   email: string;
   full_name: string;
-  role: 'admin' | 'teacher' | 'student';
-  school?: string;
+  role: 'school_admin' | 'teacher' | 'student';
+  school_id?: string;
+  teacher_id?: string;
+  student_id?: string;
   avatar_url?: string;
   
   // Student fields

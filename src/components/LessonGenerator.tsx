@@ -278,13 +278,13 @@ export function LessonGenerator({ onNavigate, onSave }: LessonGeneratorProps) {
             });
           } else {
             // Fallback for different formats
-            const activity = item.replace(/\([^)]*\)/g, '').trim();
+          const activity = item.replace(/\([^)]*\)/g, '').trim();
             console.log('Fallback step:', { time, activity, description: activity });
-            lessonSteps.push({
-              time,
-              activity,
-              description: activity
-            });
+          lessonSteps.push({
+            time,
+            activity,
+            description: activity
+          });
           }
         }
       } else if (currentSection === 'homework' && trimmedLine && !trimmedLine.toUpperCase().includes('HOMEWORK')) {

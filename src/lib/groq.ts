@@ -3,11 +3,10 @@
  * Handles all API calls to Groq LLM
  */
 
-import { getGroqApiKey } from './env';
 import { getTranslationPrompt, getSimplificationPrompt, getTeachingPrompt, getLessonGenerationPrompt, getQuizGenerationPrompt } from './prompts';
 
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const GROQ_API_KEY = getGroqApiKey();
+const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY || '';
 
 export interface Message {
   role: 'system' | 'user' | 'assistant';

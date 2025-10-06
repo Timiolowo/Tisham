@@ -6,7 +6,11 @@ import { Send, Mic, Copy, FileText, Sparkles, Loader2 } from "lucide-react";
 import { ScrollArea } from "./ui/scroll-area";
 import { toast } from "sonner";
 import { generateTeachingResponse, type Message as GroqMessage } from "../lib/groq";
-import { isApiKeyConfigured } from "../lib/env";
+// Check if Groq API key is configured
+const isApiKeyConfigured = () => {
+  const apiKey = import.meta.env.VITE_GROQ_API_KEY;
+  return !!(apiKey && apiKey !== '' && apiKey !== 'your_groq_api_key_here' && !apiKey.includes('placeholder'));
+};
 import { SharedLayout } from "./SharedLayout";
 
 interface CopilotChatProps {

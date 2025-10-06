@@ -4,7 +4,7 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
-import { Sparkles, GraduationCap, Users, Loader2 } from "lucide-react";
+import { Sparkles, GraduationCap, Users, School, Loader2 } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { toast } from "sonner@2.0.3";
 import { useAuth } from "../contexts/AuthContext";
@@ -15,41 +15,23 @@ interface LoginPageProps {
 
 export function LoginPage({ onNavigate }: LoginPageProps) {
   const { login } = useAuth();
-  const [teacherEmail, setTeacherEmail] = useState("");
-  const [teacherPassword, setTeacherPassword] = useState("");
-  const [studentId, setStudentId] = useState("");
-  const [studentPassword, setStudentPassword] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [selectedRole, setSelectedRole] = useState<'school_admin' | 'teacher' | 'student'>('teacher');
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleTeacherLogin = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     try {
-      await login(teacherEmail, teacherPassword, 'teacher');
-      toast.success("Welcome back, Teacher!");
-      onNavigate('dashboard', 'teacher');
+      await login(email, password, selectedRole);
+      const roleName = selectedRole === 'school_admin' ? 'School Admin' : 
+                      selectedRole === 'teacher' ? 'Teacher' : 'Student';
+      toast.success(`Welcome back, ${roleName}!`);
+      onNavigate('dashboard', selectedRole);
     } catch (error) {
       console.error('Login error:', error);
-      toast.error("Login failed. Using demo mode.");
-      // Still navigate for demo purposes
-      onNavigate('dashboard', 'teacher');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleStudentLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    try {
-      await login(studentId, studentPassword, 'student');
-      toast.success("Welcome back, Student!");
-      onNavigate('dashboard', 'student');
-    } catch (error) {
-      console.error('Login error:', error);
-      toast.error("Login failed. Using demo mode.");
-      // Still navigate for demo purposes
-      onNavigate('dashboard', 'student');
+      toast.error("Login failed. Please check your credentials.");
     } finally {
       setIsLoading(false);
     }
@@ -112,16 +94,67 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
         <Card className="rounded-3xl glass-card border-2 border-primary/10 shadow-2xl animate-slide-up">
           <CardContent className="p-6">
             <Tabs defaultValue="teacher" className="space-y-6">
-              <TabsList className="grid w-full grid-cols-2 rounded-2xl p-1">
-                <TabsTrigger value="teacher" className="rounded-xl">
+              <TabsList className="grid w-full grid-cols-3 rounded-2xl p-1">
+                <TabsTrigger value="school_admin" className="rounded-xl" onClick={() => setSelectedRole('school_admin')}>
+                  <School className="w-4 h-4 mr-2" />
+                  School Admin
+                </TabsTrigger>
+                <TabsTrigger value="teacher" className="rounded-xl" onClick={() => setSelectedRole('teacher')}>
                   <GraduationCap className="w-4 h-4 mr-2" />
                   Teacher
                 </TabsTrigger>
-                <TabsTrigger value="student" className="rounded-xl">
+                <TabsTrigger value="student" className="rounded-xl" onClick={() => setSelectedRole('student')}>
                   <Users className="w-4 h-4 mr-2" />
                   Student
                 </TabsTrigger>
               </TabsList>
+
+              {/* School Admin Login */}
+              <TabsContent value="school_admin" className="space-y-4 animate-fade-in">
+                <div className="space-y-2">
+                  <h3 className="text-lg font-semibold">School Admin Login</h3>
+                  <p className="text-sm text-muted-foreground">Manage your school and teachers</p>
+                </div>
+                
+                <form onSubmit={handleLogin} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email Address</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="admin@school.edu"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="rounded-xl"
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="password">Password</Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      placeholder="••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="rounded-xl"
+                      required
+                    />
+                  </div>
+
+                  <Button type="submit" className="w-full rounded-2xl gradient-primary" size="lg" disabled={isLoading}>
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Signing in...
+                      </>
+                    ) : (
+                      'Sign In as School Admin'
+                    )}
+                  </Button>
+                </form>
+              </TabsContent>
 
               {/* Teacher Login */}
               <TabsContent value="teacher" className="space-y-4 animate-fade-in">
@@ -130,28 +163,28 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
                   <p className="text-sm text-muted-foreground">Access your teaching dashboard</p>
                 </div>
                 
-                <form onSubmit={handleTeacherLogin} className="space-y-4">
+                <form onSubmit={handleLogin} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="teacher-email">Email Address</Label>
+                    <Label htmlFor="email">Email Address</Label>
                     <Input
-                      id="teacher-email"
+                      id="email"
                       type="email"
                       placeholder="teacher@school.edu"
-                      value={teacherEmail}
-                      onChange={(e) => setTeacherEmail(e.target.value)}
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
                       className="rounded-xl"
                       required
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="teacher-password">Password</Label>
+                    <Label htmlFor="password">Password</Label>
                     <Input
-                      id="teacher-password"
+                      id="password"
                       type="password"
                       placeholder="••••••••"
-                      value={teacherPassword}
-                      onChange={(e) => setTeacherPassword(e.target.value)}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
                       className="rounded-xl"
                       required
                     />
@@ -177,27 +210,28 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
                   <p className="text-sm text-muted-foreground">Start your learning journey</p>
                 </div>
                 
-                <form onSubmit={handleStudentLogin} className="space-y-4">
+                <form onSubmit={handleLogin} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="student-id">Student ID</Label>
+                    <Label htmlFor="email">Email Address</Label>
                     <Input
-                      id="student-id"
-                      placeholder="STU-12345"
-                      value={studentId}
-                      onChange={(e) => setStudentId(e.target.value)}
+                      id="email"
+                      type="email"
+                      placeholder="student@school.edu"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
                       className="rounded-xl"
                       required
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="student-password">Password</Label>
+                    <Label htmlFor="password">Password</Label>
                     <Input
-                      id="student-password"
+                      id="password"
                       type="password"
                       placeholder="••••••••"
-                      value={studentPassword}
-                      onChange={(e) => setStudentPassword(e.target.value)}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
                       className="rounded-xl"
                       required
                     />
@@ -217,7 +251,15 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
               </TabsContent>
             </Tabs>
 
-            <div className="mt-6 text-center">
+            <div className="mt-6 text-center space-y-2">
+              <Button 
+                variant="link" 
+                onClick={() => onNavigate('register')}
+                className="text-sm text-primary"
+              >
+                Don't have an account? Sign up
+              </Button>
+              <br />
               <Button 
                 variant="link" 
                 onClick={() => onNavigate('landing')}
@@ -228,19 +270,6 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
             </div>
           </CardContent>
         </Card>
-
-          {/* Demo Credentials */}
-          <Card className="mt-4 rounded-2xl glass-card border border-primary/20">
-            <CardContent className="p-4">
-              <p className="text-xs text-muted-foreground text-center mb-2">
-                <strong>Demo Credentials:</strong>
-              </p>
-              <div className="text-xs text-muted-foreground space-y-1">
-                <p>Teacher: any email / any password</p>
-                <p>Student: any ID / any password</p>
-              </div>
-            </CardContent>
-          </Card>
         </div>
       </div>
     </div>

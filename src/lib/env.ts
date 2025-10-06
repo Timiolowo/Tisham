@@ -1,43 +1,27 @@
-/**
- * Environment configuration utility
- * Safely access environment variables
- */
+// Environment Configuration
+// This file helps manage environment variables for Supabase
 
-/**
- * Get environment variable with fallback
- */
-export function getEnvVar(key: string, defaultValue: string = ''): string {
-  try {
-    if (typeof import.meta !== 'undefined' && import.meta.env) {
-      return import.meta.env[key] || defaultValue;
-    }
-    return defaultValue;
-  } catch (error) {
-    console.warn(`Failed to access environment variable: ${key}`, error);
-    return defaultValue;
-  }
-}
-
-/**
- * Check if API key is configured
- */
-export function isApiKeyConfigured(): boolean {
-  const key = getEnvVar('VITE_GROQ_API_KEY');
-  console.log('Checking API key:', key ? `${key.substring(0, 10)}...` : 'undefined');
-  const isConfigured = Boolean(key && key !== 'your_groq_api_key_here' && key !== '' && key.length > 10);
-  console.log('API key configured:', isConfigured);
-  return isConfigured;
-}
-
-/**
- * Get Groq API key
- */
-export function getGroqApiKey(): string | undefined {
-  const key = getEnvVar('VITE_GROQ_API_KEY');
+export const ENV_CONFIG = {
+  // Supabase Configuration
+  SUPABASE_URL: import.meta.env.VITE_SUPABASE_URL || '',
+  SUPABASE_ANON_KEY: import.meta.env.VITE_SUPABASE_ANON_KEY || '',
+  SUPABASE_SERVICE_ROLE_KEY: import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY || '',
   
-  if (!key || key === 'your_groq_api_key_here' || key === '') {
-    return undefined;
+  // Check if Supabase is properly configured
+  isConfigured: () => {
+    const url = import.meta.env.VITE_SUPABASE_URL;
+    const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    const serviceKey = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
+    return !!(url && anonKey && serviceKey && !url.includes('placeholder') && !anonKey.includes('placeholder') && !serviceKey.includes('placeholder'));
   }
+};
+
+// Development helper
+export const DEV_CONFIG = {
+  // Set to true to enable development mode with mock data
+  USE_MOCK_AUTH: false, // Set to true only for testing without Supabase
   
-  return key;
-}
+  // Development Supabase project (replace with your actual values)
+  DEV_SUPABASE_URL: 'https://your-project-id.supabase.co',
+  DEV_SUPABASE_ANON_KEY: 'your-anon-key-here'
+};

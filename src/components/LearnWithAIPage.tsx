@@ -14,7 +14,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner@2.0.3";
 import { explainConcept } from "../lib/groq";
-import { getGroqApiKey } from "../lib/env";
+// Get Groq API key from environment
+const getGroqApiKey = () => import.meta.env.VITE_GROQ_API_KEY || '';
 import { saveQuizResult, saveStudentProgress, isSupabaseConfigured } from "../lib/supabase";
 
 interface LearnWithAIPageProps {

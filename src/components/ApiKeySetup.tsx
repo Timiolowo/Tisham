@@ -3,7 +3,11 @@ import { Alert, AlertDescription } from "./ui/alert";
 import { AlertCircle, ExternalLink, Key, RefreshCw } from "lucide-react";
 import { Button } from "./ui/button";
 import { useState } from "react";
-import { isApiKeyConfigured } from "../lib/env";
+// Check if Groq API key is configured
+const isApiKeyConfigured = () => {
+  const apiKey = import.meta.env.VITE_GROQ_API_KEY;
+  return !!(apiKey && apiKey !== '' && apiKey !== 'your_groq_api_key_here' && !apiKey.includes('placeholder'));
+};
 
 export function ApiKeySetup() {
   return (

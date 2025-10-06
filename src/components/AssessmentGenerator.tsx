@@ -10,7 +10,11 @@ import { toast } from "sonner@2.0.3";
 import type { LessonPlan } from "../App";
 import { SharedLayout } from "./SharedLayout";
 import { generateQuiz } from "../lib/groq";
-import { isApiKeyConfigured } from "../lib/env";
+// Check if Groq API key is configured
+const isApiKeyConfigured = () => {
+  const apiKey = import.meta.env.VITE_GROQ_API_KEY;
+  return !!(apiKey && apiKey !== '' && apiKey !== 'your_groq_api_key_here' && !apiKey.includes('placeholder'));
+};
 
 interface AssessmentGeneratorProps {
   onNavigate: (page: any, role?: any) => void;
@@ -631,8 +635,8 @@ export function AssessmentGenerator({ onNavigate, lessonPlan }: AssessmentGenera
                               <div className="p-3 bg-green-50 border border-green-200 rounded-lg overflow-hidden">
                                 <p className="text-sm text-green-800 break-words">
                                   <span className="font-semibold">Correct Answer: </span>
-                                  {q.answer}
-                                </p>
+                                {q.answer}
+                              </p>
                               </div>
                               
                               {q.explanation && (
