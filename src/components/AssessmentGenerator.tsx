@@ -142,150 +142,69 @@ export function AssessmentGenerator({ onNavigate, lessonPlan }: AssessmentGenera
     const lines = content.split('\n').filter(line => line.trim());
     const questions: any[] = [];
     
-    // Look for question patterns and create simple questions
+    // Look for structured format: ### Question X: followed by numbered sections
     let questionCount = 0;
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i].trim();
       
-      // Look for lines that are clearly questions - must end with ? and not be explanations
-      if (line.includes('?') && 
-          !line.toLowerCase().includes('explanation') && 
-          !line.toLowerCase().includes('because') &&
-          !line.toLowerCase().includes('telling us') &&
-          !line.toLowerCase().includes('shows the action') &&
-          !line.toLowerCase().includes('modifies the') &&
-          line.length > 20) { // Must be a substantial question
+      // Look for question headers like "### Question 1:" or "Question 1:"
+      if (line.match(/^### Question \d+:|^Question \d+:/)) {
         questionCount++;
         
         // Create a simple question structure
         const question = {
           type: "mcq",
-          question: line.replace(/^\d+\.\s*/, '').replace(/^\*\*Question\*\*:\s*/, ''),
-          options: [
-            "A: Option A",
-            "B: Option B", 
-            "C: Option C",
-            "D: Option D"
-          ],
-          answer: "A: Option A",
-          explanation: ""
+          question: '',
+          options: [],
+          answer: '',
+          explanation: ''
         };
         
-        // Additional validation - make sure this looks like a real question
-        if (question.question.length < 10 || 
-            question.question.toLowerCase().includes('explanation') ||
-            question.question.toLowerCase().includes('because')) {
-          console.log('Skipping invalid question:', question.question);
-          continue;
-        }
-        
-        // Try to find options in the next few lines
-        for (let j = i + 1; j < Math.min(i + 15, lines.length); j++) {
+        // Look for the numbered sections in the next few lines
+        for (let j = i + 1; j < Math.min(i + 20, lines.length); j++) {
           const nextLine = lines[j].trim();
           
-          // Look for option patterns: A:, B:, C:, D: or A), B), C), D) or - A:, - B:, etc.
-          if (nextLine.match(/^[A-D]:|^[A-D]\)|^-\s*[A-D]:|^[A-D]\./)) {
-            question.options = [];
-            
-            // Collect all options starting from this line
-            for (let k = j; k < Math.min(j + 10, lines.length); k++) {
+          // Section 1: Question
+          if (nextLine.match(/^1\.\s*\*\*Question\*\*:/)) {
+            question.question = nextLine.replace(/^1\.\s*\*\*Question\*\*:\s*/, '');
+          }
+          // Section 2: Answer Options
+          else if (nextLine.match(/^2\.\s*\*\*Answer Options\*\*:/)) {
+            // Collect options in the next few lines
+            for (let k = j + 1; k < Math.min(j + 10, lines.length); k++) {
               const optionLine = lines[k].trim();
-              
-              // Match various option formats - be more strict
-              if (optionLine.match(/^[A-D]:|^[A-D]\)|^-\s*[A-D]:|^[A-D]\./) && 
-                  optionLine.length > 3 && // Must have some content after the letter
-                  !optionLine.match(/^[A-D]:\s*$/) && // Not just "A:" with nothing
-                  !optionLine.match(/^[A-D]:\s*[A-D]/)) { // Not "A: B" (likely wrong parsing)
-                
-                // Clean up the option format
-                let cleanOption = optionLine
-                  .replace(/^-\s*/, '') // Remove leading dash
-                  .replace(/^[A-D]\.\s*/, (match) => match.replace('.', ': ')) // Convert A. to A:
-                  .replace(/^[A-D]\)\s*/, (match) => match.replace(')', ': ')); // Convert A) to A:
-                
+              // Match options with dashes: - A:, - B:, etc.
+              if (optionLine.match(/^-\s*[A-D]:/)) {
+                // Remove the dash and clean up
+                const cleanOption = optionLine.replace(/^-\s*/, '');
                 question.options.push(cleanOption);
-              } else if (optionLine && !optionLine.match(/^\d+\.|^###|^Question|^Answer|^Correct/)) {
-                // Stop if we hit a non-option line that's not a section header
+              } else if (optionLine && !optionLine.match(/^\d+\.|^###|^Question/)) {
                 break;
               }
             }
-            
-            // If we found options, we're done
-            if (question.options.length > 0) {
-              break;
+          }
+          // Section 3: Correct Answer
+          else if (nextLine.match(/^3\.\s*\*\*Correct Answer\*\*:/)) {
+            const answerLine = nextLine.replace(/^3\.\s*\*\*Correct Answer\*\*:\s*/, '');
+            // Extract just the letter
+            const letterMatch = answerLine.match(/^([A-D])/);
+            if (letterMatch) {
+              question.answer = letterMatch[1];
+            } else {
+              question.answer = answerLine;
             }
           }
-        }
-        
-        // Try to find answer in the next few lines
-        for (let j = i + 1; j < Math.min(i + 20, lines.length); j++) {
-          const nextLine = lines[j].trim();
-          if (nextLine.toLowerCase().includes('correct answer') || nextLine.toLowerCase().includes('answer:')) {
-            // Extract answer from this line or next line
-            let answerLine = '';
-            
-            if (nextLine.includes(':')) {
-              // Answer is in the same line after colon
-              answerLine = nextLine.split(':').slice(1).join(':').trim();
-            } else if (j + 1 < lines.length) {
-              // Answer might be in the next line
-              answerLine = lines[j + 1].trim();
-            }
-            
-            // Clean up the answer - extract just the letter (A, B, C, D)
-            if (answerLine) {
-              // Remove any leading text like "Answer:", "Correct Answer:", etc.
-              answerLine = answerLine.replace(/^(Answer|Correct Answer|Answer is):\s*/i, '');
-              
-              // Extract just the letter from formats like "B: 4" or "B)" or "B"
-              const letterMatch = answerLine.match(/^([A-D])/);
-              if (letterMatch) {
-                question.answer = letterMatch[1];
-                console.log('Found answer:', question.answer, 'from line:', answerLine);
-              } else {
-                question.answer = answerLine;
-              }
-            }
-            break;
+          // Section 4: Explanation
+          else if (nextLine.match(/^4\.\s*\*\*Explanation\*\*:/)) {
+            question.explanation = nextLine.replace(/^4\.\s*\*\*Explanation\*\*:\s*/, '');
           }
-        }
-        
-        // Try to find explanation in the next few lines - be more specific
-        for (let j = i + 1; j < Math.min(i + 15, lines.length); j++) {
-          const nextLine = lines[j].trim();
-          
-          // Look for explanation that's clearly part of this question
-          if (nextLine.match(/^\d+\.\s*\*\*Explanation\*\*:/) || 
-              nextLine.match(/^Explanation:/) ||
-              (nextLine.toLowerCase().includes('explanation') && nextLine.includes(':'))) {
-            
-            // Extract explanation from this line or next line
-            let explanationLine = '';
-            
-            if (nextLine.includes(':')) {
-              // Explanation is in the same line after colon
-              explanationLine = nextLine.split(':').slice(1).join(':').trim();
-            } else if (j + 1 < lines.length) {
-              // Explanation might be in the next line
-              explanationLine = lines[j + 1].trim();
-            }
-            
-            // Clean up the explanation
-            if (explanationLine) {
-              // Remove any leading text like "Explanation:", "Explanation is:", etc.
-              explanationLine = explanationLine.replace(/^(Explanation|Explanation is):\s*/i, '');
-              question.explanation = explanationLine;
-              console.log('Found explanation for question:', question.question.substring(0, 50), 'explanation:', explanationLine.substring(0, 50));
-            }
-            break;
-          }
-          
           // Stop if we hit the next question
-          if (nextLine.match(/^### Question|^Question \d+:/)) {
+          else if (nextLine.match(/^### Question|^Question \d+:/)) {
             break;
           }
         }
         
+        console.log('Parsed question:', question);
         questions.push(question);
         
         // Limit to reasonable number of questions
