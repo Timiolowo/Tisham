@@ -106,15 +106,16 @@ export function CopilotChat({ onNavigate }: CopilotChatProps) {
     <SharedLayout 
       onNavigate={onNavigate}
       userRole="teacher"
-      title="TeachMate AI"
+      title="TeCHATer"
       subtitle="Your AI Teaching Assistant"
+      activeMenu="copilot"
     >
 
       {/* Chat Area */}
       <div className="flex-1 overflow-hidden flex flex-col">
-        <div className="max-w-4xl mx-auto w-full flex-1 flex flex-col p-4 sm:p-6">
+        <div className="max-w-4xl mx-auto w-full flex-1 flex flex-col">
           {/* Chat Interface - Always show */}
-          <ScrollArea className="flex-1 pr-2 sm:pr-4" ref={scrollAreaRef}>
+          <ScrollArea className="flex-1 pr-2 sm:pr-4 p-4 sm:p-6" ref={scrollAreaRef}>
               <div className="space-y-4 sm:space-y-6 pb-6">
                 {/* Sample Prompts - Show only when no messages */}
                 {messages.length === 1 && (
@@ -154,11 +155,6 @@ export function CopilotChat({ onNavigate }: CopilotChatProps) {
                     message.role === 'user' ? 'flex-row-reverse' : ''
                   } animate-fade-in`}
                 >
-                  {message.role === 'assistant' && (
-                    <div className="w-8 h-8 bg-gradient-to-br from-secondary to-primary rounded-full flex items-center justify-center flex-shrink-0">
-                      <Sparkles className="w-4 h-4 text-white" />
-                    </div>
-                  )}
                   
                   <div className={`flex flex-col ${message.role === 'user' ? 'items-end' : 'items-start'} max-w-[85%] sm:max-w-[80%]`}>
                     <Card className={`rounded-2xl ${
@@ -167,7 +163,50 @@ export function CopilotChat({ onNavigate }: CopilotChatProps) {
                         : 'glass-card'
                     }`}>
                       <CardContent className="p-3 sm:p-4">
-                        <p className="whitespace-pre-wrap text-sm sm:text-base">{message.content}</p>
+                        <div className="whitespace-pre-wrap text-sm sm:text-base leading-relaxed">
+                          {message.content.split('\n').map((line, index) => {
+                            // Format bullet points and numbered lists
+                            if (line.trim().startsWith('✅') || line.trim().startsWith('•') || line.trim().startsWith('-')) {
+                              return (
+                                <div key={index} className="flex items-start gap-2 mb-1">
+                                  <span className="text-primary font-semibold mt-0.5">•</span>
+                                  <span>{line.trim().replace(/^[✅•\-]\s*/, '')}</span>
+                                </div>
+                              );
+                            }
+                            // Format headers (lines that are all caps or start with #)
+                            if (line.trim().match(/^[A-Z\s]+$/) && line.trim().length > 3) {
+                              return (
+                                <div key={index} className="font-semibold text-primary mb-2 mt-3 first:mt-0">
+                                  {line.trim()}
+                                </div>
+                              );
+                            }
+                            // Format bold text (text between **)
+                            if (line.includes('**')) {
+                              const parts = line.split(/(\*\*.*?\*\*)/g);
+                              return (
+                                <div key={index} className="mb-1">
+                                  {parts.map((part, partIndex) => 
+                                    part.startsWith('**') && part.endsWith('**') ? (
+                                      <strong key={partIndex} className="font-semibold text-primary">
+                                        {part.slice(2, -2)}
+                                      </strong>
+                                    ) : (
+                                      <span key={partIndex}>{part}</span>
+                                    )
+                                  )}
+                                </div>
+                              );
+                            }
+                            // Regular text
+                            return line.trim() ? (
+                              <div key={index} className="mb-1">{line}</div>
+                            ) : (
+                              <div key={index} className="mb-2"></div>
+                            );
+                          })}
+                        </div>
                       </CardContent>
                     </Card>
                     
@@ -200,20 +239,12 @@ export function CopilotChat({ onNavigate }: CopilotChatProps) {
                     )}
                   </div>
 
-                  {message.role === 'user' && (
-                    <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center flex-shrink-0">
-                      <span>👤</span>
-                    </div>
-                  )}
                 </div>
               ))}
 
               {/* Loading Indicator */}
               {isLoading && (
-                <div className="flex gap-3 animate-fade-in">
-                  <div className="w-8 h-8 bg-gradient-to-br from-secondary to-primary rounded-full flex items-center justify-center flex-shrink-0">
-                    <Sparkles className="w-4 h-4 text-white" />
-                  </div>
+                <div className="flex animate-fade-in">
                   <Card className="glass-card rounded-2xl">
                     <CardContent className="p-3 sm:p-4">
                       <div className="flex items-center gap-2">
@@ -227,8 +258,8 @@ export function CopilotChat({ onNavigate }: CopilotChatProps) {
               </div>
             </ScrollArea>
 
-          {/* Input Area - Always show */}
-            <div className="mt-4 pt-4 border-t">
+          {/* Input Area - Fixed at bottom */}
+          <div className="sticky bottom-0 bg-background/95 backdrop-blur-sm border-t p-4 sm:p-6">
             <Card className="rounded-3xl glass-card">
               <CardContent className="p-3">
                 <div className="flex items-end gap-2">
@@ -260,11 +291,7 @@ export function CopilotChat({ onNavigate }: CopilotChatProps) {
                 </div>
               </CardContent>
             </Card>
-
-              <p className="text-xs text-center text-muted-foreground mt-2">
-                Powered by Groq AI • Press Enter to send, Shift+Enter for new line
-              </p>
-            </div>
+          </div>
         </div>
       </div>
     </SharedLayout>

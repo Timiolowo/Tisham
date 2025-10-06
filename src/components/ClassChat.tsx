@@ -7,8 +7,9 @@ import { ScrollArea } from "./ui/scroll-area";
 import { Badge } from "./ui/badge";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "./ui/sheet";
 import { 
-  ArrowLeft, Send, Paperclip, Smile, Users, Search, Loader2, ChevronLeft, ChevronRight, Menu
+  Send, Paperclip, Smile, Users, Search, Loader2, ChevronLeft, ChevronRight
 } from "lucide-react";
+import { SharedLayout } from "./SharedLayout";
 import { useAuth } from "../contexts/AuthContext";
 import { 
   getChatMessages, 
@@ -19,7 +20,7 @@ import {
 import { toast } from "sonner@2.0.3";
 
 interface ClassChatProps {
-  onBack: () => void;
+  onNavigate: (page: any, role?: any) => void;
 }
 
 interface Message {
@@ -31,7 +32,7 @@ interface Message {
   isCurrentUser?: boolean;
 }
 
-export function ClassChat({ onBack }: ClassChatProps) {
+export function ClassChat({ onNavigate }: ClassChatProps) {
   const { user } = useAuth();
   const [message, setMessage] = useState("");
   const [currentClassIndex, setCurrentClassIndex] = useState(0);
@@ -190,77 +191,21 @@ export function ClassChat({ onBack }: ClassChatProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background flex flex-col">
-      {/* Header */}
-      <header className="bg-card/80 backdrop-blur-sm border-b px-4 sm:px-6 py-4 flex-shrink-0">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3 flex-1 min-w-0">
-              <Button variant="ghost" size="icon" onClick={onBack} className="md:hidden">
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
-              
-              {/* Mobile Class Selector Sheet */}
-              <Sheet>
-                <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon" className="md:hidden">
-                    <Menu className="w-5 h-5" />
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="left" className="w-[280px]">
-                  <SheetHeader>
-                    <SheetTitle>My Classes</SheetTitle>
-                  </SheetHeader>
-                  <ScrollArea className="h-[calc(100vh-100px)] mt-6">
-                    <div className="space-y-2">
-                      {classes.map((cls, idx) => (
-                        <Button
-                          key={cls.id}
-                          variant={idx === currentClassIndex ? "default" : "ghost"}
-                          size="sm"
-                          onClick={() => setCurrentClassIndex(idx)}
-                          className="w-full justify-start rounded-xl"
-                        >
-                          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center mr-3 flex-shrink-0">
-                            <Users className="w-4 h-4 text-primary" />
-                          </div>
-                          <div className="flex-1 text-left min-w-0">
-                            <p className="text-sm font-medium truncate">{cls.name}</p>
-                            <p className="text-xs text-muted-foreground">{cls.students} students</p>
-                          </div>
-                        </Button>
-                      ))}
-                    </div>
-                  </ScrollArea>
-                </SheetContent>
-              </Sheet>
-              
-              <div className="flex items-center gap-3 flex-1 min-w-0">
-                <div className="w-10 h-10 rounded-full gradient-primary flex items-center justify-center flex-shrink-0">
-                  <Users className="w-5 h-5 text-white" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h1 className="text-base sm:text-lg font-semibold truncate">{currentClass?.name}</h1>
-                  <p className="text-xs text-muted-foreground truncate">{currentClass?.students} students online</p>
-                </div>
-              </div>
-            </div>
-            <Button variant="ghost" size="icon" className="flex-shrink-0 hidden sm:flex">
-              <Search className="w-5 h-5" />
-            </Button>
-          </div>
-        </div>
-      </header>
+    <SharedLayout 
+      onNavigate={onNavigate}
+      userRole="teacher"
+      title={currentClass?.name || "Class Chat"}
+      subtitle={`${currentClass?.students || 0} students online`}
+      hideHeaderIcons={true}
+      activeMenu="class-chat"
+    >
 
       {/* Main Content Area with Sidebar */}
       <div className="flex-1 overflow-hidden flex">
         {/* Sidebar - Class List (Desktop only) */}
         <div className="hidden md:flex md:w-64 lg:w-72 bg-card/50 backdrop-blur-sm border-r flex-col">
           <div className="p-4 border-b">
-            <Button variant="ghost" size="sm" onClick={onBack} className="w-full justify-start">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back
-            </Button>
+            <h3 className="text-sm font-medium text-muted-foreground">My Classes</h3>
           </div>
           <ScrollArea className="flex-1">
             <div className="p-3 space-y-2">
@@ -375,6 +320,6 @@ export function ClassChat({ onBack }: ClassChatProps) {
         </div>
         </div>
       </div>
-    </div>
+    </SharedLayout>
   );
 }

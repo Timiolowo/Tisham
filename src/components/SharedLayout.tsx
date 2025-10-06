@@ -11,10 +11,12 @@ interface SharedLayoutProps {
   userRole: 'teacher' | 'student';
   title: string;
   subtitle: string;
+  hideHeaderIcons?: boolean;
+  activeMenu?: string;
 }
 
-export function SharedLayout({ children, onNavigate, userRole, title, subtitle }: SharedLayoutProps) {
-  const [activeMenu, setActiveMenu] = useState('dashboard');
+export function SharedLayout({ children, onNavigate, userRole, title, subtitle, hideHeaderIcons = false, activeMenu: propActiveMenu }: SharedLayoutProps) {
+  const [activeMenu, setActiveMenu] = useState(propActiveMenu || 'dashboard');
 
   const Sidebar = ({ mobile = false }: { mobile?: boolean }) => (
     <SharedSidebar 
@@ -67,13 +69,17 @@ export function SharedLayout({ children, onNavigate, userRole, title, subtitle }
               <div className="hidden md:block">
                 <ThemeToggle />
               </div>
-              <Button variant="ghost" size="icon" className="relative">
-                <Bell className="w-4 h-4" />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-accent rounded-full"></span>
-              </Button>
-              <Button variant="ghost" size="icon">
-                <User className="w-4 h-4" />
-              </Button>
+              {!hideHeaderIcons && (
+                <>
+                  <Button variant="ghost" size="icon" className="relative">
+                    <Bell className="w-4 h-4" />
+                    <span className="absolute top-1 right-1 w-2 h-2 bg-accent rounded-full"></span>
+                  </Button>
+                  <Button variant="ghost" size="icon">
+                    <User className="w-4 h-4" />
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </header>

@@ -79,7 +79,9 @@ export function SimplifyTranslate({ onNavigate }: SimplifyTranslateProps) {
       onNavigate={onNavigate}
       userRole="teacher"
       title="Simplify & Translate"
-      subtitle="Make content accessible for all students and translate to local languages"
+      subtitle="Simplify content and translate to local languages"
+      hideHeaderIcons={true}
+      activeMenu="simplify"
     >
 
       <main className="max-w-7xl mx-auto p-4 sm:p-6">

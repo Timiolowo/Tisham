@@ -397,6 +397,8 @@ export function LessonGenerator({ onNavigate, onSave }: LessonGeneratorProps) {
       userRole="teacher"
       title="Generate Lesson Plan"
       subtitle="AI-powered lesson planning for the new curriculum"
+      hideHeaderIcons={true}
+      activeMenu="lesson-generator"
     >
       <main className="max-w-7xl mx-auto p-4 sm:p-6">
         <div className="grid lg:grid-cols-2 gap-6">

@@ -362,8 +362,10 @@ export function AssessmentGenerator({ onNavigate, lessonPlan }: AssessmentGenera
       userRole="teacher"
       title="Create Assessment"
       subtitle="Generate quizzes and tests aligned with your lessons"
+      hideHeaderIcons={true}
+      activeMenu="assessment"
     >
-      <div>
+      <main className="max-w-7xl mx-auto p-4 sm:p-6">
         {lessonPlan && (
           <div className="mb-6 p-4 bg-primary/10 border border-primary/20 rounded-2xl">
             <p className="text-sm">
@@ -372,13 +374,13 @@ export function AssessmentGenerator({ onNavigate, lessonPlan }: AssessmentGenera
           </div>
         )}
         
-        <div className="grid lg:grid-cols-2 gap-6">
+        <div className="grid lg:grid-cols-2 gap-4 lg:gap-6">
           {/* Input Section */}
-          <Card className="rounded-2xl h-fit lg:sticky lg:top-6">
+          <Card className="rounded-2xl h-fit lg:sticky lg:top-6 order-2 lg:order-1">
             <CardHeader>
               <CardTitle>Assessment Details</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 overflow-x-hidden">
               
               <div className="space-y-2">
                 <Label htmlFor="subject">Subject</Label>
@@ -499,7 +501,7 @@ export function AssessmentGenerator({ onNavigate, lessonPlan }: AssessmentGenera
           </Card>
 
           {/* Output Section */}
-          <div className="space-y-4">
+          <div className="space-y-4 order-1 lg:order-2">
             {!generated && !generating && (
               <Card className="rounded-2xl border-dashed border-2">
                 <CardContent className="p-12 text-center">
@@ -526,7 +528,7 @@ export function AssessmentGenerator({ onNavigate, lessonPlan }: AssessmentGenera
 
             {generated && (
               <>
-                <div className="flex flex-col sm:flex-row gap-3">
+                <div className="grid grid-cols-2 sm:flex gap-3">
                   <Button 
                     variant="outline" 
                     className="rounded-xl flex-1"
@@ -535,12 +537,14 @@ export function AssessmentGenerator({ onNavigate, lessonPlan }: AssessmentGenera
                     {showAnswers ? (
                       <>
                         <EyeOff className="w-4 h-4 mr-2" />
-                        Hide Answers
+                        <span className="hidden sm:inline">Hide Answers</span>
+                        <span className="sm:hidden">Hide</span>
                       </>
                     ) : (
                       <>
                         <Eye className="w-4 h-4 mr-2" />
-                        Show Answers
+                        <span className="hidden sm:inline">Show Answers</span>
+                        <span className="sm:hidden">Show</span>
                       </>
                     )}
                   </Button>
@@ -550,7 +554,8 @@ export function AssessmentGenerator({ onNavigate, lessonPlan }: AssessmentGenera
                     onClick={handleExportCSV}
                   >
                     <Download className="w-4 h-4 mr-2" />
-                    Export CSV
+                    <span className="hidden sm:inline">Export CSV</span>
+                    <span className="sm:hidden">CSV</span>
                   </Button>
                   <Button 
                     variant="outline" 
@@ -558,16 +563,17 @@ export function AssessmentGenerator({ onNavigate, lessonPlan }: AssessmentGenera
                     onClick={handleExportPDF}
                   >
                     <FileText className="w-4 h-4 mr-2" />
-                    Export PDF
+                    <span className="hidden sm:inline">Export PDF</span>
+                    <span className="sm:hidden">PDF</span>
                   </Button>
                 </div>
 
 
                 <Card className="rounded-2xl">
                   <CardHeader className="border-b">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <CardTitle>{topic || "Introduction to Robotics"} - Assessment</CardTitle>
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                      <div className="flex-1">
+                        <CardTitle className="text-lg sm:text-xl">{topic || "Introduction to Robotics"} - Assessment</CardTitle>
                         <p className="text-sm text-muted-foreground mt-1">
                           {subject || "Computer Science"} • {classLevel} • {difficulty.charAt(0).toUpperCase() + difficulty.slice(1)} Level
                           {!isApiKeyConfigured() ? (
@@ -577,14 +583,14 @@ export function AssessmentGenerator({ onNavigate, lessonPlan }: AssessmentGenera
                           )}
                         </p>
                       </div>
-                      <div className="text-right">
+                      <div className="text-left sm:text-right">
                         <p className="text-sm text-muted-foreground">Total Marks</p>
-                        <p className="text-base">{questions.reduce((sum, q) => sum + (q.marks || 1), 0)}</p>
+                        <p className="text-base font-semibold">{questions.reduce((sum, q) => sum + (q.marks || 1), 0)}</p>
                       </div>
                     </div>
                   </CardHeader>
-                  <CardContent className="p-6">
-                    <div className="space-y-6">
+                  <CardContent className="p-4 sm:p-6 overflow-x-hidden">
+                    <div className="space-y-4 sm:space-y-6">
                       <div>
                         <p className="mb-4 text-sm text-muted-foreground">
                           Instructions: Answer all questions. Each question carries 2 marks.
@@ -592,22 +598,22 @@ export function AssessmentGenerator({ onNavigate, lessonPlan }: AssessmentGenera
                       </div>
 
                       {questions.map((q, i) => (
-                        <div key={i} className="border-b pb-6 last:border-b-0">
+                        <div key={i} className="border-b pb-4 sm:pb-6 last:border-b-0">
                           <div className="flex gap-3 mb-3">
-                            <span className="flex-shrink-0 w-8 h-8 bg-primary/10 text-primary rounded-lg flex items-center justify-center font-semibold">
+                            <span className="flex-shrink-0 w-8 h-8 bg-primary/10 text-primary rounded-lg flex items-center justify-center font-semibold text-sm">
                               {i + 1}
                             </span>
-                            <p className="flex-1 pt-1">{q.question}</p>
+                            <p className="flex-1 pt-1 text-sm sm:text-base leading-relaxed">{q.question}</p>
                           </div>
 
                           {q.type === "mcq" && q.options && (
-                            <div className="ml-11 space-y-2">
+                            <div className="ml-8 sm:ml-11 space-y-2">
                               {q.options.map((option, j) => (
                                 <div 
                                   key={j}
-                                  className="p-3 rounded-lg border bg-muted/30"
+                                  className="p-3 rounded-lg border bg-muted/30 text-sm sm:text-base overflow-hidden"
                                 >
-                                  <p>{option}</p>
+                                  <p className="break-words hyphens-auto">{option}</p>
                                 </div>
                               ))}
                             </div>
@@ -621,17 +627,17 @@ export function AssessmentGenerator({ onNavigate, lessonPlan }: AssessmentGenera
                           )}
 
                           {showAnswers && (
-                            <div className="ml-11 mt-3 space-y-3">
-                              <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                                <p className="text-sm text-green-800">
+                            <div className="ml-8 sm:ml-11 mt-3 space-y-3">
+                              <div className="p-3 bg-green-50 border border-green-200 rounded-lg overflow-hidden">
+                                <p className="text-sm text-green-800 break-words">
                                   <span className="font-semibold">Correct Answer: </span>
                                   {q.answer}
                                 </p>
                               </div>
                               
                               {q.explanation && (
-                                <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                                  <p className="text-sm text-blue-800">
+                                <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg overflow-hidden">
+                                  <p className="text-sm text-blue-800 leading-relaxed break-words hyphens-auto">
                                     <span className="font-semibold">Explanation: </span>
                                     {q.explanation}
                                   </p>
@@ -657,7 +663,7 @@ export function AssessmentGenerator({ onNavigate, lessonPlan }: AssessmentGenera
             )}
           </div>
         </div>
-      </div>
+      </main>
     </SharedLayout>
   );
 }

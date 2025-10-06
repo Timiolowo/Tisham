@@ -3,14 +3,14 @@ import { Card, CardContent } from "./ui/card";
 import { Button } from "./ui/button";
 import { Progress } from "./ui/progress";
 import { Badge } from "./ui/badge";
-import { ArrowLeft, Award, Clock, CheckCircle2, Lock, Play, Download } from "lucide-react";
+import { Award, Clock, CheckCircle2, Lock, Play, Download } from "lucide-react";
+import { SharedLayout } from "./SharedLayout";
 
 interface LearningPathwayProps {
-  onBack: () => void;
-  onNavigate?: (page: string) => void;
+  onNavigate: (page: any, role?: any) => void;
 }
 
-export function LearningPathway({ onBack, onNavigate }: LearningPathwayProps) {
+export function LearningPathway({ onNavigate }: LearningPathwayProps) {
   const [completedModules] = useState(() => {
     const saved = localStorage.getItem('teacherCompletedModules');
     return saved ? JSON.parse(saved) : [];
@@ -85,29 +85,14 @@ export function LearningPathway({ onBack, onNavigate }: LearningPathwayProps) {
   const allCompleted = completedCount === totalModules;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background">
-      <header className="bg-card/80 backdrop-blur-sm border-b px-4 sm:px-6 py-4 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={onBack}>
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <div className="flex-1">
-            <h1 className="text-xl sm:text-base truncate">Learning Pathway</h1>
-            <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">
-              Professional Development Modules
-            </p>
-          </div>
-          {allCompleted && (
-            <Button 
-              onClick={() => onNavigate?.('certificate')}
-              className="rounded-2xl gradient-success hidden sm:flex"
-            >
-              <Download className="w-4 h-4 mr-2" />
-              Certificate
-            </Button>
-          )}
-        </div>
-      </header>
+    <SharedLayout 
+      onNavigate={onNavigate}
+      userRole="teacher"
+      title="Learning Pathway"
+      subtitle="Professional Development Modules"
+      hideHeaderIcons={true}
+      activeMenu="pathway"
+    >
 
       <main className="max-w-7xl mx-auto p-4 sm:p-6 space-y-6">
         {/* Progress Card */}
@@ -155,6 +140,19 @@ export function LearningPathway({ onBack, onNavigate }: LearningPathwayProps) {
               </div>
             </CardContent>
           </Card>
+        )}
+
+        {/* Certificate Button */}
+        {allCompleted && (
+          <div className="flex justify-center">
+            <Button 
+              onClick={() => onNavigate('certificate')}
+              className="rounded-2xl gradient-success"
+            >
+              <Award className="w-4 h-4 mr-2" />
+              Get Certificate
+            </Button>
+          </div>
         )}
 
         {/* Modules Grid */}
@@ -237,6 +235,6 @@ export function LearningPathway({ onBack, onNavigate }: LearningPathwayProps) {
           ))}
         </div>
       </main>
-    </div>
+    </SharedLayout>
   );
 }
