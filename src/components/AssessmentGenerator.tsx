@@ -12,7 +12,7 @@ import { SharedLayout } from "./SharedLayout";
 import { generateQuiz } from "../lib/groq";
 // Check if Groq API key is configured
 const isApiKeyConfigured = () => {
-  const apiKey = import.meta.env.VITE_GROQ_API_KEY;
+  const apiKey = import.meta.env['VITE_GROQ_API_KEY'];
   return !!(apiKey && apiKey !== '' && apiKey !== 'your_groq_api_key_here' && !apiKey.includes('placeholder'));
 };
 

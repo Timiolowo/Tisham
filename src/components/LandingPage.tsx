@@ -22,7 +22,6 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
             <ThemeToggle />
-            <Button variant="ghost" onClick={() => onNavigate('debug')} className="hidden sm:inline-flex text-xs">Debug</Button>
             <Button variant="ghost" onClick={() => onNavigate('login')} className="hidden sm:inline-flex">Log in</Button>
             <Button onClick={() => onNavigate('register')} className="text-sm">
               <span className="hidden sm:inline">Register School</span>

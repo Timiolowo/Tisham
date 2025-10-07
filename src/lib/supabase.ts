@@ -6,9 +6,9 @@
 import { createClient } from '@supabase/supabase-js';
 
 // Get Supabase credentials from environment variables
-const supabaseUrl = (typeof import.meta.env !== 'undefined' && import.meta.env.VITE_SUPABASE_URL) || '';
-const supabaseAnonKey = (typeof import.meta.env !== 'undefined' && import.meta.env.VITE_SUPABASE_ANON_KEY) || '';
-const supabaseServiceKey = (typeof import.meta.env !== 'undefined' && import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY) || '';
+const supabaseUrl = (typeof import.meta.env !== 'undefined' && import.meta.env['VITE_SUPABASE_URL']) || '';
+const supabaseAnonKey = (typeof import.meta.env !== 'undefined' && import.meta.env['VITE_SUPABASE_ANON_KEY']) || '';
+const supabaseServiceKey = (typeof import.meta.env !== 'undefined' && import.meta.env['VITE_SUPABASE_SERVICE_ROLE_KEY']) || '';
 
 // Create Supabase client for regular operations (with RLS)
 export const supabase = createClient(

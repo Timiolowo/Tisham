@@ -19,14 +19,12 @@ import { ClassChat } from "./components/ClassChat";
 import { LearnWithAIPage } from "./components/LearnWithAIPage";
 import { CertificateGenerator } from "./components/CertificateGenerator";
 import { TeacherLearning } from "./components/TeacherLearning";
-import { DebugUser } from "./components/DebugUser";
 import { MyCurriculumPage } from "./components/MyCurriculumPage";
 import { EditResourcePage } from "./components/EditResourcePage";
 import { ThemeProvider } from "./components/ThemeProvider";
 import { Toaster } from "./components/ui/sonner";
 import { AIMascot } from "./components/AIMascot";
 import { AuthProvider } from "./contexts/AuthContext";
-import "./lib/debug-helpers"; // Load debug helpers for browser console
 
 type Page = 
   | 'landing' 
@@ -104,8 +102,6 @@ function AppContent() {
         return <SchoolRegistration onNavigate={navigate} />;
       case 'login':
         return <LoginPage onNavigate={navigate} />;
-      case 'debug':
-        return <DebugUser onBack={() => navigate('landing')} />;
       case 'dashboard':
         if (userRole === 'student') {
           return <StudentDashboard onNavigate={navigate} />;
