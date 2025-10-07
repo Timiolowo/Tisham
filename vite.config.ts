@@ -64,14 +64,9 @@
       }
     },
     server: {
-      port: 3000,
-      open: true,
-      proxy: {
-        '/.netlify/functions': {
-          target: 'http://localhost:8888',
-          changeOrigin: true,
-          secure: false,
-        },
-      },
+      port: 5173,
+      open: false, // Disable auto-open to prevent security issues
+      // SECURITY: Remove proxy configuration to prevent port confusion
+      // Use netlify dev for full-stack development instead
     },
   });

@@ -4,9 +4,31 @@
  */
 
 import { getTranslationPrompt, getSimplificationPrompt, getTeachingPrompt, getLessonGenerationPrompt, getQuizGenerationPrompt } from './prompts';
+import { isAPIAccessAllowed } from '../config/auth';
 
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const GROQ_API_KEY = import.meta.env['VITE_GROQ_API_KEY'] || '';
+
+const getGroqApiKey = () => {
+  // SECURITY: Check API access permissions using proven approach
+  if (typeof window !== 'undefined' && !isAPIAccessAllowed()) {
+    return '';
+  }
+  
+  // Try runtime environment first (production)
+  if (typeof window !== 'undefined' && (window as any).__ENV__) {
+    return (window as any).__ENV__.VITE_GROQ_API_KEY || '';
+  }
+  
+  // Fallback to import.meta.env (development) - only on full-stack port
+  if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.DEV && isAPIAccessAllowed()) {
+    return (import.meta.env as any).VITE_GROQ_API_KEY || '';
+  }
+  
+  // Default: return empty to prevent access
+  return '';
+};
+
+const GROQ_API_KEY = getGroqApiKey();
 
 export interface Message {
   role: 'system' | 'user' | 'assistant';

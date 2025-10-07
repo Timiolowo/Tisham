@@ -10,9 +10,11 @@ import { toast } from "sonner@2.0.3";
 import type { LessonPlan } from "../App";
 import { SharedLayout } from "./SharedLayout";
 import { generateQuiz } from "../lib/groq";
+import { runtimeEnv } from '../lib/runtime-env';
+
 // Check if Groq API key is configured
 const isApiKeyConfigured = () => {
-  const apiKey = import.meta.env['VITE_GROQ_API_KEY'];
+  const apiKey = runtimeEnv.getEnv().VITE_GROQ_API_KEY;
   return !!(apiKey && apiKey !== '' && apiKey !== 'your_groq_api_key_here' && !apiKey.includes('placeholder'));
 };
 

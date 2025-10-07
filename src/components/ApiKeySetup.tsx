@@ -3,9 +3,12 @@ import { Alert, AlertDescription } from "./ui/alert";
 import { AlertCircle, ExternalLink, Key, RefreshCw } from "lucide-react";
 import { Button } from "./ui/button";
 import { useState } from "react";
+import { runtimeEnv } from '../lib/runtime-env';
+
 // Check if Groq API key is configured
 const isApiKeyConfigured = () => {
-  const apiKey = import.meta.env.VITE_GROQ_API_KEY;
+  const env = runtimeEnv.getEnv();
+  const apiKey = env.VITE_GROQ_API_KEY;
   return !!(apiKey && apiKey !== '' && apiKey !== 'your_groq_api_key_here' && !apiKey.includes('placeholder'));
 };
 

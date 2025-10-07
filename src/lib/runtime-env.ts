@@ -43,7 +43,7 @@ class RuntimeEnvLoader {
       return (window as any).__ENV__[key] || '';
     }
     
-    // Fallback to import.meta.env (works in development, blocked in production)
+    // Development fallback - use import.meta.env in development
     if (typeof import.meta !== 'undefined' && import.meta.env) {
       const value = import.meta.env[key];
       if (value && value !== '""' && value !== '') {
@@ -51,7 +51,7 @@ class RuntimeEnvLoader {
       }
     }
     
-    // Development fallback - provide placeholder values to prevent errors
+    // Final fallback - provide placeholder values to prevent errors
     if (key === 'VITE_SUPABASE_URL') {
       return 'https://placeholder.supabase.co';
     }

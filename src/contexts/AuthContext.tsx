@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase, supabaseAdmin, isSupabaseConfigured } from '../lib/supabase';
+import { isAuthenticationAllowed, isAPIAccessAllowed } from '../config/auth';
 
 interface User {
   id: string;
@@ -53,6 +54,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSupabaseEnabled] = useState(isSupabaseConfigured());
+  
+  // Show warning if trying to use authentication on frontend-only port
+  useEffect(() => {
+    if (typeof window !== 'undefined' && !isAuthenticationAllowed()) {
+      console.warn('🚨 SECURITY WARNING: Authentication and API access are disabled on frontend-only port. Use netlify dev (port 8888) for full functionality.');
+    }
+  }, []);
 
   useEffect(() => {
     // Check for existing session on mount
@@ -104,6 +112,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const login = async (email: string, password: string, role?: 'school_admin' | 'teacher' | 'student') => {
+    // SECURITY: Check authentication permissions using proven approach
+    if (!isAuthenticationAllowed()) {
+      const currentPort = window.location.port;
+      throw new Error(`Authentication is not allowed on port ${currentPort}. Please use port 8888 (netlify dev) for authentication.`);
+    }
+    
     if (isSupabaseEnabled) {
       // Use direct Supabase authentication
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -157,6 +171,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const register = async (userData: RegisterData) => {
+    // SECURITY: Check authentication permissions using proven approach
+    if (!isAuthenticationAllowed()) {
+      const currentPort = window.location.port;
+      throw new Error(`Registration is not allowed on port ${currentPort}. Please use port 8888 (netlify dev) for registration.`);
+    }
+    
     if (isSupabaseEnabled) {
       // Use Supabase admin client for registration (bypasses RLS)
       const { data, error } = await supabaseAdmin.auth.admin.createUser({

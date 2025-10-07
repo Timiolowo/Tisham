@@ -25,6 +25,7 @@ import { ThemeProvider } from "./components/ThemeProvider";
 import { Toaster } from "./components/ui/sonner";
 import { AIMascot } from "./components/AIMascot";
 import { AuthProvider } from "./contexts/AuthContext";
+import { SecurityWarning } from "./components/SecurityWarning";
 
 type Page = 
   | 'landing' 
@@ -173,6 +174,7 @@ function AppContent() {
 export default function App() {
   return (
     <AuthProvider>
+      <SecurityWarning />
       <AppContent />
     </AuthProvider>
   );

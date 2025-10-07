@@ -14,7 +14,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { toast } from "sonner@2.0.3";
 import { explainConcept } from "../lib/groq";
 // Get Groq API key from environment
-const getGroqApiKey = () => import.meta.env.VITE_GROQ_API_KEY || '';
+import { runtimeEnv } from '../lib/runtime-env';
+
+const getGroqApiKey = () => {
+  const env = runtimeEnv.getEnv();
+  return env.VITE_GROQ_API_KEY || '';
+};
 
 interface ConceptExplorerProps {
   onBack: () => void;

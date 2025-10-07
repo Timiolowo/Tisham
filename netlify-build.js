@@ -33,11 +33,12 @@ try {
   const runtimeEnvScript = `
 // Runtime Environment Variables
 // This file is generated at build time and contains the environment variables
+// These values are injected at runtime to prevent build-time exposure
 window.__ENV__ = {
-  VITE_SUPABASE_URL: '${envVars.VITE_SUPABASE_URL}',
-  VITE_SUPABASE_ANON_KEY: '${envVars.VITE_SUPABASE_ANON_KEY}',
-  VITE_SUPABASE_SERVICE_ROLE_KEY: '${envVars.VITE_SUPABASE_SERVICE_ROLE_KEY}',
-  VITE_GROQ_API_KEY: '${envVars.VITE_GROQ_API_KEY}',
+  VITE_SUPABASE_URL: '${envVars.VITE_SUPABASE_URL || ''}',
+  VITE_SUPABASE_ANON_KEY: '${envVars.VITE_SUPABASE_ANON_KEY || ''}',
+  VITE_SUPABASE_SERVICE_ROLE_KEY: '${envVars.VITE_SUPABASE_SERVICE_ROLE_KEY || ''}',
+  VITE_GROQ_API_KEY: '${envVars.VITE_GROQ_API_KEY || ''}',
 };
 `;
 

@@ -1,10 +1,23 @@
 import { Handler } from '@netlify/functions';
 import { createClient } from '@supabase/supabase-js';
+import { validateAuthenticationRequest } from './auth/port-validator';
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL!;
 const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY!;
 
 export const handler: Handler = async (event, context) => {
+  // SECURITY: Validate port access using proven approach
+  const validation = validateAuthenticationRequest(event);
+  if (!validation.allowed) {
+    return {
+      statusCode: 403,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+      },
+      body: JSON.stringify({ error: validation.error }),
+    };
+  }
+
   // Only allow POST requests
   if (event.httpMethod !== 'POST') {
     return {

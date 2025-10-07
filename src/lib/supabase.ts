@@ -4,29 +4,123 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
+import { isAPIAccessAllowed } from '../config/auth';
 
 // Get Supabase credentials from environment variables
-const supabaseUrl = (typeof import.meta.env !== 'undefined' && import.meta.env['VITE_SUPABASE_URL']) || '';
-const supabaseAnonKey = (typeof import.meta.env !== 'undefined' && import.meta.env['VITE_SUPABASE_ANON_KEY']) || '';
-const supabaseServiceKey = (typeof import.meta.env !== 'undefined' && import.meta.env['VITE_SUPABASE_SERVICE_ROLE_KEY']) || '';
+// SECURITY: Port-based isolation using proven approach
+const getSupabaseConfig = () => {
+  // SECURITY: Check API access permissions using proven approach
+  if (typeof window !== 'undefined' && !isAPIAccessAllowed()) {
+    return {
+      url: '',
+      anonKey: '',
+      serviceKey: ''
+    };
+  }
+  
+  // Try runtime environment first (production)
+  if (typeof window !== 'undefined' && (window as any).__ENV__) {
+    return {
+      url: (window as any).__ENV__.VITE_SUPABASE_URL || '',
+      anonKey: (window as any).__ENV__.VITE_SUPABASE_ANON_KEY || '',
+      serviceKey: (window as any).__ENV__.VITE_SUPABASE_SERVICE_ROLE_KEY || ''
+    };
+  }
+  
+  // Development fallback - use import.meta.env only on full-stack port
+  if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.DEV && isAPIAccessAllowed()) {
+    return {
+      url: (import.meta.env as any).VITE_SUPABASE_URL || '',
+      anonKey: (import.meta.env as any).VITE_SUPABASE_ANON_KEY || '',
+      serviceKey: (import.meta.env as any).VITE_SUPABASE_SERVICE_ROLE_KEY || ''
+    };
+  }
+  
+  // Default: return empty values to prevent access
+  return {
+    url: '',
+    anonKey: '',
+    serviceKey: ''
+  };
+};
 
-// Create Supabase client for regular operations (with RLS)
-export const supabase = createClient(
-  supabaseUrl || '', 
-  supabaseAnonKey || 'placeholder-key'
-);
+const supabaseConfig = getSupabaseConfig();
+const supabaseUrl = supabaseConfig.url;
+const supabaseAnonKey = supabaseConfig.anonKey;
+const supabaseServiceKey = supabaseConfig.serviceKey;
 
-// Create Supabase client for admin operations (bypasses RLS)
-export const supabaseAdmin = createClient(
-  supabaseUrl || '', 
-  supabaseServiceKey || 'placeholder-service-key'
-);
+// SECURITY: Only create Supabase clients if we have valid credentials
+// This prevents the "supabaseUrl is required" error on blocked ports
+let supabase: any = null;
+let supabaseAdmin: any = null;
+
+if (supabaseUrl && supabaseAnonKey && supabaseServiceKey) {
+  // Create Supabase client for regular operations (with RLS)
+  supabase = createClient(supabaseUrl, supabaseAnonKey);
+  
+  // Create Supabase client for admin operations (bypasses RLS)
+  supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+} else {
+  // Create mock clients for blocked ports to prevent errors
+  supabase = {
+    auth: {
+      signInWithPassword: () => Promise.resolve({ data: null, error: { message: 'Authentication blocked on this port' } }),
+      signUp: () => Promise.resolve({ data: null, error: { message: 'Authentication blocked on this port' } }),
+      signOut: () => Promise.resolve({ error: null }),
+      getSession: () => Promise.resolve({ data: { session: null }, error: null }),
+      onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } })
+    },
+    from: () => ({
+      select: () => ({ eq: () => ({ single: () => Promise.resolve({ data: null, error: { message: 'Database access blocked on this port' } }) }) }),
+      insert: () => Promise.resolve({ data: null, error: { message: 'Database access blocked on this port' } }),
+      update: () => Promise.resolve({ data: null, error: { message: 'Database access blocked on this port' } }),
+      delete: () => Promise.resolve({ data: null, error: { message: 'Database access blocked on this port' } })
+    })
+  };
+  
+  supabaseAdmin = {
+    auth: {
+      admin: {
+        createUser: () => Promise.resolve({ data: null, error: { message: 'Admin operations blocked on this port' } }),
+        updateUserById: () => Promise.resolve({ data: null, error: { message: 'Admin operations blocked on this port' } })
+      }
+    }
+  };
+}
+
+export { supabase, supabaseAdmin };
 
 /**
  * Check if Supabase is configured
+ * SECURITY: Strict validation to prevent authentication bypass
  */
 export function isSupabaseConfigured(): boolean {
-  return !!(supabaseUrl && supabaseAnonKey && supabaseServiceKey && !supabaseUrl.includes('placeholder'));
+  // SECURITY: Check if we're on an allowed port first
+  if (typeof window !== 'undefined' && !isAPIAccessAllowed()) {
+    return false;
+  }
+  
+  // Must have all required credentials
+  if (!supabaseUrl || !supabaseAnonKey || !supabaseServiceKey) {
+    return false;
+  }
+  
+  // Must not contain placeholder values
+  if (supabaseUrl.includes('placeholder') || 
+      supabaseAnonKey.includes('placeholder') || 
+      supabaseServiceKey.includes('placeholder')) {
+    return false;
+  }
+  
+  // Must be valid Supabase URLs and keys
+  if (!supabaseUrl.startsWith('https://') || 
+      !supabaseUrl.includes('.supabase.co') ||
+      supabaseAnonKey.length < 20 ||
+      supabaseServiceKey.length < 20) {
+    return false;
+  }
+  
+  return true;
 }
 
 // ============================================================================

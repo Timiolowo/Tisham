@@ -53,7 +53,7 @@ export const handler: Handler = async (event, context) => {
       email,
       password,
       options: {
-        emailRedirectTo: `${process.env.SITE_URL || 'http://localhost:3000'}/auth/callback`
+        emailRedirectTo: `${process.env.SITE_URL || 'http://localhost:8888'}/auth/callback`
       }
     });
 
