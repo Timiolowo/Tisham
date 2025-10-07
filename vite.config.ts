@@ -55,8 +55,14 @@
       target: 'esnext',
       outDir: 'dist',
       emptyOutDir: true,
+      rollupOptions: {
+        output: {
+          entryFileNames: 'assets/[name]-[hash].js',
+          chunkFileNames: 'assets/[name]-[hash].js',
+          assetFileNames: 'assets/[name]-[hash].[ext]'
+        }
+      }
     },
-    assetsInclude: ['**/*.html'],
     server: {
       port: 3000,
       open: true,

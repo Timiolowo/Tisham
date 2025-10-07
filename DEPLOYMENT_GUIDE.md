@@ -73,13 +73,15 @@ VITE_GROQ_API_KEY=your-groq-api-key
 
 ### **Build Issues:**
 - ✅ **Fixed:** Vite config updated to output to `dist` directory
-- ✅ **Verified:** Build creates `dist` folder with all assets
+- ✅ **Fixed:** Removed `assetsInclude: ['**/*.html']` that was causing HTML files to be hashed
+- ✅ **Verified:** Build creates proper `index.html` with correct asset references
 - ✅ **Confirmed:** Netlify configuration matches build output
 
 ### **Common Issues:**
 1. **"Deploy directory 'dist' does not exist"** - ✅ FIXED: Updated `vite.config.ts` to output to `dist`
-2. **Secrets scanning errors** - ✅ FIXED: All debugging code removed, environment variables secured
-3. **Build failures** - ✅ FIXED: All dependencies resolved, no missing imports
+2. **"export default '/assets/index-xxx.html'"** - ✅ FIXED: Removed `assetsInclude: ['**/*.html']` from Vite config
+3. **Secrets scanning errors** - ✅ FIXED: All debugging code removed, environment variables secured
+4. **Build failures** - ✅ FIXED: All dependencies resolved, no missing imports
 
 ## 🎉 **Ready for Production!**
 
