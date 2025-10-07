@@ -1,28 +1,18 @@
-
 [build]
   command = "npm run build"
-  publish = "build"
+  publish = "dist"
 
-[dev]
-  command = "npm run dev"
-  port = 8888
-  targetPort = 3000
-  autoLaunch = true
-  framework = "vite"
-  publish = "."
+[build.environment]
+  NODE_VERSION = "18"
 
-# SPA routing - redirect all routes to index.html
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
 
-# Build environment
-[build.environment]
-  NODE_VERSION = "18"
-  NPM_VERSION = "9"
+[functions]
+  directory = "netlify/functions"
 
-# Headers for security and performance
 [[headers]]
   for = "/*"
   [headers.values]
@@ -31,25 +21,17 @@
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
 
-# Headers for JavaScript modules
-[[headers]]
-  for = "*.js"
-  [headers.values]
-    Content-Type = "application/javascript"
-
-[[headers]]
-  for = "*.mjs"
-  [headers.values]
-    Content-Type = "application/javascript"
-
-# Cache static assets
 [[headers]]
   for = "/assets/*"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 
-# Cache service worker
 [[headers]]
-  for = "/sw.js"
+  for = "/*.js"
   [headers.values]
-    Cache-Control = "public, max-age=0, must-revalidate"
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*.css"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"

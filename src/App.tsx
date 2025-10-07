@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { LandingPage } from "./components/LandingPage";
 import { LoginPage } from "./components/LoginPage";
 import { SchoolRegistration } from "./components/SchoolRegistration";
@@ -12,6 +12,7 @@ import { LearningPathway } from "./components/LearningPathway";
 import { AdminDashboard } from "./components/AdminDashboard";
 import { StudentDashboard } from "./components/StudentDashboard";
 import { ClassManagement } from "./components/ClassManagement";
+import { ClassDetailsPage } from "./components/ClassDetailsPage";
 import { ConceptExplorer } from "./components/ConceptExplorer";
 import { SettingsPage } from "./components/SettingsPage";
 import { ClassChat } from "./components/ClassChat";
@@ -41,6 +42,7 @@ type Page =
   | 'admin'
   | 'student-dashboard'
   | 'class-management'
+  | 'class-details'
   | 'class-chat'
   | 'concept-explorer'
   | 'learn-with-ai'
@@ -129,6 +131,8 @@ function AppContent() {
         return <StudentDashboard onNavigate={navigate} />;
       case 'class-management':
         return <ClassManagement onBack={() => navigate('dashboard')} onNavigate={navigate} />;
+      case 'class-details':
+        return <ClassDetailsPage onNavigate={navigate} classId={currentPage?.classId || '1'} />;
       case 'class-chat':
         return <ClassChat onBack={() => navigate('dashboard')} />;
       case 'concept-explorer':

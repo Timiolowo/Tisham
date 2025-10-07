@@ -36,6 +36,14 @@ export function ClassManagement({ onNavigate }: ClassManagementProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [supabaseClasses, setSupabaseClasses] = useState<any[]>([]);
   
+  // Invite student form state
+  const [inviteForm, setInviteForm] = useState({
+    selectedClass: "",
+    studentEmail: "",
+    studentName: ""
+  });
+
+  
   // Create class form state
   const [newClass, setNewClass] = useState({
     name: "",
@@ -113,8 +121,29 @@ export function ClassManagement({ onNavigate }: ClassManagementProps) {
   };
 
   const handleInviteStudent = () => {
+    if (!inviteForm.selectedClass) {
+      toast.error("Please select a class first");
+      return;
+    }
+
+    const selectedClass = (supabaseClasses.length > 0 ? supabaseClasses : classes)
+      .find(c => c.id === inviteForm.selectedClass);
+
+    if (inviteForm.studentEmail) {
+      // Send email invitation
+      toast.success(`Invitation sent to ${inviteForm.studentEmail} for class: ${selectedClass?.name}`);
+    } else {
+      // Just show the class code
+      toast.success(`Class code for ${selectedClass?.name}: ${selectedClass?.class_code || selectedClass?.code}`);
+    }
+
+    // Reset form
+    setInviteForm({
+      selectedClass: "",
+      studentEmail: "",
+      studentName: ""
+    });
     setShowInviteDialog(false);
-    toast.success("Invitation link sent successfully!");
   };
 
   const handleCreateClass = async () => {
@@ -183,26 +212,100 @@ export function ClassManagement({ onNavigate }: ClassManagementProps) {
               <DialogHeader>
                 <DialogTitle>Invite Students to Class</DialogTitle>
                 <DialogDescription>
-                  Share this code or link with your students
+                  Select a class and invite students via email or share the class code
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label>Class Code</Label>
-                  <div className="flex gap-2">
-                    <Input value={classCode} readOnly className="rounded-xl" />
-                    <Button onClick={handleCopyCode} size="icon" className="rounded-xl flex-shrink-0">
-                      <Copy className="w-4 h-4" />
-                    </Button>
-                  </div>
+                  <Label>Select Class</Label>
+                  <Select 
+                    value={inviteForm.selectedClass} 
+                    onValueChange={(value) => setInviteForm({...inviteForm, selectedClass: value})}
+                  >
+                    <SelectTrigger className="rounded-xl">
+                      <SelectValue placeholder="Choose a class to invite students to" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {(supabaseClasses.length > 0 ? supabaseClasses : classes).map((classItem) => (
+                        <SelectItem key={classItem.id} value={classItem.id}>
+                          {classItem.name} ({classItem.class_code || classItem.code})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
-                <div className="space-y-2">
-                  <Label>Or send invitation email</Label>
-                  <Input type="email" placeholder="student@email.com" className="rounded-xl" />
+
+                {inviteForm.selectedClass && (
+                  <>
+                    <div className="space-y-2">
+                      <Label>Class Code (Share with students)</Label>
+                      <div className="flex gap-2">
+                        <Input 
+                          value={
+                            (supabaseClasses.length > 0 ? supabaseClasses : classes)
+                              .find(c => c.id === inviteForm.selectedClass)?.class_code || 
+                            (supabaseClasses.length > 0 ? supabaseClasses : classes)
+                              .find(c => c.id === inviteForm.selectedClass)?.code || 
+                            "No code available"
+                          } 
+                          readOnly 
+                          className="rounded-xl" 
+                        />
+                        <Button 
+                          onClick={() => {
+                            const selectedClass = (supabaseClasses.length > 0 ? supabaseClasses : classes)
+                              .find(c => c.id === inviteForm.selectedClass);
+                            const code = selectedClass?.class_code || selectedClass?.code;
+                            if (code) {
+                              navigator.clipboard.writeText(code);
+                              toast.success("Class code copied!");
+                            }
+                          }} 
+                          size="icon" 
+                          className="rounded-xl flex-shrink-0"
+                        >
+                          <Copy className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Or send invitation email</Label>
+                      <div className="space-y-3">
+                        <Input 
+                          type="email" 
+                          placeholder="student@email.com" 
+                          value={inviteForm.studentEmail}
+                          onChange={(e) => setInviteForm({...inviteForm, studentEmail: e.target.value})}
+                          className="rounded-xl" 
+                        />
+                        <Input 
+                          placeholder="Student name (optional)" 
+                          value={inviteForm.studentName}
+                          onChange={(e) => setInviteForm({...inviteForm, studentName: e.target.value})}
+                          className="rounded-xl" 
+                        />
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                <div className="flex gap-3">
+                  <Button 
+                    onClick={handleInviteStudent} 
+                    className="flex-1 rounded-2xl"
+                    disabled={!inviteForm.selectedClass}
+                  >
+                    Send Invitation
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setShowInviteDialog(false)}
+                    className="rounded-xl"
+                  >
+                    Cancel
+                  </Button>
                 </div>
-                <Button onClick={handleInviteStudent} className="w-full rounded-2xl">
-                  Send Invitation
-                </Button>
               </div>
             </DialogContent>
           </Dialog>
@@ -212,8 +315,8 @@ export function ClassManagement({ onNavigate }: ClassManagementProps) {
               <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl gradient-secondary mx-auto mb-3 flex items-center justify-center">
                 <Users className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </div>
-              <h3 className="text-xl sm:text-base font-bold">85</h3>
-              <p className="text-xs text-muted-foreground mt-1">Total Students</p>
+              <h3 className="text-xl sm:text-base font-bold">{supabaseClasses.length || classes.length}</h3>
+              <p className="text-xs text-muted-foreground mt-1">Total Classes</p>
             </CardContent>
           </Card>
 
@@ -466,7 +569,13 @@ export function ClassManagement({ onNavigate }: ClassManagementProps) {
                       </div>
                     </div>
                     <div className="flex gap-2">
-                      <Button className="flex-1 rounded-xl" size="sm">
+                      <Button 
+                        className="flex-1 rounded-xl" 
+                        size="sm"
+                        onClick={() => {
+                          onNavigate?.('class-details', { classId: classItem.id });
+                        }}
+                      >
                         View Details
                       </Button>
                       <Button 
