@@ -17,8 +17,8 @@ export const handler: Handler = async (event, context) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     
     console.log('Testing data insertion with service role key...');
-    console.log('Supabase URL:', supabaseUrl);
-    console.log('Service key length:', supabaseServiceKey?.length || 0);
+    console.log('Supabase URL configured:', !!supabaseUrl);
+    console.log('Service key configured:', !!supabaseServiceKey);
     
     // Test school insertion
     const testSchoolCode = 'TEST' + Math.floor(100000 + Math.random() * 900000);

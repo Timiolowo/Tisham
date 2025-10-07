@@ -12,13 +12,13 @@ const supabaseServiceKey = (typeof import.meta.env !== 'undefined' && import.met
 
 // Create Supabase client for regular operations (with RLS)
 export const supabase = createClient(
-  supabaseUrl || 'https://placeholder.supabase.co', 
+  supabaseUrl || '', 
   supabaseAnonKey || 'placeholder-key'
 );
 
 // Create Supabase client for admin operations (bypasses RLS)
 export const supabaseAdmin = createClient(
-  supabaseUrl || 'https://placeholder.supabase.co', 
+  supabaseUrl || '', 
   supabaseServiceKey || 'placeholder-service-key'
 );
 

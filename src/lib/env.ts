@@ -20,8 +20,4 @@ export const ENV_CONFIG = {
 export const DEV_CONFIG = {
   // Set to true to enable development mode with mock data
   USE_MOCK_AUTH: false, // Set to true only for testing without Supabase
-  
-  // Development Supabase project (replace with your actual values)
-  DEV_SUPABASE_URL: 'https://your-project-id.supabase.co',
-  DEV_SUPABASE_ANON_KEY: 'your-anon-key-here'
 };
