@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -6,7 +6,7 @@ import { Label } from "./ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Sparkles, GraduationCap, Users, School, Loader2 } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
-import { toast } from "sonner@2.0.3";
+import { toast } from "sonner";
 import { useAuth } from "../contexts/AuthContext";
 
 interface LoginPageProps {
@@ -17,21 +17,20 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
   const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [selectedRole, setSelectedRole] = useState<'school_admin' | 'teacher' | 'student'>('teacher');
+  // Removed role selection - will auto-detect from database
   const [isLoading, setIsLoading] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     try {
-      await login(email, password, selectedRole);
-      const roleName = selectedRole === 'school_admin' ? 'School Admin' : 
-                      selectedRole === 'teacher' ? 'Teacher' : 'Student';
-      toast.success(`Welcome back, ${roleName}!`);
-      onNavigate('dashboard', selectedRole);
+      await login(email, password);
+      toast.success("Login successful!");
+      onNavigate('dashboard');
     } catch (error) {
       console.error('Login error:', error);
-      toast.error("Login failed. Please check your credentials.");
+      const errorMessage = error instanceof Error ? error.message : "Login failed. Please check your credentials.";
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -83,193 +82,82 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
         <div className="w-full max-w-md">
           {/* Logo */}
           <div className="text-center mb-8 animate-fade-in">
-          <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-4 gradient-primary">
-            <Sparkles className="w-8 h-8 text-white" />
-          </div>
-          <h1 className="text-base sm:text-base font-bold">TeachMate</h1>
-          <p className="text-sm text-muted-foreground mt-2">Sign in to continue</p>
-        </div>
-
-        {/* Login Tabs */}
-        <Card className="rounded-3xl glass-card border-2 border-primary/10 shadow-2xl animate-slide-up">
-          <CardContent className="p-6">
-            <Tabs defaultValue="teacher" className="space-y-6">
-              <TabsList className="grid w-full grid-cols-3 rounded-2xl p-1">
-                <TabsTrigger value="school_admin" className="rounded-xl" onClick={() => setSelectedRole('school_admin')}>
-                  <School className="w-4 h-4 mr-2" />
-                  School Admin
-                </TabsTrigger>
-                <TabsTrigger value="teacher" className="rounded-xl" onClick={() => setSelectedRole('teacher')}>
-                  <GraduationCap className="w-4 h-4 mr-2" />
-                  Teacher
-                </TabsTrigger>
-                <TabsTrigger value="student" className="rounded-xl" onClick={() => setSelectedRole('student')}>
-                  <Users className="w-4 h-4 mr-2" />
-                  Student
-                </TabsTrigger>
-              </TabsList>
-
-              {/* School Admin Login */}
-              <TabsContent value="school_admin" className="space-y-4 animate-fade-in">
-                <div className="space-y-2">
-                  <h3 className="text-lg font-semibold">School Admin Login</h3>
-                  <p className="text-sm text-muted-foreground">Manage your school and teachers</p>
-                </div>
-                
-                <form onSubmit={handleLogin} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email Address</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="admin@school.edu"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="rounded-xl"
-                      required
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="password">Password</Label>
-                    <Input
-                      id="password"
-                      type="password"
-                      placeholder="••••••••"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="rounded-xl"
-                      required
-                    />
-                  </div>
-
-                  <Button type="submit" className="w-full rounded-2xl gradient-primary" size="lg" disabled={isLoading}>
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Signing in...
-                      </>
-                    ) : (
-                      'Sign In as School Admin'
-                    )}
-                  </Button>
-                </form>
-              </TabsContent>
-
-              {/* Teacher Login */}
-              <TabsContent value="teacher" className="space-y-4 animate-fade-in">
-                <div className="space-y-2">
-                  <h3 className="text-lg font-semibold">Teacher Login</h3>
-                  <p className="text-sm text-muted-foreground">Access your teaching dashboard</p>
-                </div>
-                
-                <form onSubmit={handleLogin} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email Address</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="teacher@school.edu"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="rounded-xl"
-                      required
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="password">Password</Label>
-                    <Input
-                      id="password"
-                      type="password"
-                      placeholder="••••••••"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="rounded-xl"
-                      required
-                    />
-                  </div>
-
-                  <Button type="submit" className="w-full rounded-2xl gradient-primary" size="lg" disabled={isLoading}>
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Signing in...
-                      </>
-                    ) : (
-                      'Sign In as Teacher'
-                    )}
-                  </Button>
-                </form>
-              </TabsContent>
-
-              {/* Student Login */}
-              <TabsContent value="student" className="space-y-4 animate-fade-in">
-                <div className="space-y-2">
-                  <h3 className="text-lg font-semibold">Student Login</h3>
-                  <p className="text-sm text-muted-foreground">Start your learning journey</p>
-                </div>
-                
-                <form onSubmit={handleLogin} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email Address</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="student@school.edu"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="rounded-xl"
-                      required
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="password">Password</Label>
-                    <Input
-                      id="password"
-                      type="password"
-                      placeholder="••••••••"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="rounded-xl"
-                      required
-                    />
-                  </div>
-
-                  <Button type="submit" className="w-full rounded-2xl gradient-secondary" size="lg" disabled={isLoading}>
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Signing in...
-                      </>
-                    ) : (
-                      'Sign In as Student'
-                    )}
-                  </Button>
-                </form>
-              </TabsContent>
-            </Tabs>
-
-            <div className="mt-6 text-center space-y-2">
-              <Button 
-                variant="link" 
-                onClick={() => onNavigate('register')}
-                className="text-sm text-primary"
-              >
-                Don't have an account? Sign up
-              </Button>
-              <br />
-              <Button 
-                variant="link" 
-                onClick={() => onNavigate('landing')}
-                className="text-sm"
-              >
-                ← Back to Home
-              </Button>
+            <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-4 gradient-primary">
+              <Sparkles className="w-8 h-8 text-white" />
             </div>
-          </CardContent>
-        </Card>
+            <h1 className="text-base sm:text-base font-bold">TeachMate</h1>
+            <p className="text-sm text-muted-foreground mt-2">Sign in to continue</p>
+          </div>
+
+          {/* Login Form */}
+          <Card className="rounded-3xl glass-card border-2 border-primary/10 shadow-2xl animate-slide-up">
+            <CardContent className="p-6">
+              <div className="space-y-6">
+                <div className="text-center">
+                  <h3 className="text-lg font-semibold">Welcome Back</h3>
+                  <p className="text-sm text-muted-foreground">Sign in to access your dashboard</p>
+                </div>
+
+                {/* Single Login Form */}
+                <form onSubmit={handleLogin} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email Address</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="Enter your email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="rounded-xl"
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="password">Password</Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      placeholder="••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="rounded-xl"
+                      required
+                    />
+                  </div>
+
+                  <Button type="submit" className="w-full rounded-2xl gradient-primary" size="lg" disabled={isLoading}>
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Signing in...
+                      </>
+                    ) : (
+                      'Sign In'
+                    )}
+                  </Button>
+                </form>
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="mt-6 text-center space-y-2">
+            <Button 
+              variant="link" 
+              onClick={() => onNavigate('register')}
+              className="text-sm text-primary"
+            >
+              Don't have an account? Sign up
+            </Button>
+            <br />
+            <Button 
+              variant="link" 
+              onClick={() => onNavigate('landing')}
+              className="text-sm"
+            >
+              ← Back to Home
+            </Button>
+          </div>
         </div>
       </div>
     </div>

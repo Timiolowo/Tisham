@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -8,10 +8,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { 
   ArrowLeft, User, Bell, Lock, Palette, LogOut,
-  Camera, Mail, Phone, MapPin
+  Camera, Mail, Phone, MapPin, School, Loader2
 } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
-import { toast } from "sonner@2.0.3";
+import { toast } from "sonner";
+import { useAuth } from "../contexts/AuthContext";
+import { supabase } from "../lib/supabase";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,17 +33,87 @@ interface SettingsPageProps {
 }
 
 export function SettingsPage({ onBack, onLogout, userRole = 'teacher' }: SettingsPageProps) {
-  const isStudent = userRole === 'student';
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [school, setSchool] = useState<any>(null);
   
-  const [name, setName] = useState(isStudent ? "Chidi Okafor" : "Mrs. Okonkwo");
-  const [email, setEmail] = useState(isStudent ? "chidi.okafor@student.stmarys.edu.ng" : "okonkwo@stmarys.edu.ng");
-  const [phone, setPhone] = useState("+234 802 345 6789");
-  const [bio, setBio] = useState(isStudent 
-    ? "JSS 3 student passionate about technology and robotics. I love learning new things!"
-    : "Mathematics Teacher with 10+ years of experience. Passionate about making math accessible and fun for all students.");
-  const [school, setSchool] = useState("St. Mary's Secondary School");
-  const [location, setLocation] = useState("Lagos, Nigeria");
-  const [studentClass, setStudentClass] = useState("JSS 3A");
+  // Define isStudent based on user role
+  const isStudent = user?.role === 'student';
+  
+  // Form state
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [bio, setBio] = useState("");
+  const [location, setLocation] = useState("");
+  const [studentClass, setStudentClass] = useState("");
+  const [subjects, setSubjects] = useState<string[]>([]);
+  const [yearsExperience, setYearsExperience] = useState<number>(0);
+
+  useEffect(() => {
+    if (user) {
+      // Set form data from user profile
+      setName(user.full_name || "");
+      setEmail(user.email || "");
+      setBio(user.role === 'student' 
+        ? "Student passionate about learning and technology!"
+        : "Teacher passionate about education and student success!");
+      setLocation("Lagos, Nigeria"); // Default location
+      setStudentClass(user.class_level || "");
+      setSubjects(user.subjects || []);
+      setYearsExperience(user.years_experience || 0);
+      
+      // Fetch school information if user has school_id
+      if (user.school_id) {
+        fetchSchoolInfo();
+      } else {
+        setLoading(false);
+      }
+    }
+  }, [user]);
+
+  const fetchSchoolInfo = async () => {
+    try {
+      console.log('=== FETCHING SCHOOL INFO ===');
+      console.log('User ID:', user?.id);
+      console.log('User role:', user?.role);
+      console.log('School ID:', user?.school_id);
+      console.log('Full user object:', user);
+      
+      if (!user?.school_id) {
+        console.log('❌ No school_id found for user');
+        setSchool(null);
+        setLoading(false);
+        return;
+      }
+
+      console.log('🔍 Querying schools table with school_id:', user.school_id);
+      
+      const { data: schoolData, error } = await supabase
+        .from('schools')
+        .select('*')
+        .eq('id', user.school_id)
+        .single();
+
+      if (error) {
+        console.error('❌ Error fetching school:', error);
+        console.error('Error details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+        setSchool(null);
+      } else {
+        console.log('✅ School data fetched successfully:', schoolData);
+        setSchool(schoolData);
+      }
+    } catch (error) {
+      console.error('❌ Exception in fetchSchoolInfo:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSaveProfile = () => {
     toast.success("Profile updated successfully!");
@@ -121,10 +193,19 @@ export function SettingsPage({ onBack, onLogout, userRole = 'teacher' }: Setting
                     </Button>
                   </div>
                   <div className="flex-1 text-center sm:text-left">
-                    <h3 className="text-lg sm:text-xl font-semibold">{name}</h3>
-                    <p className="text-sm text-muted-foreground">{school}</p>
+                    <h3 className="text-lg sm:text-xl font-semibold">{name || 'Loading...'}</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {school && typeof school === 'object' && school.name 
+                        ? school.name 
+                        : 'Loading school...'}
+                    </p>
                     <p className="text-xs text-muted-foreground mt-1">
-                      {isStudent ? `Student • ${studentClass}` : 'Mathematics Teacher • JSS 2 & 3'}
+                      {user?.role === 'student' 
+                        ? `Student • ${studentClass || 'No class assigned'}` 
+                        : user?.role === 'school_admin'
+                        ? `School Administrator • ${school && typeof school === 'object' && school.name ? school.name : 'School'}`
+                        : `Teacher • ${subjects.join(', ') || 'No subjects assigned'}`
+                      }
                     </p>
                   </div>
                 </div>
@@ -183,31 +264,18 @@ export function SettingsPage({ onBack, onLogout, userRole = 'teacher' }: Setting
                   </div>
                 </div>
 
-                <div className="grid sm:grid-cols-2 gap-4">
+                {isStudent && (
                   <div className="space-y-2">
-                    <Label htmlFor="school">School</Label>
+                    <Label htmlFor="class">Class</Label>
                     <Input
-                      id="school"
-                      value={school}
-                      onChange={(e) => setSchool(e.target.value)}
+                      id="class"
+                      value={studentClass}
+                      onChange={(e) => setStudentClass(e.target.value)}
                       className="rounded-xl"
-                      disabled={isStudent}
+                      disabled
                     />
                   </div>
-
-                  {isStudent && (
-                    <div className="space-y-2">
-                      <Label htmlFor="class">Class</Label>
-                      <Input
-                        id="class"
-                        value={studentClass}
-                        onChange={(e) => setStudentClass(e.target.value)}
-                        className="rounded-xl"
-                        disabled
-                      />
-                    </div>
-                  )}
-                </div>
+                )}
 
                 <div className="space-y-2">
                   <Label htmlFor="bio">Bio</Label>
@@ -230,6 +298,107 @@ export function SettingsPage({ onBack, onLogout, userRole = 'teacher' }: Setting
                 </div>
               </CardContent>
             </Card>
+
+            {/* School Information Section - Show for everyone */}
+            {user?.role && (
+              <Card className="rounded-2xl glass-card">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <School className="w-5 h-5" />
+                    School Information
+                  </CardTitle>
+                  <CardDescription>Your school details and information</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {school ? (
+                    <>
+                      <div className="grid sm:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>School Name</Label>
+                          <Input 
+                            value={school && typeof school === 'object' && school.name ? school.name : ''} 
+                            disabled 
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>School Type</Label>
+                          <Input 
+                            value={school && typeof school === 'object' && school.school_type ? school.school_type : ''} 
+                            disabled 
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>State</Label>
+                          <Input 
+                            value={school && typeof school === 'object' && school.state ? school.state : ''} 
+                            disabled 
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Contact Email</Label>
+                          <Input 
+                            value={school && typeof school === 'object' && school.contact_email ? school.contact_email : ''} 
+                            disabled 
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Contact Phone</Label>
+                          <Input 
+                            value={school && typeof school === 'object' && school.contact_phone ? school.contact_phone : ''} 
+                            disabled 
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Address</Label>
+                          <Input 
+                            value={school && typeof school === 'object' && school.address ? school.address : ''} 
+                            disabled 
+                          />
+                        </div>
+                      </div>
+                      
+                      {/* School Code for Admin Only */}
+                      {user?.role === 'school_admin' && school && typeof school === 'object' && school.school_code && (
+                        <div className="mt-4 p-4 bg-muted rounded-lg">
+                          <Label className="text-sm font-medium">School Code</Label>
+                          <div className="flex items-center gap-2 mt-2">
+                            <Input 
+                              value={school && typeof school === 'object' && school.school_code ? school.school_code : ''} 
+                              disabled 
+                              className="font-mono"
+                            />
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => {
+                                navigator.clipboard.writeText(school.school_code);
+                                toast.success('School code copied to clipboard!');
+                              }}
+                            >
+                              Copy
+                            </Button>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Share this code with teachers to allow them to join your school
+                          </p>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="text-center py-8">
+                      <School className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                      <p className="text-muted-foreground">
+                        {user?.role === 'student'
+                          ? 'School information not available. Please contact your teacher.'
+                          : user?.role === 'teacher' 
+                          ? 'School information not available. Please contact your administrator.' 
+                          : 'School information not available.'}
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
 
           {/* Notifications Tab */}

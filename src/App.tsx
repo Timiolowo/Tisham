@@ -18,6 +18,7 @@ import { ClassChat } from "./components/ClassChat";
 import { LearnWithAIPage } from "./components/LearnWithAIPage";
 import { CertificateGenerator } from "./components/CertificateGenerator";
 import { TeacherLearning } from "./components/TeacherLearning";
+import { DebugUser } from "./components/DebugUser";
 import { MyCurriculumPage } from "./components/MyCurriculumPage";
 import { EditResourcePage } from "./components/EditResourcePage";
 import { ThemeProvider } from "./components/ThemeProvider";
@@ -101,9 +102,13 @@ function AppContent() {
         return <SchoolRegistration onNavigate={navigate} />;
       case 'login':
         return <LoginPage onNavigate={navigate} />;
+      case 'debug':
+        return <DebugUser onBack={() => navigate('landing')} />;
       case 'dashboard':
         if (userRole === 'student') {
           return <StudentDashboard onNavigate={navigate} />;
+        } else if (userRole === 'school_admin') {
+          return <AdminDashboard onNavigate={navigate} onBack={() => navigate('landing')} />;
         }
         return <TeacherDashboard onNavigate={navigate} />;
       case 'lesson-generator':

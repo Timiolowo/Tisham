@@ -103,7 +103,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const login = async (email: string, password: string, role: 'school_admin' | 'teacher' | 'student') => {
+  const login = async (email: string, password: string, role?: 'school_admin' | 'teacher' | 'student') => {
     if (isSupabaseEnabled) {
       // Use direct Supabase authentication
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -121,7 +121,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           .single();
 
         if (profile) {
+          // If role is specified, validate it matches the user's actual role
+          if (role && profile.role !== role) {
+            throw new Error(`Invalid role. This account is registered as ${profile.role}`);
+          }
           setUser(profile);
+        } else {
+          throw new Error('User profile not found');
         }
       }
     } else {

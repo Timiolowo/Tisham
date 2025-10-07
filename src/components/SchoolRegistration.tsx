@@ -23,6 +23,80 @@ export function SchoolRegistration({ onNavigate }: RegistrationProps) {
   const [otpData, setOtpData] = useState<any>(null);
   const [schoolCode, setSchoolCode] = useState('TCN' + Math.floor(100000 + Math.random() * 900000));
   const [classCode] = useState('CLS' + Math.floor(1000 + Math.random() * 9000));
+  const [schoolInfo, setSchoolInfo] = useState<any>(null);
+  const [validatingSchool, setValidatingSchool] = useState(false);
+  const [classInfo, setClassInfo] = useState<any>(null);
+  const [validatingClass, setValidatingClass] = useState(false);
+
+  // Function to validate school code and fetch school info
+  const validateSchoolCode = async (schoolCode: string) => {
+    if (!schoolCode || schoolCode.length < 6) {
+      setSchoolInfo(null);
+      return;
+    }
+
+    setValidatingSchool(true);
+    try {
+      const response = await fetch('/.netlify/functions/validate-school-code', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ schoolCode }),
+      });
+
+      const data = await response.json();
+      
+      if (data.success && data.school) {
+        setSchoolInfo(data.school);
+        toast.success(`Valid school code! School: ${data.school.name}`);
+      } else {
+        setSchoolInfo(null);
+        toast.error(data.error || 'Invalid school code');
+      }
+    } catch (error) {
+      console.error('School code validation error:', error);
+      setSchoolInfo(null);
+      toast.error('Failed to validate school code');
+    } finally {
+      setValidatingSchool(false);
+    }
+  };
+
+  // Function to validate class code and fetch class info
+  const validateClassCode = async (classCode: string) => {
+    if (!classCode || classCode.length < 4) {
+      setClassInfo(null);
+      return;
+    }
+
+    setValidatingClass(true);
+    try {
+      const response = await fetch('/.netlify/functions/validate-class-code', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ classCode }),
+      });
+
+      const data = await response.json();
+      
+      if (data.success && data.class) {
+        setClassInfo(data.class);
+        toast.success(`Valid class code! Class: ${data.class.name}`);
+      } else {
+        setClassInfo(null);
+        toast.error(data.error || 'Invalid class code');
+      }
+    } catch (error) {
+      console.error('Class code validation error:', error);
+      setClassInfo(null);
+      toast.error('Failed to validate class code');
+    } finally {
+      setValidatingClass(false);
+    }
+  };
 
   // Form state
   const [formData, setFormData] = useState({
@@ -61,6 +135,30 @@ export function SchoolRegistration({ onNavigate }: RegistrationProps) {
       if (formData.password.length < 6) {
         toast.error("Password should be at least 6 characters");
         return;
+      }
+
+      // For teacher registration, validate school code
+      if (registrationType === 'teacher') {
+        if (!formData.schoolCode) {
+          toast.error("School code is required for teacher registration");
+          return;
+        }
+        if (!schoolInfo) {
+          toast.error("Please enter a valid school code. The school code you entered is not valid.");
+          return;
+        }
+      }
+
+      // For student registration, validate class code
+      if (registrationType === 'student') {
+        if (!formData.classCode) {
+          toast.error("Class code is required for student registration");
+          return;
+        }
+        if (!classInfo) {
+          toast.error("Please enter a valid class code. The class code you entered is not valid.");
+          return;
+        }
       }
 
       // Prepare registration data based on role
@@ -138,12 +236,12 @@ export function SchoolRegistration({ onNavigate }: RegistrationProps) {
   if (registered) {
     const getSuccessMessage = () => {
       if (registrationType === 'school' && schoolCode) {
-        return {
+          return {
           title: "Registration Successful!",
           description: "Your school has been registered and data saved. Please check your email and click the confirmation link to activate your account.",
           buttonText: "Go to Login",
           showCode: true,
-          codeLabel: "Your School Code",
+            codeLabel: "Your School Code",
           code: schoolCode
         };
       }
@@ -169,14 +267,14 @@ export function SchoolRegistration({ onNavigate }: RegistrationProps) {
               {success.description}
             </p>
             {success.showCode && (
-              <div className="bg-muted p-6 rounded-2xl mb-8">
-                <p className="text-sm text-muted-foreground mb-2">{success.codeLabel}</p>
-                <p className="text-base sm:text-base tracking-wider">{success.code}</p>
-              </div>
+            <div className="bg-muted p-6 rounded-2xl mb-8">
+              <p className="text-sm text-muted-foreground mb-2">{success.codeLabel}</p>
+              <p className="text-base sm:text-base tracking-wider">{success.code}</p>
+            </div>
             )}
             <div className="space-y-3">
               <Button className="w-full rounded-2xl" size="lg" onClick={() => onNavigate('login')}>
-                {success.buttonText}
+                  {success.buttonText}
               </Button>
             </div>
           </CardContent>
@@ -373,10 +471,27 @@ export function SchoolRegistration({ onNavigate }: RegistrationProps) {
                       placeholder="Enter your school code (e.g., TCN123456)"
                       className="rounded-xl"
                       value={formData.schoolCode}
-                      onChange={(e) => setFormData({...formData, schoolCode: e.target.value})}
+                      onChange={(e) => {
+                        setFormData({...formData, schoolCode: e.target.value});
+                        // Validate school code after user stops typing
+                        const timeoutId = setTimeout(() => {
+                          validateSchoolCode(e.target.value);
+                        }, 1000);
+                        return () => clearTimeout(timeoutId);
+                      }}
                       required
                     />
                     <p className="text-xs text-muted-foreground">Get this code from your school administrator</p>
+                    {validatingSchool && (
+                      <p className="text-xs text-blue-600">Validating school code...</p>
+                    )}
+                    {schoolInfo && (
+                      <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <p className="text-sm font-medium text-green-800">✓ Valid School Code</p>
+                        <p className="text-sm text-green-700">School: {schoolInfo.name}</p>
+                        <p className="text-xs text-green-600">Type: {schoolInfo.school_type} • State: {schoolInfo.state}</p>
+                      </div>
+                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -468,10 +583,27 @@ export function SchoolRegistration({ onNavigate }: RegistrationProps) {
                       placeholder="Enter your class code (e.g., CLS1234)"
                       className="rounded-xl"
                       value={formData.classCode}
-                      onChange={(e) => setFormData({...formData, classCode: e.target.value})}
+                      onChange={(e) => {
+                        setFormData({...formData, classCode: e.target.value});
+                        // Validate class code after user stops typing
+                        const timeoutId = setTimeout(() => {
+                          validateClassCode(e.target.value);
+                        }, 1000);
+                        return () => clearTimeout(timeoutId);
+                      }}
                       required
                     />
                     <p className="text-xs text-muted-foreground">Get this code from your teacher</p>
+                    {validatingClass && (
+                      <p className="text-xs text-blue-600">Validating class code...</p>
+                    )}
+                    {classInfo && (
+                      <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <p className="text-sm font-medium text-green-800">✓ Valid Class Code</p>
+                        <p className="text-sm text-green-700">Class: {classInfo.name}</p>
+                        <p className="text-xs text-green-600">Level: {classInfo.level}</p>
+                      </div>
+                    )}
                   </div>
 
                   <div className="space-y-2">
