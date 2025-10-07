@@ -21,7 +21,7 @@ export function SchoolRegistration({ onNavigate }: RegistrationProps) {
   const [registrationType, setRegistrationType] = useState<'school' | 'teacher' | 'student'>('school');
   const [showOTP, setShowOTP] = useState(false);
   const [otpData, setOtpData] = useState<any>(null);
-  const [schoolCode] = useState('TCN' + Math.floor(100000 + Math.random() * 900000));
+  const [schoolCode, setSchoolCode] = useState('TCN' + Math.floor(100000 + Math.random() * 900000));
   const [classCode] = useState('CLS' + Math.floor(1000 + Math.random() * 9000));
 
   // Form state
@@ -57,6 +57,12 @@ export function SchoolRegistration({ onNavigate }: RegistrationProps) {
         return;
       }
 
+      // Validate password length
+      if (formData.password.length < 6) {
+        toast.error("Password should be at least 6 characters");
+        return;
+      }
+
       // Prepare registration data based on role
       const registrationData = {
         email: formData.email,
@@ -88,8 +94,8 @@ export function SchoolRegistration({ onNavigate }: RegistrationProps) {
 
       console.log('Registration data being sent:', registrationData);
       
-      // Use OTP flow instead of direct registration
-      const response = await fetch('/.netlify/functions/register-otp', {
+      // Use confirmation email flow instead of OTP
+      const response = await fetch('/.netlify/functions/register-confirm', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -103,10 +109,12 @@ export function SchoolRegistration({ onNavigate }: RegistrationProps) {
         throw new Error(result.error || 'Registration failed');
       }
 
-      // Show OTP screen
-      setOtpData(registrationData);
-      setShowOTP(true);
-      toast.success("OTP sent to your email. Please check your inbox.");
+      // Show email confirmation screen
+      setRegistered(true);
+      if (result.schoolCode) {
+        setSchoolCode(result.schoolCode);
+      }
+      toast.success("Registration successful! Please check your email and click the confirmation link to activate your account.");
     } catch (error) {
       console.error('Registration error:', error);
       toast.error("Registration failed. Please try again.");
@@ -115,38 +123,36 @@ export function SchoolRegistration({ onNavigate }: RegistrationProps) {
     }
   };
 
+  const handleOTPSuccess = (result: any) => {
+    // Update school code if it's a school registration
+    if (result.schoolCode && registrationType === 'school') {
+      setSchoolCode(result.schoolCode);
+    }
+    setRegistered(true);
+  };
+
   if (showOTP && otpData) {
-    return <OTPRegistration onBack={() => setShowOTP(false)} registrationData={otpData} />;
+    return <OTPRegistration onBack={() => setShowOTP(false)} registrationData={otpData} onSuccess={handleOTPSuccess} />;
   }
 
   if (registered) {
     const getSuccessMessage = () => {
-      switch (registrationType) {
-        case 'school':
-          return {
-            title: "School Registration Successful!",
-            description: "Your school has been registered successfully. Use this code to invite teachers.",
-            codeLabel: "Your School Code",
-            code: schoolCode,
-            buttonText: "Invite Teachers"
-          };
-        case 'teacher':
-          return {
-            title: "Teacher Registration Successful!",
-            description: "Welcome to TeachMate! You can now access the teacher dashboard.",
-            codeLabel: "Your Teacher ID",
-            code: "TCH" + Math.floor(10000 + Math.random() * 90000),
-            buttonText: "Go to Dashboard"
-          };
-        case 'student':
-          return {
-            title: "Student Registration Successful!",
-            description: "Welcome to TeachMate! You can now access your student dashboard.",
-            codeLabel: "Your Student ID",
-            code: "STU" + Math.floor(10000 + Math.random() * 90000),
-            buttonText: "Go to Dashboard"
-          };
+      if (registrationType === 'school' && schoolCode) {
+        return {
+          title: "Registration Successful!",
+          description: "Your school has been registered and data saved. Please check your email and click the confirmation link to activate your account.",
+          buttonText: "Go to Login",
+          showCode: true,
+          codeLabel: "Your School Code",
+          code: schoolCode
+        };
       }
+      return {
+        title: "Check Your Email!",
+        description: "We've sent a confirmation link to your email address. Please check your inbox and click the link to activate your account.",
+        buttonText: "Go to Login",
+        showCode: false
+      };
     };
 
     const success = getSuccessMessage();
@@ -162,19 +168,16 @@ export function SchoolRegistration({ onNavigate }: RegistrationProps) {
             <p className="text-muted-foreground mb-8">
               {success.description}
             </p>
-            <div className="bg-muted p-6 rounded-2xl mb-8">
-              <p className="text-sm text-muted-foreground mb-2">{success.codeLabel}</p>
-              <p className="text-base sm:text-base tracking-wider">{success.code}</p>
-            </div>
+            {success.showCode && (
+              <div className="bg-muted p-6 rounded-2xl mb-8">
+                <p className="text-sm text-muted-foreground mb-2">{success.codeLabel}</p>
+                <p className="text-base sm:text-base tracking-wider">{success.code}</p>
+              </div>
+            )}
             <div className="space-y-3">
               <Button className="w-full rounded-2xl" size="lg" onClick={() => onNavigate('login')}>
-                Continue to Dashboard
+                {success.buttonText}
               </Button>
-              {registrationType === 'school' && (
-              <Button variant="outline" className="w-full rounded-2xl" size="lg">
-                  {success.buttonText}
-              </Button>
-              )}
             </div>
           </CardContent>
         </Card>

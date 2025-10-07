@@ -44,6 +44,7 @@ CREATE TABLE schools (
   contact_email TEXT,
   contact_phone TEXT,
   school_code TEXT UNIQUE NOT NULL,
+  admin_name TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );

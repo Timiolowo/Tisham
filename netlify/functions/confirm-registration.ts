@@ -5,95 +5,60 @@ const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL!;
 const supabaseServiceKey = process.env.VITE_SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 export const handler: Handler = async (event, context) => {
-  if (event.httpMethod !== 'POST') {
+  if (event.httpMethod !== 'GET') {
     return {
       statusCode: 405,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      },
+      headers: { 'Access-Control-Allow-Origin': '*' },
       body: JSON.stringify({ error: 'Method not allowed' }),
     };
   }
 
   try {
-    const { email, token, password } = JSON.parse(event.body || '{}');
+    const { token_hash, type, email } = event.queryStringParameters || {};
     
-    console.log('Verifying OTP for:', email);
+    console.log('Confirmation request:', { token_hash, type, email });
     
-    if (!email || !token || !password) {
+    if (!token_hash || !type || !email) {
       return {
         statusCode: 400,
         headers: { 'Access-Control-Allow-Origin': '*' },
-        body: JSON.stringify({ error: 'Email, token, and password are required' }),
+        body: JSON.stringify({ error: 'Missing required parameters' }),
       };
     }
 
     // Create Supabase client with service role key
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // 1. Check if user exists and is confirmed (since they should have clicked the magic link)
-    console.log('Checking for existing user with email:', email);
-    
-    // Check if user already exists and is confirmed
-    const { data: existingUser, error: userError } = await supabase.auth.admin.listUsers({
-      filter: { email: email }
+    // 1. Verify the confirmation token
+    const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
+      email,
+      token: token_hash,
+      type: type as any
     });
-    
-    let verifyData: any;
-    
-    if (userError || !existingUser.users || existingUser.users.length === 0) {
-      console.error('User not found:', userError);
-      return {
-        statusCode: 400,
-        headers: { 'Access-Control-Allow-Origin': '*' },
-        body: JSON.stringify({ error: `User not found. Please check your email and click the verification link first.` }),
-      };
-    }
-    
-    const user = existingUser.users[0];
-    
-    // Check if user is confirmed
-    if (!user.email_confirmed_at) {
-      return {
-        statusCode: 400,
-        headers: { 'Access-Control-Allow-Origin': '*' },
-        body: JSON.stringify({ error: `Please check your email and click the verification link to confirm your email first.` }),
-      };
-    }
-    
-    // User exists and is confirmed, use this user
-    verifyData = { user: user };
-    console.log('Using existing confirmed user:', verifyData.user.id);
 
-    console.log('OTP verified successfully:', verifyData);
+    if (verifyError) {
+      console.error('Confirmation verification error:', verifyError);
+      return {
+        statusCode: 400,
+        headers: { 'Access-Control-Allow-Origin': '*' },
+        body: JSON.stringify({ error: `Confirmation failed: ${verifyError.message}` }),
+      };
+    }
+
+    console.log('Email confirmed successfully:', verifyData);
 
     if (!verifyData.user) {
       return {
         statusCode: 400,
         headers: { 'Access-Control-Allow-Origin': '*' },
-        body: JSON.stringify({ error: 'User not found after OTP verification' }),
+        body: JSON.stringify({ error: 'User not found after confirmation' }),
       };
     }
 
-    // 2. Update user password (since OTP doesn't set password)
-    const { error: passwordError } = await supabase.auth.admin.updateUserById(
-      verifyData.user.id,
-      { password: password }
-    );
-
-    if (passwordError) {
-      console.error('Password update error:', passwordError);
-      return {
-        statusCode: 500,
-        headers: { 'Access-Control-Allow-Origin': '*' },
-        body: JSON.stringify({ error: `Failed to set password: ${passwordError.message}` }),
-      };
-    }
-
-    // 3. Get user metadata (registration data)
+    // 2. Get user metadata (registration data)
     const userMetadata = verifyData.user.user_metadata || {};
+    console.log('User metadata:', userMetadata);
+    
     const {
       full_name: fullName,
       role,
@@ -115,7 +80,7 @@ export const handler: Handler = async (event, context) => {
 
     console.log('Processing registration for role:', role);
 
-    // 4. Create profile data
+    // 3. Create profile data
     const profileData: any = {
       id: verifyData.user.id,
       email: verifyData.user.email,
@@ -126,14 +91,14 @@ export const handler: Handler = async (event, context) => {
     let schoolId = null;
     let schoolCode = null;
 
-    // Handle role-specific data
+    // 4. Handle role-specific data
     if (role === 'school_admin') {
       // Generate a unique school code
       schoolCode = 'TCN' + Math.floor(100000 + Math.random() * 900000);
       
       console.log('Creating school for admin:', { schoolName, schoolType, state, address, contactEmail, contactPhone, adminName, schoolCode });
       
-      // Create school and link to profile
+      // Create school and link to profile using service role key
       const { data: school, error: schoolError } = await supabase
         .from('schools')
         .insert({ 
@@ -204,7 +169,9 @@ export const handler: Handler = async (event, context) => {
       profileData.parent_email = parentEmail;
     }
 
-    // 5. Create the profile
+    // 5. Create the profile using service role key
+    console.log('Inserting profile data with service role key:', profileData);
+    
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .insert(profileData)
@@ -234,20 +201,23 @@ export const handler: Handler = async (event, context) => {
     }
 
     console.log('Registration completed successfully for user:', verifyData.user.id);
+    console.log('Profile created:', profile);
+    console.log('School ID:', schoolId);
+    console.log('School Code:', schoolCode);
 
+    // 7. Redirect to login page with success message
+    const redirectUrl = `${process.env.SITE_URL || 'http://localhost:3000'}/login?message=Registration completed successfully! You can now login.`;
+    
     return {
-      statusCode: 200,
-      headers: { 'Access-Control-Allow-Origin': '*' },
-      body: JSON.stringify({ 
-        success: true,
-        user: profile,
-        schoolId,
-        schoolCode: role === 'school_admin' ? schoolCode : undefined,
-        message: 'Registration completed successfully!'
-      }),
+      statusCode: 302,
+      headers: {
+        'Location': redirectUrl,
+        'Access-Control-Allow-Origin': '*'
+      },
+      body: ''
     };
   } catch (error: any) {
-    console.error('OTP verification error:', error);
+    console.error('Confirmation error:', error);
     return {
       statusCode: 500,
       headers: { 'Access-Control-Allow-Origin': '*' },

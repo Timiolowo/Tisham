@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Your Account</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #ffffff;
+            line-height: 1.5;
+            color: #374151;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+        .header {
+            padding: 40px 40px 20px 40px;
+            text-align: center;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            color: #111827;
+            margin: 0 0 8px 0;
+        }
+        .tagline {
+            color: #6b7280;
+            font-size: 14px;
+            margin: 0;
+        }
+        .content {
+            padding: 40px;
+        }
+        .title {
+            color: #111827;
+            font-size: 28px;
+            font-weight: 600;
+            margin: 0 0 16px 0;
+            text-align: center;
+        }
+        .subtitle {
+            color: #6b7280;
+            font-size: 16px;
+            margin: 0 0 32px 0;
+            text-align: center;
+        }
+        .verification-section {
+            background-color: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 32px;
+            text-align: center;
+            margin: 32px 0;
+        }
+        .verification-label {
+            color: #6b7280;
+            font-size: 14px;
+            font-weight: 500;
+            margin: 0 0 12px 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .verification-code {
+            background-color: #111827;
+            color: #ffffff;
+            font-size: 32px;
+            font-weight: 700;
+            letter-spacing: 4px;
+            padding: 20px 24px;
+            border-radius: 6px;
+            margin: 0;
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+            display: inline-block;
+        }
+        .instructions {
+            background-color: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 24px;
+            margin: 32px 0;
+        }
+        .instructions-title {
+            color: #111827;
+            font-size: 16px;
+            font-weight: 600;
+            margin: 0 0 16px 0;
+        }
+        .instructions-list {
+            color: #4b5563;
+            margin: 0;
+            padding-left: 20px;
+        }
+        .instructions-list li {
+            margin-bottom: 8px;
+            line-height: 1.6;
+        }
+        .security-note {
+            background-color: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 16px 20px;
+            margin: 24px 0;
+            border-radius: 0 6px 6px 0;
+        }
+        .security-note p {
+            color: #92400e;
+            font-size: 14px;
+            margin: 0;
+            line-height: 1.5;
+        }
+        .footer {
+            padding: 32px 40px;
+            background-color: #f9fafb;
+            border-top: 1px solid #e5e7eb;
+            text-align: center;
+        }
+        .footer-text {
+            color: #9ca3af;
+            font-size: 14px;
+            margin: 0 0 8px 0;
+        }
+        .footer-email {
+            color: #6b7280;
+            font-size: 12px;
+            margin: 0;
+        }
+        .divider {
+            height: 1px;
+            background-color: #e5e7eb;
+            margin: 24px 0;
+        }
+        .button {
+            display: inline-block;
+            background-color: #111827;
+            color: #ffffff;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-weight: 500;
+            font-size: 14px;
+            margin: 16px 0;
+        }
+        .button:hover {
+            background-color: #374151;
+        }
+        @media (max-width: 600px) {
+            .container {
+                margin: 0;
+            }
+            .header, .content, .footer {
+                padding: 24px 20px;
+            }
+            .verification-code {
+                font-size: 24px;
+                letter-spacing: 2px;
+                padding: 16px 20px;
+            }
+            .title {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">TeachMate</div>
+            <div class="tagline">AI-Powered Education Platform</div>
+        </div>
+        
+        <div class="content">
+            <h1 class="title">Verify Your Account</h1>
+            <p class="subtitle">Complete your registration to access your TeachMate dashboard</p>
+            
+            <div class="verification-section">
+                <p class="verification-label">Your verification code</p>
+                <div class="verification-code">{{ .ConfirmationURL }}</div>
+            </div>
+            
+            <div class="instructions">
+                <h3 class="instructions-title">How to verify your account:</h3>
+                <ol class="instructions-list">
+                    <li>Return to the TeachMate application</li>
+                    <li>Navigate to the verification screen</li>
+                    <li>Enter the verification code above</li>
+                    <li>Click "Verify Account" to complete registration</li>
+                </ol>
+            </div>
+            
+            <div class="security-note">
+                <p><strong>Security Notice:</strong> This verification code expires in 10 minutes. If you didn't create a TeachMate account, please ignore this email.</p>
+            </div>
+            
+            <div class="divider"></div>
+            
+            <p style="color: #6b7280; font-size: 14px; text-align: center; margin: 0;">
+                Having trouble? Check your spam folder or contact our support team.
+            </p>
+        </div>
+        
+        <div class="footer">
+            <p class="footer-text">© 2024 TeachMate. All rights reserved.</p>
+            <p class="footer-email">This email was sent to {{ .Email }}</p>
+        </div>
+    </div>
+</body>
+</html>

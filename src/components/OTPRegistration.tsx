@@ -9,9 +9,10 @@ import { toast } from 'sonner';
 interface OTPRegistrationProps {
   onBack: () => void;
   registrationData: any;
+  onSuccess?: (result: any) => void;
 }
 
-export default function OTPRegistration({ onBack, registrationData }: OTPRegistrationProps) {
+export default function OTPRegistration({ onBack, registrationData, onSuccess }: OTPRegistrationProps) {
   const [otp, setOtp] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
   const [isResending, setIsResending] = useState(false);
@@ -19,6 +20,12 @@ export default function OTPRegistration({ onBack, registrationData }: OTPRegistr
   const handleVerifyOTP = async () => {
     if (!otp || otp.length !== 6) {
       toast.error('Please enter a valid 6-digit OTP');
+      return;
+    }
+
+    // Validate password length
+    if (!registrationData.password || registrationData.password.length < 6) {
+      toast.error('Password should be at least 6 characters');
       return;
     }
 
@@ -43,8 +50,14 @@ export default function OTPRegistration({ onBack, registrationData }: OTPRegistr
       }
 
       toast.success('Registration completed successfully!');
-      // Redirect to login or dashboard
-      window.location.href = '/login';
+      
+      // Call onSuccess callback with the result if provided
+      if (onSuccess) {
+        onSuccess(result);
+      } else {
+        // Default behavior: redirect to login
+        window.location.href = '/login';
+      }
     } catch (error: any) {
       console.error('OTP verification error:', error);
       toast.error(error.message || 'OTP verification failed');
@@ -88,7 +101,13 @@ export default function OTPRegistration({ onBack, registrationData }: OTPRegistr
           </div>
           <CardTitle>Verify Your Email</CardTitle>
           <CardDescription>
-            We've sent a 6-digit code to <strong>{registrationData.email}</strong>
+            We've sent a verification link to <strong>{registrationData.email}</strong>
+            <br />
+            <span className="text-sm text-muted-foreground mt-2 block">
+              <strong>Step 1:</strong> Check your email and click the verification link
+              <br />
+              <strong>Step 2:</strong> Come back here and enter any 6-digit code to continue
+            </span>
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
