@@ -27,26 +27,16 @@ export function TeacherDashboard({ onNavigate }: TeacherDashboardProps) {
     <SharedLayout 
       onNavigate={onNavigate}
       userRole="teacher"
-      title="Welcome, Mrs. Okonkwo"
-      subtitle="Mathematics Teacher • JSS 2 & 3"
+      title="TeachMate"
+      subtitle="Continue your learning journey"
     >
       <div className="space-y-3 h-full overflow-y-auto">
              {/* Welcome Section */}
              <div className="bg-gradient-to-r from-primary/10 via-secondary/10 to-accent/10 rounded-xl p-3 border border-primary/20">
                <div className="flex items-center justify-between">
                  <div>
-                   <h1 className="text-lg font-bold mb-1">Welcome back, Mrs. Okonkwo! 👋</h1>
+                   <h1 className="text-lg font-bold mb-1">Welcome back, Mr. Okonko! 👋</h1>
                    <p className="text-sm text-muted-foreground">Ready to create amazing lessons with AI? Let's get started!</p>
-                 </div>
-                 <div className="hidden md:flex items-center gap-3">
-                   <div className="text-center">
-                     <div className="text-lg font-bold text-primary">24</div>
-                     <div className="text-xs text-muted-foreground">Lessons Created</div>
-                   </div>
-                   <div className="text-center">
-                     <div className="text-lg font-bold text-secondary">36</div>
-                     <div className="text-xs text-muted-foreground">Hours Saved</div>
-                   </div>
                  </div>
                </div>
              </div>
@@ -157,14 +147,14 @@ export function TeacherDashboard({ onNavigate }: TeacherDashboardProps) {
                          <span className="text-sm font-medium">AI-Powered Lesson Planning</span>
                       <span className="text-sm font-semibold text-primary">65%</span>
                     </div>
-                    <Progress value={65} variant="gradient" showLabel className="h-3" />
+                    <Progress value={65} variant="gradient" className="h-3" />
                   </div>
                   <div>
                        <div className="flex justify-between mb-3">
                          <span className="text-sm font-medium">Digital Classroom Management</span>
                       <span className="text-sm font-semibold text-accent">30%</span>
                     </div>
-                    <Progress value={30} variant="accent" showLabel className="h-3" />
+                    <Progress value={30} variant="accent" className="h-3" />
                   </div>
                   <Button 
                     variant="outline" 

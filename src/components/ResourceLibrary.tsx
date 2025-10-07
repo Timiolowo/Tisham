@@ -5,10 +5,11 @@ import { Input } from "./ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Badge } from "./ui/badge";
 import { ArrowLeft, Search, FileText, ClipboardList, BookOpen, Edit, Languages, Share2, Download, Filter } from "lucide-react";
+import { SharedLayout } from "./SharedLayout";
 
 interface ResourceLibraryProps {
   onBack: () => void;
-  onNavigate?: (page: string) => void;
+  onNavigate?: (page: any, role?: any) => void;
 }
 
 export function ResourceLibrary({ onBack, onNavigate }: ResourceLibraryProps) {
@@ -73,26 +74,14 @@ export function ResourceLibrary({ onBack, onNavigate }: ResourceLibraryProps) {
   );
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="bg-card border-b px-4 sm:px-6 py-4">
-        <div className="max-w-7xl mx-auto flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={onBack}>
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <div className="flex-1 min-w-0">
-            <h1 className="text-xl sm:text-base truncate">Resource Library</h1>
-            <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">All your lessons, assessments, and teaching materials</p>
-          </div>
-          <Button 
-            onClick={() => onNavigate?.('edit-resource')}
-            className="rounded-2xl gradient-primary"
-          >
-            <Edit className="w-4 h-4 mr-2" />
-            Create New
-          </Button>
-        </div>
-      </header>
+    <SharedLayout 
+      onNavigate={onNavigate}
+      userRole="teacher"
+      title="Resource Library"
+      subtitle="All your lessons, assessments, and teaching materials"
+      activeMenu="library"
+      hideHeaderIcons={true}
+    >
 
       <main className="max-w-7xl mx-auto p-4 sm:p-6">
         {/* Search and Filter Bar */}
@@ -242,6 +231,6 @@ export function ResourceLibrary({ onBack, onNavigate }: ResourceLibraryProps) {
           </Card>
         )}
       </main>
-    </div>
+    </SharedLayout>
   );
 }

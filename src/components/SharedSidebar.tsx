@@ -8,14 +8,28 @@ import {
 
 interface SharedSidebarProps {
   onNavigate: (page: any, role?: any) => void;
-  userRole: 'teacher' | 'student';
+  userRole: 'teacher' | 'student' | 'school_admin';
   activeMenu: string;
   setActiveMenu: (menu: string) => void;
   mobile?: boolean;
 }
 
 export function SharedSidebar({ onNavigate, userRole, activeMenu, setActiveMenu, mobile = false }: SharedSidebarProps) {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(!mobile);
+  // Persistent sidebar state - remember user's preference
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    if (mobile) return false; // Always expanded on mobile
+    // Check localStorage for saved preference, default to collapsed
+    const saved = localStorage.getItem('sidebar-collapsed');
+    return saved ? JSON.parse(saved) : true;
+  });
+
+  // Save sidebar state to localStorage when it changes
+  const handleSidebarToggle = (collapsed: boolean) => {
+    setSidebarCollapsed(collapsed);
+    if (!mobile) {
+      localStorage.setItem('sidebar-collapsed', JSON.stringify(collapsed));
+    }
+  };
 
   const teacherMenuItems = [
     { id: 'dashboard', label: 'Home', icon: Home },
@@ -39,7 +53,19 @@ export function SharedSidebar({ onNavigate, userRole, activeMenu, setActiveMenu,
     { id: 'settings', label: 'Settings', icon: Settings, onClick: () => onNavigate('settings') },
   ];
 
-  const menuItems = userRole === 'teacher' ? teacherMenuItems : studentMenuItems;
+  const adminMenuItems = [
+    { id: 'dashboard', label: 'School Dashboard', icon: BarChart3 },
+    { id: 'settings', label: 'School Settings', icon: Settings },
+  ];
+
+  const getMenuItems = () => {
+    if (userRole === 'teacher') return teacherMenuItems;
+    if (userRole === 'student') return studentMenuItems;
+    if (userRole === 'school_admin') return adminMenuItems;
+    return teacherMenuItems; // fallback
+  };
+
+  const menuItems = getMenuItems();
 
   return (
     <div className={`${mobile ? 'w-full' : (sidebarCollapsed ? 'w-16' : 'w-64')} bg-card ${mobile ? '' : 'border-r'} h-full flex flex-col transition-all duration-300`}>
@@ -47,7 +73,7 @@ export function SharedSidebar({ onNavigate, userRole, activeMenu, setActiveMenu,
         <div className="flex items-center justify-between">
           <div 
             className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
-            onClick={() => !mobile && setSidebarCollapsed(false)}
+            onClick={() => !mobile && handleSidebarToggle(false)}
           >
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center flex-shrink-0">
               <Sparkles className="w-5 h-5 text-primary-foreground" />
@@ -64,7 +90,7 @@ export function SharedSidebar({ onNavigate, userRole, activeMenu, setActiveMenu,
               variant="ghost" 
               size="icon" 
               className="w-6 h-6"
-              onClick={() => setSidebarCollapsed(true)}
+              onClick={() => handleSidebarToggle(true)}
             >
               <X className="w-4 h-4" />
             </Button>

@@ -156,7 +156,7 @@ function AppContent() {
           resourceId={editingResourceId}
         />;
       case 'settings':
-        return <SettingsPage onBack={() => navigate('dashboard')} onLogout={handleLogout} userRole={userRole} />;
+        return <SettingsPage onBack={() => navigate('dashboard')} onLogout={handleLogout} onNavigate={navigate} userRole={userRole} />;
       default:
         return <LandingPage onNavigate={navigate} />;
     }

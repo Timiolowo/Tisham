@@ -115,6 +115,7 @@ export function CopilotChat({ onNavigate }: CopilotChatProps) {
       title="TeCHATer"
       subtitle="Your AI Teaching Assistant"
       activeMenu="copilot"
+      hideHeaderIcons={true}
     >
 
       {/* Chat Area */}
@@ -134,12 +135,12 @@ export function CopilotChat({ onNavigate }: CopilotChatProps) {
                     <p className="text-sm sm:text-base text-muted-foreground mb-6 sm:mb-8">
                       Try one of these suggestions or ask your own question
                     </p>
-                    <div className="grid sm:grid-cols-2 gap-2 sm:gap-3 max-w-2xl mx-auto">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 max-w-2xl mx-auto">
                       {samplePrompts.map((prompt, i) => (
                         <Button
                           key={i}
                           variant="outline"
-                          className="rounded-2xl h-auto py-3 px-4 sm:py-4 sm:px-6 text-left justify-start hover-lift text-xs sm:text-sm"
+                          className="rounded-2xl h-auto py-2 px-3 sm:py-3 sm:px-4 text-left justify-start hover-lift text-xs"
                           onClick={() => handlePromptClick(prompt)}
                         >
                           <div className="w-7 h-7 sm:w-8 sm:h-8 bg-primary/10 rounded-lg flex items-center justify-center mr-2 sm:mr-3 flex-shrink-0">

@@ -14,6 +14,7 @@ import { ThemeToggle } from "./ThemeToggle";
 import { toast } from "sonner";
 import { useAuth } from "../contexts/AuthContext";
 import { supabase } from "../lib/supabase";
+import { SharedLayout } from "./SharedLayout";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,10 +30,11 @@ import {
 interface SettingsPageProps {
   onBack: () => void;
   onLogout: () => void;
+  onNavigate?: (page: any, role?: any) => void;
   userRole?: 'teacher' | 'student';
 }
 
-export function SettingsPage({ onBack, onLogout, userRole = 'teacher' }: SettingsPageProps) {
+export function SettingsPage({ onBack, onLogout, onNavigate, userRole = 'teacher' }: SettingsPageProps) {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [school, setSchool] = useState<any>(null);
@@ -125,23 +127,14 @@ export function SettingsPage({ onBack, onLogout, userRole = 'teacher' }: Setting
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background">
-      <header className="bg-card/80 backdrop-blur-sm border-b px-4 sm:px-6 py-4 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={onBack}>
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-            <div className="flex-1 min-w-0">
-              <h1 className="text-xl sm:text-base truncate">Settings</h1>
-              <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">
-                Manage your account and preferences
-              </p>
-            </div>
-          </div>
-          <ThemeToggle />
-        </div>
-      </header>
+    <SharedLayout 
+      onNavigate={onNavigate}
+      userRole={userRole}
+      title="Settings"
+      subtitle="Manage your account and preferences"
+      activeMenu="settings"
+      hideHeaderIcons={true}
+    >
 
       <main className="max-w-5xl mx-auto p-4 sm:p-6">
         <Tabs defaultValue="profile" className="space-y-6">
@@ -535,6 +528,6 @@ export function SettingsPage({ onBack, onLogout, userRole = 'teacher' }: Setting
           </CardContent>
         </Card>
       </main>
-    </div>
+    </SharedLayout>
   );
 }

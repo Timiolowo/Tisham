@@ -8,7 +8,7 @@ import { SharedSidebar } from "./SharedSidebar";
 interface SharedLayoutProps {
   children: React.ReactNode;
   onNavigate: (page: any, role?: any) => void;
-  userRole: 'teacher' | 'student';
+  userRole: 'teacher' | 'student' | 'school_admin';
   title: string;
   subtitle: string;
   hideHeaderIcons?: boolean;

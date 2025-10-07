@@ -2,8 +2,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "./ui/
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
-import { ArrowLeft, Users, BookOpen, Clock, TrendingUp, UserPlus, Download } from "lucide-react";
+import { ArrowLeft, Users, BookOpen, Clock, TrendingUp, UserPlus, Download, Settings } from "lucide-react";
+import { SharedLayout } from "./SharedLayout";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { useAuth } from "../contexts/AuthContext";
 
 interface AdminDashboardProps {
   onBack: () => void;
@@ -11,6 +13,8 @@ interface AdminDashboardProps {
 }
 
 export function AdminDashboard({ onBack, onNavigate }: AdminDashboardProps) {
+  const { user } = useAuth();
+  const isSchoolAdmin = user?.role === 'school_admin';
   const stats = [
     { label: 'Total Teachers', value: '24', icon: Users, color: 'text-primary' },
     { label: 'Active Students', value: '680', icon: Users, color: 'text-secondary' },
@@ -66,35 +70,14 @@ export function AdminDashboard({ onBack, onNavigate }: AdminDashboardProps) {
   ];
 
   return (
-    <div className="h-screen max-h-screen bg-background overflow-hidden flex flex-col">
-      {/* Header */}
-      <header className="bg-card border-b px-4 sm:px-6 py-4">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={onBack}>
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-            <div className="flex-1 min-w-0">
-              <h1 className="text-xl sm:text-base truncate">School Dashboard</h1>
-              <p className="text-xs sm:text-sm text-muted-foreground truncate">
-                St. Mary's Secondary School • Overview & Analytics
-              </p>
-            </div>
-          </div>
-          <div className="flex gap-2 sm:gap-3 w-full sm:w-auto">
-            <Button variant="outline" className="rounded-xl flex-1 sm:flex-initial text-xs sm:text-sm">
-              <UserPlus className="w-4 h-4 mr-1 sm:mr-2" />
-              <span className="hidden sm:inline">Invite Teacher</span>
-              <span className="sm:hidden">Invite</span>
-            </Button>
-            <Button variant="outline" className="rounded-xl flex-1 sm:flex-initial text-xs sm:text-sm">
-              <Download className="w-4 h-4 mr-1 sm:mr-2" />
-              <span className="hidden sm:inline">Export Data</span>
-              <span className="sm:hidden">Export</span>
-            </Button>
-          </div>
-        </div>
-      </header>
+    <SharedLayout 
+      onNavigate={onNavigate}
+      userRole="teacher"
+      title="School Dashboard"
+      subtitle="Overview of your school's activity and performance"
+      activeMenu="admin"
+      hideHeaderIcons={true}
+    >
 
       <main className="max-w-7xl mx-auto p-4 sm:p-6 flex-1 overflow-y-auto">
         {/* Stats Grid */}
@@ -118,6 +101,59 @@ export function AdminDashboard({ onBack, onNavigate }: AdminDashboardProps) {
             );
           })}
         </div>
+
+        {/* Management Actions - Only for School Admins */}
+        {isSchoolAdmin && (
+          <Card className="rounded-2xl mb-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="w-5 h-5" />
+                School Management
+              </CardTitle>
+              <CardDescription>
+                Manage teachers, students, and school settings
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <Button 
+                  className="rounded-xl h-auto p-4 flex flex-col items-center gap-2 hover:shadow-lg transition-shadow"
+                  onClick={() => onNavigate('manage-teachers')}
+                >
+                  <Users className="w-6 h-6" />
+                  <div className="text-center">
+                    <div className="font-semibold">Manage Teachers</div>
+                    <div className="text-xs text-muted-foreground">Add, edit, or remove teachers</div>
+                  </div>
+                </Button>
+                
+                <Button 
+                  variant="outline"
+                  className="rounded-xl h-auto p-4 flex flex-col items-center gap-2 hover:shadow-lg transition-shadow"
+                  onClick={() => onNavigate('manage-students')}
+                >
+                  <BookOpen className="w-6 h-6" />
+                  <div className="text-center">
+                    <div className="font-semibold">Manage Students</div>
+                    <div className="text-xs text-muted-foreground">View and manage student accounts</div>
+                  </div>
+                </Button>
+                
+                <Button 
+                  variant="outline"
+                  className="rounded-xl h-auto p-4 flex flex-col items-center gap-2 hover:shadow-lg transition-shadow"
+                  onClick={() => onNavigate('school-settings')}
+                >
+                  <Settings className="w-6 h-6" />
+                  <div className="text-center">
+                    <div className="font-semibold">School Settings</div>
+                    <div className="text-xs text-muted-foreground">Configure school preferences</div>
+                  </div>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         <div className="grid lg:grid-cols-3 gap-6 mb-6">
           {/* Usage Chart */}
@@ -255,6 +291,6 @@ export function AdminDashboard({ onBack, onNavigate }: AdminDashboardProps) {
           </CardContent>
         </Card>
       </main>
-    </div>
+    </SharedLayout>
   );
 }
