@@ -55,12 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isSupabaseEnabled] = useState(isSupabaseConfigured());
   
-  // Show warning if trying to use authentication on frontend-only port
-  useEffect(() => {
-    if (typeof window !== 'undefined' && !isAuthenticationAllowed()) {
-      console.warn('🚨 SECURITY WARNING: Authentication and API access are disabled on frontend-only port. Use netlify dev (port 8888) for full functionality.');
-    }
-  }, []);
+  // Security warnings removed - no longer displayed
 
   useEffect(() => {
     // Check for existing session on mount
