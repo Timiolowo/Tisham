@@ -84,6 +84,8 @@ function AppContent() {
       setLearningResourceTitle(resourceTitle);
       setLearningResourceId(resourceId || null);
     }
+    // Scroll to top when navigating to a new page
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const saveLessonPlan = (lesson: LessonPlan) => {

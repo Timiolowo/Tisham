@@ -140,13 +140,13 @@ export function CopilotChat({ onNavigate }: CopilotChatProps) {
                         <Button
                           key={i}
                           variant="outline"
-                          className="rounded-2xl h-auto py-2 px-3 sm:py-3 sm:px-4 text-left justify-start hover-lift text-xs"
+                          className="rounded-2xl h-auto py-2 px-3 sm:py-3 sm:px-4 text-left justify-start hover-lift text-xs sm:text-sm"
                           onClick={() => handlePromptClick(prompt)}
                         >
-                          <div className="w-7 h-7 sm:w-8 sm:h-8 bg-primary/10 rounded-lg flex items-center justify-center mr-2 sm:mr-3 flex-shrink-0">
-                            <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
+                          <div className="w-6 h-6 sm:w-8 sm:h-8 bg-primary/10 rounded-lg flex items-center justify-center mr-2 sm:mr-3 flex-shrink-0">
+                            <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 text-primary" />
                           </div>
-                          <span>{prompt}</span>
+                          <span className="text-xs sm:text-sm leading-tight">{prompt}</span>
                         </Button>
                       ))}
                     </div>
@@ -163,28 +163,28 @@ export function CopilotChat({ onNavigate }: CopilotChatProps) {
                   } animate-fade-in`}
                 >
                   
-                  <div className={`flex flex-col ${message.role === 'user' ? 'items-end' : 'items-start'} max-w-[85%] sm:max-w-[80%]`}>
+                  <div className={`flex flex-col ${message.role === 'user' ? 'items-end' : 'items-start'} max-w-[90%] sm:max-w-[80%]`}>
                     <Card className={`rounded-2xl ${
                       message.role === 'user'
                         ? 'bg-primary text-primary-foreground'
                         : 'glass-card'
                     }`}>
                       <CardContent className="p-3 sm:p-4">
-                        <div className="whitespace-pre-wrap text-sm sm:text-base leading-relaxed">
+                        <div className="whitespace-pre-wrap text-sm leading-relaxed">
                           {message.content.split('\n').map((line, index) => {
                             // Format bullet points and numbered lists
                             if (line.trim().startsWith('✅') || line.trim().startsWith('•') || line.trim().startsWith('-')) {
                               return (
-                                <div key={index} className="flex items-start gap-2 mb-1">
-                                  <span className="text-primary font-semibold mt-0.5">•</span>
-                                  <span>{line.trim().replace(/^[✅•\-]\s*/, '')}</span>
+                                <div key={index} className="flex items-start gap-2 mb-2">
+                                  <span className="text-primary font-semibold mt-0.5 flex-shrink-0">•</span>
+                                  <span className="text-sm">{line.trim().replace(/^[✅•\-]\s*/, '')}</span>
                                 </div>
                               );
                             }
                             // Format headers (lines that are all caps or start with #)
                             if (line.trim().match(/^[A-Z\s]+$/) && line.trim().length > 3) {
                               return (
-                                <div key={index} className="font-semibold text-primary mb-2 mt-3 first:mt-0">
+                                <div key={index} className="font-semibold text-primary mb-3 mt-4 first:mt-0 text-base">
                                   {line.trim()}
                                 </div>
                               );
@@ -193,7 +193,7 @@ export function CopilotChat({ onNavigate }: CopilotChatProps) {
                             if (line.includes('**')) {
                               const parts = line.split(/(\*\*.*?\*\*)/g);
                               return (
-                                <div key={index} className="mb-1">
+                                <div key={index} className="mb-2">
                                   {parts.map((part, partIndex) => 
                                     part.startsWith('**') && part.endsWith('**') ? (
                                       <strong key={partIndex} className="font-semibold text-primary">
@@ -208,9 +208,9 @@ export function CopilotChat({ onNavigate }: CopilotChatProps) {
                             }
                             // Regular text
                             return line.trim() ? (
-                              <div key={index} className="mb-1">{line}</div>
+                              <div key={index} className="mb-2 text-sm">{line}</div>
                             ) : (
-                              <div key={index} className="mb-2"></div>
+                              <div key={index} className="mb-3"></div>
                             );
                           })}
                         </div>
@@ -266,38 +266,44 @@ export function CopilotChat({ onNavigate }: CopilotChatProps) {
             </ScrollArea>
 
           {/* Input Area - Fixed at bottom */}
-          <div className="sticky bottom-0 bg-background/95 backdrop-blur-sm border-t p-4 sm:p-6">
-            <Card className="rounded-3xl glass-card">
-              <CardContent className="p-3">
-                <div className="flex items-end gap-2">
-                  <Button variant="ghost" size="icon" className="flex-shrink-0 rounded-xl">
-                    <Mic className="w-5 h-5" />
+          <div className="sticky bottom-0 bg-background/95 backdrop-blur-sm border-t p-3 sm:p-4">
+            <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md rounded-2xl border border-gray-200/50 dark:border-gray-700/50 shadow-lg">
+              <div className="p-3">
+                <div className="flex items-end gap-3">
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="flex-shrink-0 rounded-xl h-9 w-9 sm:h-10 sm:w-10 hover:bg-primary/10 transition-colors"
+                  >
+                    <Mic className="w-4 h-4 sm:w-5 sm:h-5" />
                   </Button>
 
-                  <Textarea
-                    placeholder="Ask me anything about teaching..."
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={handleKeyPress}
-                    className="min-h-[44px] max-h-32 resize-none rounded-2xl border-0 bg-muted/50 text-sm sm:text-base"
-                    disabled={isLoading}
-                  />
+                  <div className="flex-1 relative">
+                    <Textarea
+                      placeholder="Ask me anything about teaching..."
+                      value={input}
+                      onChange={(e) => setInput(e.target.value)}
+                      onKeyDown={handleKeyPress}
+                      className="min-h-[40px] sm:min-h-[44px] max-h-24 sm:max-h-32 resize-none rounded-xl border border-gray-200/50 dark:border-gray-700/50 bg-white/50 dark:bg-gray-800/50 text-sm placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                      disabled={isLoading}
+                    />
+                  </div>
 
                   <Button 
                     size="icon" 
                     onClick={handleSend}
                     disabled={!input.trim() || isLoading}
-                    className="rounded-xl gradient-primary flex-shrink-0 h-11 w-11"
+                    className="rounded-xl bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white shadow-lg hover:shadow-xl transition-all duration-200 flex-shrink-0 h-9 w-9 sm:h-11 sm:w-11 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isLoading ? (
-                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
                     ) : (
-                      <Send className="w-5 h-5" />
+                      <Send className="w-4 h-4 sm:w-5 sm:h-5" />
                     )}
                   </Button>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </div>
         </div>
       </div>

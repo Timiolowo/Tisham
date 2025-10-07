@@ -22,7 +22,6 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
             <ThemeToggle />
-            <Button variant="ghost" onClick={() => onNavigate('login')} className="hidden sm:inline-flex">Log in</Button>
             <Button onClick={() => onNavigate('register')} className="text-sm">
               <span className="hidden sm:inline">Register School</span>
               <span className="sm:hidden">Register</span>
@@ -39,18 +38,14 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
               Your everyday teaching partner
             </div>
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight">
-              Empowering Teachers with AI for Smarter Classrooms
+              Empowering Teachers from Chalkboard to Chatbot
             </h1>
             <p className="text-base text-muted-foreground">
-              Adapt to the new national curriculum (Sept 2025) with AI-powered lesson planning, 
-              real-time assistance, and multilingual support for secondary schools across Nigeria.
+              Adapt to the new national curriculum with AI-powered lesson planning, real-time assistance, and multilingual support for secondary schools across Nigeria.
             </p>
             <div className="flex gap-4">
               <Button size="lg" className="rounded-2xl" onClick={() => onNavigate('register')}>
                 Register School
-              </Button>
-              <Button size="lg" variant="outline" className="rounded-2xl" onClick={() => onNavigate('login')}>
-                Log in
               </Button>
             </div>
             <div className="flex items-center gap-6 pt-4">

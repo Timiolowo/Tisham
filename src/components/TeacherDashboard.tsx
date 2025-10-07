@@ -8,13 +8,15 @@ import {
   Sparkles, Clock, BookMarked, Award, Users
 } from "lucide-react";
 import { SharedLayout } from "./SharedLayout";
+import { useAuth } from "../contexts/AuthContext";
 
 interface TeacherDashboardProps {
   onNavigate: (page: any, role?: any) => void;
 }
 
 export function TeacherDashboard({ onNavigate }: TeacherDashboardProps) {
-
+  const { user } = useAuth();
+  const userName = user?.full_name || user?.email?.split('@')[0] || 'Teacher';
 
   const stats = [
     { label: 'Lessons Created', value: '24', icon: FileText, color: 'text-primary' },
@@ -35,8 +37,8 @@ export function TeacherDashboard({ onNavigate }: TeacherDashboardProps) {
              <div className="bg-gradient-to-r from-primary/10 via-secondary/10 to-accent/10 rounded-xl p-3 border border-primary/20">
                <div className="flex items-center justify-between">
                  <div>
-                   <h1 className="text-lg font-bold mb-1">Welcome back, Mr. Okonko! 👋</h1>
-                   <p className="text-sm text-muted-foreground">Ready to create amazing lessons with AI? Let's get started!</p>
+                   <h1 className="text-base font-semibold mb-1">Welcome back, {userName}! 👋</h1>
+                   <p className="text-xs text-muted-foreground">Ready to create amazing lessons with AI? Let's get started!</p>
                  </div>
                </div>
              </div>
@@ -128,7 +130,7 @@ export function TeacherDashboard({ onNavigate }: TeacherDashboardProps) {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Award className="w-6 h-6 text-accent" />
-                       <CardTitle>Continue Your Learning Journey</CardTitle>
+                       <CardTitle>Continue Learning</CardTitle>
                   </div>
                   <Button 
                     variant="outline" 
@@ -138,7 +140,7 @@ export function TeacherDashboard({ onNavigate }: TeacherDashboardProps) {
                     View All
                   </Button>
                 </div>
-                   <CardDescription>Track your progress and unlock new skills</CardDescription>
+                   <CardDescription className="hidden sm:block">Track your progress and unlock new skills</CardDescription>
               </CardHeader>
               <CardContent>
                    <div className="space-y-6">
@@ -178,34 +180,62 @@ export function TeacherDashboard({ onNavigate }: TeacherDashboardProps) {
                    <CardDescription>Recently generated content and activities</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {[
                        { title: 'Introduction to Robotics', subject: 'Computer Science', class: 'JSS 3', date: '2 days ago', status: 'completed' },
                        { title: 'Algebraic Expressions', subject: 'Mathematics', class: 'JSS 2', date: '3 days ago', status: 'in-progress' },
                        { title: 'Solar Energy Systems', subject: 'Physics', class: 'JSS 3', date: '5 days ago', status: 'completed' },
                   ].map((lesson, i) => (
-                       <div key={i} className="flex items-center justify-between p-4 bg-muted/50 rounded-xl hover:bg-muted transition-colors">
-                      <div className="flex items-center gap-4">
-                           <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
-                             <FileText className="w-6 h-6 text-primary" />
+                       <div key={i} className="p-3 sm:p-4 bg-muted/50 rounded-xl hover:bg-muted transition-colors">
+                      {/* Desktop Layout */}
+                      <div className="hidden sm:flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                             <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
+                               <FileText className="w-6 h-6 text-primary" />
+                          </div>
+                          <div>
+                               <p className="font-semibold text-sm">{lesson.title}</p>
+                               <p className="text-xs text-muted-foreground">
+                              {lesson.subject} • {lesson.class}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                             <p className="font-semibold text-sm">{lesson.title}</p>
-                             <p className="text-xs text-muted-foreground">
-                            {lesson.subject} • {lesson.class}
-                          </p>
+                           <div className="flex items-center gap-3">
+                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                               lesson.status === 'completed' 
+                                 ? 'bg-green-100 text-green-700' 
+                                 : 'bg-yellow-100 text-yellow-700'
+                             }`}>
+                               {lesson.status === 'completed' ? 'Completed' : 'In Progress'}
+                             </span>
+                             <p className="text-xs text-muted-foreground">{lesson.date}</p>
+                           </div>
+                      </div>
+
+                      {/* Mobile Layout */}
+                      <div className="sm:hidden space-y-3">
+                        <div className="flex items-start gap-3">
+                          <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0">
+                            <FileText className="w-5 h-5 text-primary" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold text-sm leading-tight">{lesson.title}</p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {lesson.subject} • {lesson.class}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            lesson.status === 'completed' 
+                              ? 'bg-green-100 text-green-700' 
+                              : 'bg-yellow-100 text-yellow-700'
+                          }`}>
+                            {lesson.status === 'completed' ? 'Completed' : 'In Progress'}
+                          </span>
+                          <p className="text-xs text-muted-foreground">{lesson.date}</p>
                         </div>
                       </div>
-                         <div className="flex items-center gap-3">
-                           <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                             lesson.status === 'completed' 
-                               ? 'bg-green-100 text-green-700' 
-                               : 'bg-yellow-100 text-yellow-700'
-                           }`}>
-                             {lesson.status === 'completed' ? 'Completed' : 'In Progress'}
-                           </span>
-                           <p className="text-xs text-muted-foreground">{lesson.date}</p>
-                         </div>
                     </div>
                   ))}
                 </div>
