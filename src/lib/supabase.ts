@@ -66,7 +66,11 @@ export interface Class {
   subject: string;
   class_level: string;
   teacher_id: string;
+  school_id: string;
+  class_code: string;
   school_year: string;
+  max_students: number;
+  is_active: boolean;
   created_at?: string;
   updated_at?: string;
 }
@@ -227,10 +231,26 @@ export async function updateXP(studentId: string, xpToAdd: number) {
 // CLASS FUNCTIONS
 // ============================================================================
 
-export async function createClass(classData: Omit<Class, 'id' | 'created_at' | 'updated_at'>) {
+// Generate a unique class code
+function generateClassCode(): string {
+  const prefix = 'CLS';
+  const randomNum = Math.floor(Math.random() * 9000) + 1000; // 4-digit number
+  return `${prefix}${randomNum}`;
+}
+
+export async function createClass(classData: Omit<Class, 'id' | 'created_at' | 'updated_at' | 'class_code'>) {
+  // Generate a unique class code
+  const classCode = generateClassCode();
+  
+  const fullClassData = {
+    ...classData,
+    class_code: classCode,
+    is_active: true
+  };
+
   const { data, error } = await supabase
     .from('classes')
-    .insert([classData])
+    .insert([fullClassData])
     .select()
     .single();
 

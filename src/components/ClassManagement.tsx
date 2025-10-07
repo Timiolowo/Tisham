@@ -1,16 +1,19 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Badge } from "./ui/badge";
+import { Textarea } from "./ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { 
   Users, UserPlus, Share2, Copy,
-  BookOpen, ClipboardList, Search, MoreVertical, Trash2, MessageCircle
+  BookOpen, ClipboardList, Search, MoreVertical, Trash2, MessageCircle,
+  Plus, GraduationCap
 } from "lucide-react";
 import { SharedLayout } from "./SharedLayout";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
-import { toast } from "sonner@2.0.3";
+import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import {
   DropdownMenu,
@@ -28,9 +31,20 @@ interface ClassManagementProps {
 export function ClassManagement({ onNavigate }: ClassManagementProps) {
   const { user } = useAuth();
   const [showInviteDialog, setShowInviteDialog] = useState(false);
+  const [showCreateClassDialog, setShowCreateClassDialog] = useState(false);
   const [classCode] = useState("JSS3-MATH-2025");
   const [searchQuery, setSearchQuery] = useState("");
   const [supabaseClasses, setSupabaseClasses] = useState<any[]>([]);
+  
+  // Create class form state
+  const [newClass, setNewClass] = useState({
+    name: "",
+    subject: "",
+    classLevel: "",
+    schoolYear: new Date().getFullYear().toString(),
+    maxStudents: 50,
+    description: ""
+  });
   
   // Load classes from Supabase
   useEffect(() => {
@@ -101,6 +115,44 @@ export function ClassManagement({ onNavigate }: ClassManagementProps) {
   const handleInviteStudent = () => {
     setShowInviteDialog(false);
     toast.success("Invitation link sent successfully!");
+  };
+
+  const handleCreateClass = async () => {
+    if (!user) return;
+    
+    try {
+      const classData = {
+        name: newClass.name,
+        subject: newClass.subject,
+        class_level: newClass.classLevel,
+        school_year: newClass.schoolYear,
+        max_students: newClass.maxStudents,
+        teacher_id: user.id,
+        school_id: user.school_id,
+        is_active: true
+      };
+
+      console.log('Creating class with data:', classData);
+      const createdClass = await createClass(classData);
+      
+      if (createdClass) {
+        console.log('Class created successfully:', createdClass);
+        toast.success(`Class "${createdClass.name}" created! Class Code: ${createdClass.class_code}`);
+        setShowCreateClassDialog(false);
+        setNewClass({
+          name: "",
+          subject: "",
+          classLevel: "",
+          schoolYear: new Date().getFullYear().toString(),
+          maxStudents: 50,
+          description: ""
+        });
+        loadClasses(); // Refresh the classes list
+      }
+    } catch (error) {
+      console.error('Failed to create class:', error);
+      toast.error("Failed to create class. Please try again.");
+    }
   };
 
   return (
@@ -262,26 +314,150 @@ export function ClassManagement({ onNavigate }: ClassManagementProps) {
           </TabsContent>
 
           <TabsContent value="classes" className="space-y-4 animate-fade-in">
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-semibold">Your Classes</h3>
+              <Dialog open={showCreateClassDialog} onOpenChange={setShowCreateClassDialog}>
+                <DialogTrigger asChild>
+                  <Button className="rounded-xl gradient-primary">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Create Class
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md rounded-3xl">
+                  <DialogHeader>
+                    <DialogTitle>Create New Class</DialogTitle>
+                    <DialogDescription>
+                      Set up a new class for your students
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="className">Class Name</Label>
+                      <Input
+                        id="className"
+                        placeholder="e.g., JSS 3A Mathematics"
+                        value={newClass.name}
+                        onChange={(e) => setNewClass({...newClass, name: e.target.value})}
+                        className="rounded-xl"
+                      />
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="subject">Subject</Label>
+                        <Select value={newClass.subject} onValueChange={(value) => setNewClass({...newClass, subject: value})}>
+                          <SelectTrigger className="rounded-xl">
+                            <SelectValue placeholder="Select subject" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="mathematics">Mathematics</SelectItem>
+                            <SelectItem value="english">English</SelectItem>
+                            <SelectItem value="science">Science</SelectItem>
+                            <SelectItem value="social-studies">Social Studies</SelectItem>
+                            <SelectItem value="computer-science">Computer Science</SelectItem>
+                            <SelectItem value="art">Art</SelectItem>
+                            <SelectItem value="music">Music</SelectItem>
+                            <SelectItem value="physical-education">Physical Education</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="classLevel">Class Level</Label>
+                        <Select value={newClass.classLevel} onValueChange={(value) => setNewClass({...newClass, classLevel: value})}>
+                          <SelectTrigger className="rounded-xl">
+                            <SelectValue placeholder="Select level" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="jss1">JSS 1</SelectItem>
+                            <SelectItem value="jss2">JSS 2</SelectItem>
+                            <SelectItem value="jss3">JSS 3</SelectItem>
+                            <SelectItem value="ss1">SS 1</SelectItem>
+                            <SelectItem value="ss2">SS 2</SelectItem>
+                            <SelectItem value="ss3">SS 3</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="schoolYear">School Year</Label>
+                        <Input
+                          id="schoolYear"
+                          value={newClass.schoolYear}
+                          onChange={(e) => setNewClass({...newClass, schoolYear: e.target.value})}
+                          className="rounded-xl"
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="maxStudents">Max Students</Label>
+                        <Input
+                          id="maxStudents"
+                          type="number"
+                          value={newClass.maxStudents}
+                          onChange={(e) => setNewClass({...newClass, maxStudents: parseInt(e.target.value) || 50})}
+                          className="rounded-xl"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="description">Description (Optional)</Label>
+                      <Textarea
+                        id="description"
+                        placeholder="Brief description of the class..."
+                        value={newClass.description}
+                        onChange={(e) => setNewClass({...newClass, description: e.target.value})}
+                        className="rounded-xl"
+                        rows={3}
+                      />
+                    </div>
+                    
+                    <div className="flex gap-3 pt-4">
+                      <Button 
+                        onClick={handleCreateClass} 
+                        className="flex-1 rounded-xl gradient-primary"
+                        disabled={!newClass.name || !newClass.subject || !newClass.classLevel}
+                      >
+                        <GraduationCap className="w-4 h-4 mr-2" />
+                        Create Class
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        onClick={() => setShowCreateClassDialog(false)}
+                        className="rounded-xl"
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
+            
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {classes.map((classItem) => (
+              {/* Show Supabase classes if available, otherwise show hardcoded classes */}
+              {(supabaseClasses.length > 0 ? supabaseClasses : classes).map((classItem) => (
                 <Card key={classItem.id} className="rounded-2xl glass-card hover-lift hover-glow">
                   <CardHeader>
                     <CardTitle className="text-base">{classItem.name}</CardTitle>
                     <CardDescription className="flex items-center gap-2">
                       <Users className="w-4 h-4" />
-                      {classItem.students} students
+                      {classItem.students || 0} students
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-3">
                     <div className="p-3 bg-muted rounded-xl">
                       <p className="text-xs text-muted-foreground mb-1">Class Code</p>
                       <div className="flex items-center justify-between">
-                        <code className="text-sm font-mono font-semibold">{classItem.code}</code>
+                        <code className="text-sm font-mono font-semibold">{classItem.code || classItem.class_code}</code>
                         <Button
                           size="sm"
                           variant="ghost"
                           onClick={() => {
-                            navigator.clipboard.writeText(classItem.code);
+                            navigator.clipboard.writeText(classItem.code || classItem.class_code);
                             toast.success("Code copied!");
                           }}
                         >
