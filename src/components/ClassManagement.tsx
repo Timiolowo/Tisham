@@ -35,6 +35,7 @@ export function ClassManagement({ onNavigate }: ClassManagementProps) {
   const [classCode] = useState("JSS3-MATH-2025");
   const [searchQuery, setSearchQuery] = useState("");
   const [supabaseClasses, setSupabaseClasses] = useState<any[]>([]);
+  const [isLoadingClasses, setIsLoadingClasses] = useState(false);
   
   // Invite student form state
   const [inviteForm, setInviteForm] = useState({
@@ -61,59 +62,55 @@ export function ClassManagement({ onNavigate }: ClassManagementProps) {
     }
   }, [user]);
 
+  // Test Supabase connection
+  useEffect(() => {
+    const testSupabaseConnection = async () => {
+      if (isSupabaseConfigured()) {
+        try {
+          console.log('Testing Supabase connection...');
+          // Test basic connection by checking if we can access the classes table
+          const { supabase } = await import('../lib/supabase');
+          const { data, error } = await supabase
+            .from('classes')
+            .select('count')
+            .limit(1);
+          
+          if (error) {
+            console.error('Supabase connection test failed:', error);
+          } else {
+            console.log('Supabase connection test successful');
+          }
+        } catch (error) {
+          console.error('Supabase connection test error:', error);
+        }
+      }
+    };
+    
+    testSupabaseConnection();
+  }, []);
+
   const loadClasses = async () => {
     if (!user) return;
+    setIsLoadingClasses(true);
     try {
+      console.log('Loading classes for teacher:', user.id);
+      console.log('User role:', user.role);
+      console.log('Supabase configured:', isSupabaseConfigured());
+      
       const classes = await getTeacherClasses(user.id);
+      console.log('Loaded classes:', classes);
+      console.log('Number of classes found:', classes.length);
+      
       setSupabaseClasses(classes);
     } catch (error) {
       console.error('Failed to load classes:', error);
+      console.error('Error details:', error);
+    } finally {
+      setIsLoadingClasses(false);
     }
   };
 
-  const classes = [
-    { id: 1, name: 'JSS 3A Mathematics', students: 32, code: 'JSS3A-MATH' },
-    { id: 2, name: 'JSS 3B Mathematics', students: 28, code: 'JSS3B-MATH' },
-    { id: 3, name: 'SS 2 Mathematics', students: 25, code: 'SS2-MATH' },
-  ];
-
-  const students = [
-    { id: 1, name: 'Chioma Adeyemi', class: 'JSS 3A', status: 'active', xp: 3200, lastActive: '2 hours ago' },
-    { id: 2, name: 'Ahmed Kwara', class: 'JSS 3A', status: 'active', xp: 2890, lastActive: '5 hours ago' },
-    { id: 3, name: 'Chidi Okafor', class: 'JSS 3B', status: 'active', xp: 2450, lastActive: '1 day ago' },
-    { id: 4, name: 'Blessing Okeke', class: 'JSS 3A', status: 'active', xp: 2340, lastActive: '3 hours ago' },
-    { id: 5, name: 'Emeka Nwankwo', class: 'SS 2', status: 'inactive', xp: 2100, lastActive: '1 week ago' },
-  ];
-
-  const sharedResources = [
-    {
-      id: 1,
-      title: 'Introduction to Robotics',
-      type: 'Lesson',
-      sharedWith: ['JSS 3A', 'JSS 3B'],
-      views: 58,
-      completions: 42,
-      avgScore: 85
-    },
-    {
-      id: 2,
-      title: 'Algebra Basics Quiz',
-      type: 'Assessment',
-      sharedWith: ['JSS 3A'],
-      views: 32,
-      completions: 28,
-      avgScore: 78
-    },
-    {
-      id: 3,
-      title: 'Quadratic Equations',
-      type: 'Lesson',
-      sharedWith: ['SS 2'],
-      views: 25,
-      completions: 20,
-      avgScore: 82
-    },
-  ];
+  // Removed hardcoded dummy data - using Supabase data only
 
   const handleCopyCode = () => {
     navigator.clipboard.writeText(classCode);
@@ -126,7 +123,7 @@ export function ClassManagement({ onNavigate }: ClassManagementProps) {
       return;
     }
 
-    const selectedClass = (supabaseClasses.length > 0 ? supabaseClasses : classes)
+    const selectedClass = supabaseClasses
       .find(c => c.id === inviteForm.selectedClass);
 
     if (inviteForm.studentEmail) {
@@ -176,7 +173,9 @@ export function ClassManagement({ onNavigate }: ClassManagementProps) {
           maxStudents: 50,
           description: ""
         });
-        loadClasses(); // Refresh the classes list
+        // Refresh the classes list immediately
+        console.log('Refreshing classes list after creation...');
+        await loadClasses();
       }
     } catch (error) {
       console.error('Failed to create class:', error);
@@ -184,27 +183,19 @@ export function ClassManagement({ onNavigate }: ClassManagementProps) {
     }
   };
 
-  return (
-    <SharedLayout 
-      onNavigate={onNavigate}
-      userRole="teacher"
-      title="Class Management"
-      subtitle="Manage your students and share resources"
-      hideHeaderIcons={true}
-      activeMenu="class-management"
-    >
-      <main className="max-w-7xl mx-auto p-4 sm:p-6 space-y-6">
+  const content = (
+    <main className="max-w-7xl mx-auto p-4 sm:p-6 space-y-6 overflow-x-hidden">
         {/* Quick Actions */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 min-h-[120px]">
           <Dialog open={showInviteDialog} onOpenChange={setShowInviteDialog}>
             <DialogTrigger asChild>
               <Card className="rounded-2xl glass-card hover-lift hover-glow cursor-pointer group">
-                <CardContent className="p-4 sm:p-6 text-center">
+                <CardContent className="p-3 sm:p-4 text-center min-h-[100px] flex flex-col justify-center">
                   <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl gradient-primary mx-auto mb-3 flex items-center justify-center group-hover:scale-110 transition-transform">
                     <UserPlus className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                   </div>
-                  <h3 className="font-semibold text-sm sm:text-base">Invite Student</h3>
-                  <p className="text-xs text-muted-foreground mt-1">Add new students</p>
+                  <h3 className="font-semibold text-sm sm:text-base leading-tight">Invite Student</h3>
+                  <p className="text-xs text-muted-foreground mt-1 leading-tight">Add new students</p>
                 </CardContent>
               </Card>
             </DialogTrigger>
@@ -226,7 +217,7 @@ export function ClassManagement({ onNavigate }: ClassManagementProps) {
                       <SelectValue placeholder="Choose a class to invite students to" />
                     </SelectTrigger>
                     <SelectContent>
-                      {(supabaseClasses.length > 0 ? supabaseClasses : classes).map((classItem) => (
+                      {supabaseClasses.map((classItem) => (
                         <SelectItem key={classItem.id} value={classItem.id}>
                           {classItem.name} ({classItem.class_code || classItem.code})
                         </SelectItem>
@@ -242,9 +233,9 @@ export function ClassManagement({ onNavigate }: ClassManagementProps) {
                       <div className="flex gap-2">
                         <Input 
                           value={
-                            (supabaseClasses.length > 0 ? supabaseClasses : classes)
+                            supabaseClasses
                               .find(c => c.id === inviteForm.selectedClass)?.class_code || 
-                            (supabaseClasses.length > 0 ? supabaseClasses : classes)
+                            supabaseClasses
                               .find(c => c.id === inviteForm.selectedClass)?.code || 
                             "No code available"
                           } 
@@ -253,7 +244,7 @@ export function ClassManagement({ onNavigate }: ClassManagementProps) {
                         />
                         <Button 
                           onClick={() => {
-                            const selectedClass = (supabaseClasses.length > 0 ? supabaseClasses : classes)
+                            const selectedClass = supabaseClasses
                               .find(c => c.id === inviteForm.selectedClass);
                             const code = selectedClass?.class_code || selectedClass?.code;
                             if (code) {
@@ -315,8 +306,8 @@ export function ClassManagement({ onNavigate }: ClassManagementProps) {
               <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl gradient-secondary mx-auto mb-3 flex items-center justify-center">
                 <Users className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </div>
-              <h3 className="text-xl sm:text-base font-bold">{supabaseClasses.length || classes.length}</h3>
-              <p className="text-xs text-muted-foreground mt-1">Total Classes</p>
+              <h3 className="text-xl sm:text-base font-bold leading-tight">{supabaseClasses.length}</h3>
+              <p className="text-xs text-muted-foreground mt-1 leading-tight">Total Classes</p>
             </CardContent>
           </Card>
 
@@ -325,18 +316,18 @@ export function ClassManagement({ onNavigate }: ClassManagementProps) {
               <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl gradient-success mx-auto mb-3 flex items-center justify-center">
                 <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </div>
-              <h3 className="text-xl sm:text-base font-bold">12</h3>
-              <p className="text-xs text-muted-foreground mt-1">Shared Lessons</p>
+              <h3 className="text-xl sm:text-base font-bold leading-tight">12</h3>
+              <p className="text-xs text-muted-foreground mt-1 leading-tight">Shared Lessons</p>
             </CardContent>
           </Card>
 
-          <Card className="rounded-2xl glass-card hover-lift flex-1 min-w-[280px]">
+          <Card className="rounded-2xl glass-card hover-lift">
             <CardContent className="p-4 sm:p-6 text-center">
               <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl gradient-warm mx-auto mb-3 flex items-center justify-center">
                 <ClipboardList className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </div>
-              <h3 className="text-xl sm:text-base font-bold">8</h3>
-              <p className="text-xs text-muted-foreground mt-1">Active Quizzes</p>
+              <h3 className="text-xl sm:text-base font-bold leading-tight">8</h3>
+              <p className="text-xs text-muted-foreground mt-1 leading-tight">Active Quizzes</p>
             </CardContent>
           </Card>
         </div>
@@ -473,8 +464,26 @@ export function ClassManagement({ onNavigate }: ClassManagementProps) {
             </div>
             
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {/* Show Supabase classes if available, otherwise show hardcoded classes */}
-              {(supabaseClasses.length > 0 ? supabaseClasses : classes).map((classItem) => (
+              {/* Display classes from Supabase */}
+              {isLoadingClasses ? (
+                <div className="col-span-full flex items-center justify-center py-8">
+                  <div className="text-center">
+                    <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                    <p className="text-sm text-muted-foreground">Loading classes...</p>
+                  </div>
+                </div>
+              ) : supabaseClasses.length === 0 ? (
+                <div className="col-span-full text-center py-8">
+                  <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Users className="w-8 h-8 text-muted-foreground" />
+                  </div>
+                  <h3 className="text-lg font-semibold mb-2">No classes yet</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Create your first class to get started with managing students and resources.
+                  </p>
+                </div>
+              ) : (
+                supabaseClasses.map((classItem) => (
                 <Card key={classItem.id} className="rounded-2xl glass-card hover-lift hover-glow">
                   <CardHeader>
                     <CardTitle className="text-base">{classItem.name}</CardTitle>
@@ -522,12 +531,24 @@ export function ClassManagement({ onNavigate }: ClassManagementProps) {
                     </div>
                   </CardContent>
                 </Card>
-              ))}
+                ))
+              )}
             </div>
           </TabsContent>
 
         </Tabs>
-      </main>
-    </SharedLayout>
+    </main>
+  );
+
+  return (
+    <SharedLayout 
+      onNavigate={onNavigate}
+      userRole="teacher"
+      title="Class Management"
+      subtitle="Manage students and resources"
+      hideHeaderIcons={true}
+      activeMenu="class-management"
+      children={content}
+    />
   );
 }

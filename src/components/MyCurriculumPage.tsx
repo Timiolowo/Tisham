@@ -112,7 +112,7 @@ export function MyCurriculumPage({ onNavigate }: MyCurriculumPageProps) {
       onNavigate={onNavigate}
       userRole="student"
       title="My Curriculum"
-      subtitle="Track your learning progress and assigned lessons"
+      subtitle="Track learning progress"
       hideHeaderIcons={true}
       activeMenu="curriculum"
     >

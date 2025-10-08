@@ -80,15 +80,15 @@ export function ClassChat({ onNavigate }: ClassChatProps) {
   const [isSending, setIsSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
-  // Multiple classes for navigation
+  // Multiple classes for navigation - using proper UUIDs
   const classes = [
-    { id: 'jss3a-math', name: 'JSS 3A Mathematics', students: 32 },
-    { id: 'jss2b-math', name: 'JSS 2B Mathematics', students: 28 },
-    { id: 'jss1a-math', name: 'JSS 1A Mathematics', students: 30 },
+    { id: '550e8400-e29b-41d4-a716-446655440001', name: 'JSS 3A Mathematics', students: 32 },
+    { id: '550e8400-e29b-41d4-a716-446655440002', name: 'JSS 2B Mathematics', students: 28 },
+    { id: '550e8400-e29b-41d4-a716-446655440003', name: 'JSS 1A Mathematics', students: 30 },
   ];
   
   const currentClass = classes[currentClassIndex];
-  const classId = currentClass?.id || "demo-class";
+  const classId = currentClass?.id || user?.id || "550e8400-e29b-41d4-a716-446655440000";
 
   // Load messages from Supabase
   useEffect(() => {

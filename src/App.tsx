@@ -78,7 +78,7 @@ function AppContent() {
   const [editingResourceId, setEditingResourceId] = useState<string | null>(null);
   const [learningResourceTitle, setLearningResourceTitle] = useState<string>('');
   const [learningResourceId, setLearningResourceId] = useState<string | null>(null);
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
 
   // URL-based routing
   useEffect(() => {
@@ -159,12 +159,38 @@ function AppContent() {
     setCurrentLessonPlan(lesson);
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    // Call the auth context logout function to clear session
+    await logout();
     setCurrentPage('landing');
     setUserRole('teacher');
   };
 
+  // Check authentication for protected pages
+  const isProtectedPage = (page: Page): boolean => {
+    const protectedPages = [
+      'dashboard', 'lesson-generator', 'assessment', 'copilot', 'simplify', 
+      'library', 'pathway', 'admin', 'student-dashboard', 'class-management', 
+      'class-details', 'class-chat', 'concept-explorer', 'learn-with-ai', 
+      'teacher-learning', 'certificate', 'my-curriculum', 'edit-resource', 'settings'
+    ];
+    return protectedPages.includes(page);
+  };
+
+  // Redirect to landing page if user is not authenticated and trying to access protected pages
+  useEffect(() => {
+    if (isProtectedPage(currentPage) && !user) {
+      console.log('🔒 Unauthenticated access to protected page, redirecting to landing');
+      navigate('landing');
+    }
+  }, [currentPage, user]);
+
   const renderPage = () => {
+    // If trying to access protected page without authentication, show landing page
+    if (isProtectedPage(currentPage) && !user) {
+      return <LandingPage onNavigate={navigate} />;
+    }
+
     switch (currentPage) {
       case 'landing':
         return <LandingPage onNavigate={navigate} />;
@@ -178,7 +204,9 @@ function AppContent() {
         if (user?.role === 'student') {
           return <StudentDashboard onNavigate={navigate} />;
         } else if (user?.role === 'school_admin') {
-          return <AdminDashboard onNavigate={navigate} onBack={() => navigate('landing')} />;
+          // School admins can access both admin dashboard and teacher dashboard
+          // For now, show teacher dashboard as the default, with admin access via navigation
+          return <TeacherDashboard onNavigate={navigate} />;
         }
         return <TeacherDashboard onNavigate={navigate} />;
       case 'lesson-generator':

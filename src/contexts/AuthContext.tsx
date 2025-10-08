@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase, supabaseAdmin, isSupabaseConfigured } from '../lib/supabase';
 import { isAuthenticationAllowed, isAPIAccessAllowed } from '../config/auth';
 
@@ -54,33 +54,97 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSupabaseEnabled] = useState(isSupabaseConfigured());
+  const [isCheckingSession, setIsCheckingSession] = useState(false);
   
   // Security warnings removed - no longer displayed
 
   useEffect(() => {
-    // Check for existing session on mount
+    // Check for existing session on mount only (run once)
     checkSession();
 
-    // Listen for Supabase auth state changes (temporarily disabled for debugging)
+    // Set up periodic session validation
+    const sessionCheckInterval = setInterval(async () => {
+      if (isSupabaseEnabled) {
+        try {
+          const { data: { session }, error } = await supabase.auth.getSession();
+          if (error || !session) {
+            console.log('🔍 Session validation failed, forcing logout');
+            setUser(null);
+            localStorage.removeItem('user_data');
+            localStorage.removeItem('supabase.auth.token');
+            sessionStorage.clear();
+            window.location.href = '/';
+          }
+        } catch (error) {
+          console.error('Session validation error:', error);
+          // If we can't validate the session, assume it's lost
+          setUser(null);
+          localStorage.removeItem('user_data');
+          localStorage.removeItem('supabase.auth.token');
+          sessionStorage.clear();
+          window.location.href = '/';
+        }
+      }
+    }, 30000); // Check every 30 seconds
+
+    // Listen for Supabase auth state changes
     if (isSupabaseEnabled) {
       const { data: { subscription } } = supabase.auth.onAuthStateChange(
         async (event, session) => {
-          // Auth state change detected
+          console.log('🔐 Auth state change:', event, session ? 'Session exists' : 'No session');
           
-          if (event === 'SIGNED_OUT') {
-            // User signed out
-            localStorage.removeItem('user_data');
+          if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED' && !session) {
+            // User signed out or session expired
+            console.log('🚪 User signed out, clearing all data and redirecting to landing page');
             setUser(null);
+            localStorage.removeItem('user_data');
+            localStorage.removeItem('supabase.auth.token');
+            sessionStorage.clear();
+            
+            // Force redirect to landing page
+            window.location.href = '/';
+          } else if (event === 'SIGNED_IN' && session) {
+            // User signed in - only handle if we don't already have a user
+            if (!user) {
+              console.log('🔑 User signed in, fetching profile');
+              try {
+                const { data: profile, error } = await supabase
+                  .from('profiles')
+                  .select('*')
+                  .eq('id', session.user.id)
+                  .single();
+                
+                if (profile && !error) {
+                  setUser(profile);
+                  localStorage.setItem('user_data', JSON.stringify(profile));
+                }
+              } catch (error) {
+                console.error('Error fetching profile on sign in:', error);
+              }
+            }
           }
-          // Temporarily disable SIGNED_IN handling to let login function handle it
         }
       );
 
-      return () => subscription.unsubscribe();
+      return () => {
+        subscription.unsubscribe();
+        clearInterval(sessionCheckInterval);
+      };
     }
+    
+    return () => {
+      clearInterval(sessionCheckInterval);
+    };
   }, [isSupabaseEnabled]);
 
   const checkSession = async () => {
+    // Prevent multiple simultaneous session checks
+    if (isCheckingSession) {
+      console.log('🔍 Session check already in progress, skipping...');
+      return;
+    }
+    
+    setIsCheckingSession(true);
     try {
       console.log('🔍 Checking session...');
       if (isSupabaseEnabled) {
@@ -104,10 +168,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           console.log('✅ Session valid, user logged in');
           setUser(userData);
         } else {
-          // Session invalid or expired, clearing stored data
-          console.log('❌ Session invalid or expired');
+          // Session invalid or expired, clearing stored data and redirecting
+          console.log('❌ Session invalid or expired, redirecting to landing page');
           localStorage.removeItem('user_data');
+          localStorage.removeItem('supabase.auth.token');
+          sessionStorage.clear();
           setUser(null);
+          window.location.href = '/';
         }
       } else {
         // Use Netlify Functions for production
@@ -133,6 +200,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.removeItem('auth_token');
     } finally {
       setIsLoading(false);
+      setIsCheckingSession(false);
     }
   };
 
@@ -343,31 +411,54 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
-    if (isSupabaseEnabled) {
-      // Use direct Supabase authentication
-      await supabase.auth.signOut();
-    } else {
-      // Use Netlify Functions for production
-      const token = localStorage.getItem('auth_token');
-      
-      if (token) {
-        try {
-          await fetch('/.netlify/functions/auth/logout', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-            },
-          });
-        } catch (error) {
-          console.error('Logout error:', error);
+    try {
+      if (isSupabaseEnabled) {
+        // Use direct Supabase authentication
+        await supabase.auth.signOut();
+      } else {
+        // Use Netlify Functions for production
+        const token = localStorage.getItem('auth_token');
+        
+        if (token) {
+          try {
+            await fetch('/.netlify/functions/auth/logout', {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+              },
+            });
+          } catch (error) {
+            console.error('Logout error:', error);
+          }
         }
       }
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      // Clear all authentication data regardless of success/failure
+      setUser(null);
       
+      // Clear all localStorage items
+      localStorage.removeItem('user_data');
       localStorage.removeItem('auth_token');
+      localStorage.removeItem('supabase.auth.token');
+      localStorage.removeItem('sb-' + (window as any).__ENV__?.VITE_SUPABASE_URL?.split('//')[1]?.split('.')[0] + '-auth-token');
+      
+      // Clear sessionStorage
+      sessionStorage.clear();
+      
+      // Clear any cached data
+      if ('caches' in window) {
+        caches.keys().then(names => {
+          names.forEach(name => {
+            caches.delete(name);
+          });
+        });
+      }
+      
+      // Force page reload to clear any cached state
+      window.location.href = '/';
     }
-    
-    setUser(null);
-    localStorage.removeItem('user_data');
   };
 
   return (

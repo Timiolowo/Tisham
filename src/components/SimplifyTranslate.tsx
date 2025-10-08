@@ -79,7 +79,7 @@ export function SimplifyTranslate({ onNavigate }: SimplifyTranslateProps) {
       onNavigate={onNavigate}
       userRole="teacher"
       title="Simplify & Translate"
-      subtitle="Simplify content and translate to local languages"
+      subtitle="Simplify and translate content"
       hideHeaderIcons={true}
       activeMenu="simplify"
     >

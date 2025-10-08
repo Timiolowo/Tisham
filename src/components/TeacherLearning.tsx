@@ -566,7 +566,7 @@ Format as JSON with this structure:
                 {currentTopicIndex === selectedModule.topics.length - 1 ? (
                   <Button
                     onClick={handleCompleteModule}
-                    className="flex-1 rounded-2xl gradient-success"
+                    className="flex-1 rounded-2xl gradient-success text-white hover-lift hover-glow"
                   >
                     Complete Module
                     <Trophy className="w-4 h-4 ml-2" />
@@ -574,7 +574,7 @@ Format as JSON with this structure:
                 ) : (
                   <Button
                     onClick={handleNextTopic}
-                    className="flex-1 rounded-2xl gradient-primary"
+                    className="flex-1 rounded-2xl gradient-primary text-white hover-lift hover-glow"
                   >
                     Next Topic
                     <ChevronRight className="w-4 h-4 ml-2" />
@@ -605,7 +605,7 @@ Format as JSON with this structure:
           {allModulesCompleted && (
             <Button 
               onClick={() => onNavigate?.('certificate')}
-              className="rounded-2xl gradient-success hidden sm:flex"
+              className="rounded-2xl gradient-success text-white hover-lift hover-glow hidden sm:flex"
             >
               <Download className="w-4 h-4 mr-2" />
               Get Certificate
@@ -679,7 +679,7 @@ Format as JSON with this structure:
                 </div>
                 <Button 
                   onClick={() => onNavigate?.('certificate')}
-                  className="rounded-2xl gradient-success"
+                  className="rounded-2xl gradient-success text-white hover-lift hover-glow"
                 >
                   <Download className="w-4 h-4 mr-2" />
                   Download Certificate
@@ -736,7 +736,7 @@ Format as JSON with this structure:
                       <span className="text-success font-semibold">✓ Completed</span>
                       <span className="font-semibold">100%</span>
                     </div>
-                    <Progress value={100} variant="success" className="h-2" />
+                    <Progress value={100} />
                   </div>
                 )}
               </CardHeader>
@@ -775,7 +775,7 @@ Format as JSON with this structure:
                   <Button 
                     size="sm" 
                     onClick={() => handleStartModule(module)}
-                    className="rounded-xl gradient-primary"
+                    className="rounded-xl gradient-primary text-white hover-lift hover-glow"
                     disabled={module.completed}
                   >
                     {module.completed ? 'Completed' : 'Start'}

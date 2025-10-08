@@ -367,7 +367,7 @@ export function AssessmentGenerator({ onNavigate, lessonPlan }: AssessmentGenera
       onNavigate={onNavigate}
       userRole="teacher"
       title="Create Assessment"
-      subtitle="Generate quizzes and tests aligned with your lessons"
+      subtitle="Generate quizzes and tests"
       hideHeaderIcons={true}
       activeMenu="assessment"
     >

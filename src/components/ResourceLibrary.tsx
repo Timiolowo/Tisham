@@ -78,7 +78,7 @@ export function ResourceLibrary({ onBack, onNavigate }: ResourceLibraryProps) {
       onNavigate={onNavigate}
       userRole="teacher"
       title="Resource Library"
-      subtitle="All your lessons, assessments, and teaching materials"
+      subtitle="Your lessons and teaching materials"
       activeMenu="library"
       hideHeaderIcons={true}
     >

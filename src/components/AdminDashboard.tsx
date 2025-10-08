@@ -74,7 +74,7 @@ export function AdminDashboard({ onBack, onNavigate }: AdminDashboardProps) {
       onNavigate={onNavigate}
       userRole="teacher"
       title="School Dashboard"
-      subtitle="Overview of your school's activity and performance"
+      subtitle="School activity and performance"
       activeMenu="admin"
       hideHeaderIcons={true}
     >

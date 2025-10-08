@@ -89,7 +89,7 @@ export function LearningPathway({ onNavigate }: LearningPathwayProps) {
       onNavigate={onNavigate}
       userRole="teacher"
       title="Learning Pathway"
-      subtitle="Professional Development Modules"
+      subtitle="Professional Development"
       hideHeaderIcons={true}
       activeMenu="pathway"
     >

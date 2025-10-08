@@ -123,7 +123,7 @@ export function ClassDetailsPage({ onNavigate, classId }: ClassDetailsPageProps)
       onNavigate={onNavigate}
       userRole="teacher"
       title={classData?.name || "Class Details"}
-      subtitle="Manage your class and communicate with students"
+      subtitle="Manage class and communicate"
       hideHeaderIcons={true}
       activeMenu="class-management"
     >

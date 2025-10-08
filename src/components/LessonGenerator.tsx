@@ -396,7 +396,7 @@ export function LessonGenerator({ onNavigate, onSave }: LessonGeneratorProps) {
       onNavigate={onNavigate}
       userRole="teacher"
       title="Generate Lesson Plan"
-      subtitle="AI-powered lesson planning for the new curriculum"
+      subtitle="AI-powered lesson planning"
       hideHeaderIcons={true}
       activeMenu="lesson-generator"
     >

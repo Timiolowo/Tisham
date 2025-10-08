@@ -8,10 +8,10 @@ import { ScrollArea } from "./ui/scroll-area";
 import { 
   ArrowLeft, Search, Sparkles, BookOpen, TrendingUp, Zap, Brain,
   Play, CheckCircle, Lock, Star, Briefcase, GraduationCap, DollarSign,
-  MapPin, Loader2, Target, Award
+  MapPin, Loader2, Target, Award, Clock, Users
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
-import { toast } from "sonner@2.0.3";
+import { toast } from "sonner";
 import { explainConcept } from "../lib/groq";
 // Get Groq API key from environment
 import { runtimeEnv } from '../lib/runtime-env';
@@ -25,7 +25,7 @@ const getGroqApiKey = () => {
 
 interface ConceptExplorerProps {
   onBack: () => void;
-  onNavigate?: (page: string) => void;
+  onNavigate?: (page: string, data?: any) => void;
 }
 
 interface Concept {
@@ -63,10 +63,64 @@ export function ConceptExplorer({ onBack, onNavigate }: ConceptExplorerProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [hasApiKey, setHasApiKey] = useState(false);
   const [activeTab, setActiveTab] = useState("explore");
+  const [exploredConcepts, setExploredConcepts] = useState<number[]>([]);
+  const [bookmarkedConcepts, setBookmarkedConcepts] = useState<number[]>([]);
+  const [selectedConcept, setSelectedConcept] = useState<Concept | null>(null);
+  const [conceptExplanation, setConceptExplanation] = useState("");
+  const [isExplaining, setIsExplaining] = useState(false);
 
   useEffect(() => {
-    setHasApiKey(!!getGroqApiKey());
+    const apiKey = getGroqApiKey();
+    setHasApiKey(!!apiKey && apiKey !== 'your_groq_api_key_here' && apiKey !== '');
   }, []);
+
+  const handleExploreConcept = async (concept: Concept) => {
+    setSelectedConcept(concept);
+    setIsExplaining(true);
+    
+    // Add to explored concepts
+    if (!exploredConcepts.includes(concept.id)) {
+      setExploredConcepts([...exploredConcepts, concept.id]);
+    }
+
+    try {
+      if (hasApiKey) {
+        const explanation = await explainConcept(concept.name, 'JSS 3');
+        setConceptExplanation(explanation);
+      } else {
+        // Fallback explanation when API key is not available
+        setConceptExplanation(`Welcome to ${concept.name}! This is a fascinating ${concept.category.toLowerCase()} concept that ${concept.description.toLowerCase()}. 
+
+Key things to know:
+• Difficulty Level: ${concept.difficulty}
+• Estimated Learning Time: ${concept.estimatedTime}
+• XP Reward: ${concept.xpReward} points
+• Students Learning: ${concept.students}
+
+This concept is part of the ${concept.category} category and will help you develop important skills in this area. Start exploring to learn more!`);
+      }
+    } catch (error) {
+      console.error('Error getting concept explanation:', error);
+      setConceptExplanation(`Welcome to ${concept.name}! This is an exciting ${concept.category.toLowerCase()} concept to explore. ${concept.description}`);
+    } finally {
+      setIsExplaining(false);
+    }
+  };
+
+  const handleBookmarkConcept = (conceptId: number) => {
+    if (bookmarkedConcepts.includes(conceptId)) {
+      setBookmarkedConcepts(bookmarkedConcepts.filter(id => id !== conceptId));
+    } else {
+      setBookmarkedConcepts([...bookmarkedConcepts, conceptId]);
+    }
+  };
+
+  const handleStartLearning = (concept: Concept) => {
+    // Navigate to start learning page with concept ID
+    if (onNavigate) {
+      onNavigate('start-learning', { courseId: concept.id });
+    }
+  };
 
   const allConcepts: Concept[] = [
     { 
@@ -462,7 +516,7 @@ Please provide detailed information in the following JSON format:
 
   return (
     <SharedLayout 
-      onNavigate={onNavigate || (() => {})}
+      onNavigate={onNavigate}
       userRole="student"
       title="Concept & Career Explorer"
       subtitle=""
@@ -522,22 +576,35 @@ Please provide detailed information in the following JSON format:
               {filteredConcepts.map(concept => (
                 <Card 
                   key={concept.id} 
-                  className="rounded-2xl glass-card hover-lift hover-glow cursor-pointer group"
-                  onClick={() => {
-                    if (onNavigate) {
-                      onNavigate('learn-with-ai');
-                      toast.success(`Loading ${concept.name}...`);
-                    }
-                  }}
+                  className="rounded-2xl glass-card hover-lift hover-glow group"
                 >
                   <CardContent className="p-6">
                     <div className="flex items-start justify-between mb-3">
                       <div className={`text-base p-3 rounded-xl bg-gradient-to-r ${concept.color}`}>
                         {concept.icon}
                       </div>
-                      <Badge className={getDifficultyColor(concept.difficulty)}>
-                        {concept.difficulty}
-                      </Badge>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleBookmarkConcept(concept.id);
+                          }}
+                          className="p-1 h-8 w-8"
+                        >
+                          <Star 
+                            className={`w-4 h-4 ${
+                              bookmarkedConcepts.includes(concept.id) 
+                                ? 'text-yellow-500 fill-yellow-500' 
+                                : 'text-muted-foreground'
+                            }`} 
+                          />
+                        </Button>
+                        <Badge className={getDifficultyColor(concept.difficulty)}>
+                          {concept.difficulty}
+                        </Badge>
+                      </div>
                     </div>
 
                     <h3 className="font-semibold mb-2 group-hover:text-primary transition-colors">
@@ -557,20 +624,112 @@ Please provide detailed information in the following JSON format:
                       </div>
                     )}
 
-                    <div className="flex items-center justify-between text-xs text-muted-foreground pt-3 border-t">
-                      <span className="flex items-center gap-1">
-                        <Zap className="w-3 h-3 text-accent" />
-                        +{concept.xpReward} XP
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Star className="w-3 h-3" />
-                        {concept.estimatedTime}
-                      </span>
+                    <div className="flex items-center justify-between text-xs text-muted-foreground mb-4">
+                      <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          <span>{concept.estimatedTime}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Users className="w-3 h-3" />
+                          <span>{concept.students}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Zap className="w-3 h-3" />
+                        <span className="font-semibold">+{concept.xpReward} XP</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => handleExploreConcept(concept)}
+                        className="flex-1 rounded-lg"
+                      >
+                        <Brain className="w-4 h-4 mr-1" />
+                        Explore
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        onClick={() => handleStartLearning(concept)}
+                        className="flex-1 rounded-lg"
+                      >
+                        <Play className="w-4 h-4 mr-1" />
+                        Start Learning
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
               ))}
             </div>
+
+            {/* Concept Exploration Modal */}
+            {selectedConcept && (
+              <Card className="rounded-2xl glass-card mt-6">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className={`text-2xl p-3 rounded-xl bg-gradient-to-r ${selectedConcept.color}`}>
+                        {selectedConcept.icon}
+                      </div>
+                      <div>
+                        <CardTitle className="text-xl">{selectedConcept.name}</CardTitle>
+                        <CardDescription>{selectedConcept.description}</CardDescription>
+                      </div>
+                    </div>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => setSelectedConcept(null)}
+                      className="rounded-lg"
+                    >
+                      ✕
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {isExplaining ? (
+                    <div className="flex items-center justify-center py-8">
+                      <div className="flex items-center gap-3">
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                        <span className="text-muted-foreground">Getting AI explanation...</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="bg-muted/50 rounded-lg p-4">
+                        <h4 className="font-semibold mb-2 flex items-center gap-2">
+                          <Brain className="w-5 h-5 text-primary" />
+                          AI-Powered Explanation
+                        </h4>
+                        <p className="text-sm leading-relaxed whitespace-pre-line">
+                          {conceptExplanation}
+                        </p>
+                      </div>
+                      
+                      <div className="flex items-center gap-3">
+                        <Button 
+                          onClick={() => handleStartLearning(selectedConcept)}
+                          className="rounded-lg"
+                        >
+                          <Play className="w-4 h-4 mr-2" />
+                          Start Learning This Concept
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          onClick={() => setSelectedConcept(null)}
+                          className="rounded-lg"
+                        >
+                          Close
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
 
           {/* Careers Tab */}

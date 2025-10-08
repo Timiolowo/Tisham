@@ -48,9 +48,14 @@ export function StudentDashboard({ onNavigate }: StudentDashboardProps) {
       // Load student's lessons and progress
       const progress = await getStudentProgress(user.id);
       
-      // Load leaderboard
-      const leaderboard = await getClassLeaderboard('demo-class');
+      // Load leaderboard - use user's actual class if available
+      try {
+        const leaderboard = await getClassLeaderboard(user.class_id || user.id);
       setLeaderboardData(leaderboard);
+      } catch (error) {
+        console.log('No class leaderboard data available');
+        setLeaderboardData([]);
+      }
       
       // Load AI recommendations
       await loadAIRecommendations();
@@ -123,35 +128,23 @@ Please provide 6 course recommendations in this JSON format:
 
 Make the recommendations highly personalized based on their class level, interests, and current performance. Focus on courses that will help them improve in their weak areas and build on their strengths.`;
 
-      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json',
+      // Use the existing Groq service instead of direct API calls
+      const { sendChatMessage } = await import('../lib/groq');
+      
+      const content = await sendChatMessage([
+        {
+          role: 'system',
+          content: 'You are an AI educational advisor that provides personalized course recommendations for Nigerian secondary school students. Always respond with valid JSON only.'
         },
-        body: JSON.stringify({
-          model: 'llama-3.1-70b-versatile',
-          messages: [
-            {
-              role: 'system',
-              content: 'You are an AI educational advisor that provides personalized course recommendations for Nigerian secondary school students. Always respond with valid JSON only.'
-            },
-            {
-              role: 'user',
-              content: prompt
-            }
-          ],
-          temperature: 0.7,
-          max_tokens: 2000
-        })
+        {
+          role: 'user',
+          content: prompt
+        }
+      ], {
+        model: 'llama-3.3-70b-versatile',
+        temperature: 0.7,
+        maxTokens: 2000
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch AI recommendations');
-      }
-
-      const data = await response.json();
-      const content = data.choices[0].message.content;
       
       try {
         const recommendations = JSON.parse(content);
@@ -267,65 +260,65 @@ Make the recommendations highly personalized based on their class level, interes
     >
       <div className="p-4">
         <div className="max-w-7xl mx-auto h-full space-y-6">
-          {/* Stats Overview */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            <Card className="rounded-2xl glass-card hover-lift overflow-hidden">
-              <div className="absolute inset-0 gradient-primary opacity-10"></div>
-              <CardContent className="p-4 relative">
-                <div className="flex items-center justify-between mb-2">
-                  <Zap className="w-6 h-6 text-accent" />
-                  <Crown className="w-4 h-4 text-accent/50" />
-                </div>
-                <p className="text-lg font-bold">{studentStats.xp}</p>
-                <p className="text-xs text-muted-foreground">Total XP</p>
-              </CardContent>
-            </Card>
+            {/* Stats Overview */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              <Card className="rounded-2xl glass-card hover-lift overflow-hidden">
+                <div className="absolute inset-0 gradient-primary opacity-10"></div>
+                <CardContent className="p-4 relative">
+                  <div className="flex items-center justify-between mb-2">
+                    <Zap className="w-6 h-6 text-accent" />
+                    <Crown className="w-4 h-4 text-accent/50" />
+                  </div>
+                  <p className="text-lg font-bold">{studentStats.xp}</p>
+                  <p className="text-xs text-muted-foreground">Total XP</p>
+                </CardContent>
+              </Card>
 
-            <Card className="rounded-2xl glass-card hover-lift overflow-hidden">
-              <div className="absolute inset-0 gradient-secondary opacity-10"></div>
-              <CardContent className="p-4 relative">
-                <div className="flex items-center justify-between mb-2">
-                  <Flame className="w-6 h-6 text-orange-500" />
-                  <Star className="w-4 h-4 text-orange-500/50" />
-                </div>
-                <p className="text-lg font-bold">{studentStats.streak}</p>
-                <p className="text-xs text-muted-foreground">Day Streak</p>
-              </CardContent>
-            </Card>
+              <Card className="rounded-2xl glass-card hover-lift overflow-hidden">
+                <div className="absolute inset-0 gradient-secondary opacity-10"></div>
+                <CardContent className="p-4 relative">
+                  <div className="flex items-center justify-between mb-2">
+                    <Flame className="w-6 h-6 text-orange-500" />
+                    <Star className="w-4 h-4 text-orange-500/50" />
+                  </div>
+                  <p className="text-lg font-bold">{studentStats.streak}</p>
+                  <p className="text-xs text-muted-foreground">Day Streak</p>
+                </CardContent>
+              </Card>
 
-            <Card className="rounded-2xl glass-card hover-lift overflow-hidden">
-              <div className="absolute inset-0 gradient-success opacity-10"></div>
-              <CardContent className="p-4 relative">
-                <div className="flex items-center justify-between mb-2">
-                  <Trophy className="w-6 h-6 text-success" />
-                  <Award className="w-4 h-4 text-success/50" />
-                </div>
-                <p className="text-lg font-bold">{studentStats.badges}</p>
-                <p className="text-xs text-muted-foreground">Badges</p>
-              </CardContent>
-            </Card>
+              <Card className="rounded-2xl glass-card hover-lift overflow-hidden">
+                <div className="absolute inset-0 gradient-success opacity-10"></div>
+                <CardContent className="p-4 relative">
+                  <div className="flex items-center justify-between mb-2">
+                    <Trophy className="w-6 h-6 text-success" />
+                    <Award className="w-4 h-4 text-success/50" />
+                  </div>
+                  <p className="text-lg font-bold">{studentStats.badges}</p>
+                  <p className="text-xs text-muted-foreground">Badges</p>
+                </CardContent>
+              </Card>
 
-            <Card className="rounded-2xl glass-card hover-lift overflow-hidden">
-              <div className="absolute inset-0 gradient-warm opacity-10"></div>
-              <CardContent className="p-4 relative">
-                <div className="flex items-center justify-between mb-2">
-                  <TrendingUp className="w-6 h-6 text-primary" />
-                  <Target className="w-4 h-4 text-primary/50" />
-                </div>
-                <p className="text-lg font-bold">#{studentStats.rank}</p>
-                <p className="text-xs text-muted-foreground">Class Rank</p>
-              </CardContent>
-            </Card>
-          </div>
+              <Card className="rounded-2xl glass-card hover-lift overflow-hidden">
+                <div className="absolute inset-0 gradient-warm opacity-10"></div>
+                <CardContent className="p-4 relative">
+                  <div className="flex items-center justify-between mb-2">
+                    <TrendingUp className="w-6 h-6 text-primary" />
+                    <Target className="w-4 h-4 text-primary/50" />
+                  </div>
+                  <p className="text-lg font-bold">#{studentStats.rank}</p>
+                  <p className="text-xs text-muted-foreground">Class Rank</p>
+                </CardContent>
+              </Card>
+            </div>
 
-          {/* Main Tabs */}
-          <Tabs defaultValue="lessons" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-2 rounded-2xl p-1">
-              <TabsTrigger value="lessons" className="rounded-xl">My Lessons</TabsTrigger>
-              <TabsTrigger value="leaderboard" className="rounded-xl">Leaderboard</TabsTrigger>
-            </TabsList>
+            {/* Main Tabs */}
+            <Tabs defaultValue="lessons" className="space-y-6">
+              <TabsList className="grid w-full grid-cols-2 rounded-2xl p-1">
+                <TabsTrigger value="lessons" className="rounded-xl">My Lessons</TabsTrigger>
+                <TabsTrigger value="leaderboard" className="rounded-xl">Leaderboard</TabsTrigger>
+              </TabsList>
 
-            <TabsContent value="lessons" className="space-y-6 animate-fade-in">
+              <TabsContent value="lessons" className="space-y-6 animate-fade-in">
               {/* AI-Powered Course Recommendations */}
               <div>
                 <div className="mb-4">
@@ -385,9 +378,9 @@ Make the recommendations highly personalized based on their class level, interes
                                 <StarIcon className="w-3 h-3 mr-1" />
                                 Recommended
                               </Badge>
-                            )}
-                          </div>
-                          
+                              )}
+                            </div>
+
                           <h4 className="font-semibold text-base mb-2">
                             {course.title}
                           </h4>
@@ -406,7 +399,7 @@ Make the recommendations highly personalized based on their class level, interes
                                 <Clock className="w-3 h-3" />
                                 <span>{course.duration}</span>
                               </div>
-                            </div>
+                                </div>
 
                             <div className="flex items-center justify-between">
                               <Badge variant="outline" className="text-xs">
@@ -415,7 +408,7 @@ Make the recommendations highly personalized based on their class level, interes
                               <span className="text-xs text-muted-foreground">
                                 Personalized
                               </span>
-                            </div>
+                              </div>
 
                             <div className="space-y-1">
                               <div className="text-xs text-muted-foreground">Skills:</div>
@@ -430,20 +423,20 @@ Make the recommendations highly personalized based on their class level, interes
                                     +{course.skills.length - 2}
                                   </Badge>
                                 )}
-                              </div>
-                            </div>
+                                    </div>
+                                    </div>
 
                             <div className="pt-2 border-t">
                               <p className="text-xs text-muted-foreground mb-2">
                                 💡 {course.reason}
                               </p>
-                              <Button 
+                                    <Button 
                                 className="w-full rounded-lg text-sm"
-                                size="sm"
-                              >
+                                      size="sm" 
+                                    >
                                 <Play className="w-3 h-3 mr-1" />
                                 Start Learning
-                              </Button>
+                                    </Button>
                             </div>
                           </div>
                         </CardContent>
@@ -451,49 +444,49 @@ Make the recommendations highly personalized based on their class level, interes
                     ))}
                   </div>
                 )}
-              </div>
+                </div>
 
               {/* Daily Challenges */}
               <DailyChallenges />
-            </TabsContent>
+              </TabsContent>
 
-            <TabsContent value="leaderboard" className="animate-fade-in">
-              <Card className="rounded-2xl glass-card">
-                <CardHeader>
-                  <CardTitle>Class Leaderboard</CardTitle>
-                  <CardDescription>Top students this month</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {leaderboard.map((student) => (
-                    <div
-                      key={student.rank}
-                      className={`flex items-center gap-4 p-4 rounded-xl transition-all ${
-                        student.isCurrentUser
-                          ? 'bg-primary/10 border-2 border-primary'
-                          : 'bg-muted/50 hover:bg-muted'
-                      }`}
-                    >
-                      <div className="flex-shrink-0 w-8 text-center font-bold text-muted-foreground">
-                        #{student.rank}
-                      </div>
-                      <div className="text-base">{student.avatar}</div>
-                      <div className="flex-1">
-                        <p className="font-semibold text-sm">{student.name}</p>
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <Zap className="w-3 h-3 text-accent" />
-                          {student.xp} XP
+              <TabsContent value="leaderboard" className="animate-fade-in">
+                <Card className="rounded-2xl glass-card">
+                  <CardHeader>
+                    <CardTitle>Class Leaderboard</CardTitle>
+                    <CardDescription>Top students this month</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {leaderboard.map((student) => (
+                      <div
+                        key={student.rank}
+                        className={`flex items-center gap-4 p-4 rounded-xl transition-all ${
+                          student.isCurrentUser
+                            ? 'bg-primary/10 border-2 border-primary'
+                            : 'bg-muted/50 hover:bg-muted'
+                        }`}
+                      >
+                        <div className="flex-shrink-0 w-8 text-center font-bold text-muted-foreground">
+                          #{student.rank}
                         </div>
+                        <div className="text-base">{student.avatar}</div>
+                        <div className="flex-1">
+                          <p className="font-semibold text-sm">{student.name}</p>
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <Zap className="w-3 h-3 text-accent" />
+                            {student.xp} XP
+                          </div>
+                        </div>
+                        {student.rank === 1 && <Crown className="w-5 h-5 text-yellow-500" />}
+                        {student.rank === 2 && <Star className="w-5 h-5 text-gray-400" />}
+                        {student.rank === 3 && <Award className="w-5 h-5 text-orange-600" />}
                       </div>
-                      {student.rank === 1 && <Crown className="w-5 h-5 text-yellow-500" />}
-                      {student.rank === 2 && <Star className="w-5 h-5 text-gray-400" />}
-                      {student.rank === 3 && <Award className="w-5 h-5 text-orange-600" />}
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-        </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+          </div>
       </div>
     </SharedLayout>
   );
