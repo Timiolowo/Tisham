@@ -146,7 +146,7 @@ function AppContent() {
     const url = page === 'landing' ? '/' : `/${page}`;
     window.history.pushState({}, '', url);
     
-    // Scroll to top when navigating to a new page
+    // Scroll to top when navigating to a new page with smooth behavior
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 

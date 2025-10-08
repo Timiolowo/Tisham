@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { SharedLayout } from "./SharedLayout";
 import { useAuth } from "../contexts/AuthContext";
+import { ScrollReveal } from "./ScrollReveal";
 
 interface TeacherDashboardProps {
   onNavigate: (page: any, role?: any) => void;
@@ -34,18 +35,21 @@ export function TeacherDashboard({ onNavigate }: TeacherDashboardProps) {
     >
       <div className="space-y-3 h-full overflow-y-auto">
              {/* Welcome Section */}
-             <div className="bg-gradient-to-r from-primary/10 via-secondary/10 to-accent/10 rounded-xl p-3 border border-primary/20">
+             <ScrollReveal direction="up" delay={0.1}>
+               <div className="bg-gradient-to-r from-primary/10 via-secondary/10 to-accent/10 rounded-xl p-3 border border-primary/20">
                <div className="flex items-center justify-between">
                  <div>
                    <h1 className="text-base font-semibold mb-1">Welcome back, {userName}! 👋</h1>
                    <p className="text-xs text-muted-foreground">Ready to create amazing lessons with AI? Let's get started!</p>
                  </div>
                </div>
-             </div>
+               </div>
+             </ScrollReveal>
 
              {/* Quick Actions Grid */}
-             <div>
-               <h2 className="text-base font-semibold mb-2">Quick Actions</h2>
+             <ScrollReveal direction="up" delay={0.2}>
+               <div>
+                 <h2 className="text-base font-semibold mb-2">Quick Actions</h2>
                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2">
                  <Card 
                    className="rounded-2xl cursor-pointer gradient-primary text-white hover-lift hover-glow group overflow-hidden"
@@ -120,11 +124,13 @@ export function TeacherDashboard({ onNavigate }: TeacherDashboardProps) {
                 );
               })}
                </div>
-            </div>
+               </div>
+             </ScrollReveal>
 
              {/* Professional Development */}
-             <div>
-               <h2 className="text-base font-semibold mb-2">Professional Development</h2>
+             <ScrollReveal direction="up" delay={0.3}>
+               <div>
+                 <h2 className="text-base font-semibold mb-2">Professional Development</h2>
             <Card className="rounded-2xl">
               <CardHeader>
                 <div className="flex items-center justify-between">
@@ -169,11 +175,13 @@ export function TeacherDashboard({ onNavigate }: TeacherDashboardProps) {
                 </div>
                 </CardContent>
               </Card>
-            </div>
+              </div>
+            </ScrollReveal>
 
              {/* Recent Activity */}
-             <div>
-               <h2 className="text-base font-semibold mb-2">Recent Activity</h2>
+             <ScrollReveal direction="up" delay={0.4}>
+               <div>
+                 <h2 className="text-base font-semibold mb-2">Recent Activity</h2>
             <Card className="rounded-2xl">
               <CardHeader>
                    <CardTitle>Your Latest Lessons</CardTitle>
@@ -242,6 +250,7 @@ export function TeacherDashboard({ onNavigate }: TeacherDashboardProps) {
               </CardContent>
             </Card>
              </div>
+            </ScrollReveal>
       </div>
     </SharedLayout>
   );

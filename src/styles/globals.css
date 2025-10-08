@@ -365,6 +365,7 @@
 
 html {
   font-size: var(--font-size);
+  scroll-behavior: smooth; /* Enables smooth scrolling for anchor links */
 }
 
 /* Modern Beautiful Scrollbars */

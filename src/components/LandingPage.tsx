@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/
 import { Sparkles, BookOpen, MessageSquare, TrendingUp, CheckCircle } from "lucide-react";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { ThemeToggle } from "./ThemeToggle";
+import { ScrollReveal } from "./ScrollReveal";
 
 interface LandingPageProps {
   onNavigate: (page: any, role?: any) => void;
@@ -33,7 +34,8 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-16 md:py-24">
         <div className="grid md:grid-cols-2 gap-12 items-center">
-          <div className="space-y-6">
+          <ScrollReveal direction="right" delay={0.1}>
+            <div className="space-y-6">
             <div className="inline-block px-4 py-2 bg-secondary/10 text-secondary rounded-full">
               Your everyday teaching partner
             </div>
@@ -58,8 +60,10 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
                 <span className="text-sm">Offline Mode Available</span>
               </div>
             </div>
-          </div>
-          <div className="relative">
+            </div>
+          </ScrollReveal>
+          <ScrollReveal direction="left" delay={0.2}>
+            <div className="relative">
             <div className="rounded-3xl overflow-hidden shadow-2xl">
               <ImageWithFallback 
                 src="https://images.unsplash.com/flagged/photo-1579133311477-9121405c78dd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhZnJpY2FuJTIwdGVhY2hlciUyMGNsYXNzcm9vbSUyMHN0dWRlbnRzfGVufDF8fHx8MTc1OTYwNDM4NHww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
@@ -67,7 +71,8 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
                 className="w-full h-auto"
               />
             </div>
-          </div>
+            </div>
+          </ScrollReveal>
         </div>
       </section>
 
