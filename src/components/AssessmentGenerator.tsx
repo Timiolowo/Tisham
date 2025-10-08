@@ -36,6 +36,55 @@ export function AssessmentGenerator({ onNavigate, lessonPlan }: AssessmentGenera
   const [numberOfQuestions, setNumberOfQuestions] = useState(5);
   const [difficulty, setDifficulty] = useState("medium");
 
+  // Function to get subjects based on class level
+  const getSubjectsForClass = (level: string) => {
+    const jssSubjects = [
+      "Mathematics",
+      "English Language", 
+      "Basic Science",
+      "Social Studies",
+      "Computer Science",
+      "AI",
+      "Robotics",
+      "Solar PV",
+      "Entrepreneurship"
+    ];
+    
+    const ssSubjects = [
+      "Mathematics",
+      "English Language",
+      "Physics", 
+      "Chemistry",
+      "Biology",
+      "Computer Science",
+      "AI",
+      "Robotics", 
+      "Solar PV",
+      "Entrepreneurship",
+      "Economics",
+      "Government",
+      "Literature",
+      "Geography",
+      "History"
+    ];
+
+    if (level.startsWith("JSS")) {
+      return jssSubjects;
+    } else if (level.startsWith("SS")) {
+      return ssSubjects;
+    }
+    return jssSubjects; // Default to JSS subjects
+  };
+
+  // Handle class level change and reset subject if not available
+  const handleClassLevelChange = (newClassLevel: string) => {
+    setClassLevel(newClassLevel);
+    const availableSubjects = getSubjectsForClass(newClassLevel);
+    if (!availableSubjects.includes(subject)) {
+      setSubject(availableSubjects[0]); // Set to first available subject
+    }
+  };
+
   // Default hardcoded questions
   const defaultQuestions = [
     {
@@ -362,16 +411,8 @@ export function AssessmentGenerator({ onNavigate, lessonPlan }: AssessmentGenera
     toast.success("PDF preview opened! Use your browser's print dialog to save as PDF");
   };
 
-  return (
-    <SharedLayout 
-      onNavigate={onNavigate}
-      userRole="teacher"
-      title="Create Assessment"
-      subtitle="Generate quizzes and tests"
-      hideHeaderIcons={true}
-      activeMenu="assessment"
-    >
-      <main className="max-w-7xl mx-auto p-4 sm:p-6">
+  const content = (
+    <main className="max-w-7xl mx-auto p-4 sm:p-6">
         {lessonPlan && (
           <div className="mb-6 p-4 bg-primary/10 border border-primary/20 rounded-2xl">
             <p className="text-sm">
@@ -389,20 +430,34 @@ export function AssessmentGenerator({ onNavigate, lessonPlan }: AssessmentGenera
             <CardContent className="space-y-4 overflow-x-hidden">
               
               <div className="space-y-2">
+                <Label htmlFor="classLevel">Class Level</Label>
+                <Select value={classLevel} onValueChange={handleClassLevelChange}>
+                  <SelectTrigger id="classLevel" className="rounded-xl">
+                    <SelectValue placeholder="Select class level" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="JSS 1">JSS 1</SelectItem>
+                    <SelectItem value="JSS 2">JSS 2</SelectItem>
+                    <SelectItem value="JSS 3">JSS 3</SelectItem>
+                    <SelectItem value="SS 1">SS 1</SelectItem>
+                    <SelectItem value="SS 2">SS 2</SelectItem>
+                    <SelectItem value="SS 3">SS 3</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
                 <Label htmlFor="subject">Subject</Label>
                 <Select value={subject} onValueChange={setSubject}>
                   <SelectTrigger id="subject" className="rounded-xl">
                     <SelectValue placeholder="Select subject" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Computer Science">Computer Science</SelectItem>
-                    <SelectItem value="Mathematics">Mathematics</SelectItem>
-                    <SelectItem value="English Language">English Language</SelectItem>
-                    <SelectItem value="Basic Science">Basic Science</SelectItem>
-                    <SelectItem value="AI">AI</SelectItem>
-                    <SelectItem value="Robotics">Robotics</SelectItem>
-                    <SelectItem value="Solar PV">Solar PV</SelectItem>
-                    <SelectItem value="Entrepreneurship">Entrepreneurship</SelectItem>
+                    {getSubjectsForClass(classLevel).map((subjectOption) => (
+                      <SelectItem key={subjectOption} value={subjectOption}>
+                        {subjectOption}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -416,23 +471,6 @@ export function AssessmentGenerator({ onNavigate, lessonPlan }: AssessmentGenera
                   value={topic}
                   onChange={(e) => setTopic(e.target.value)}
                 />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="classLevel">Class Level</Label>
-                <Select value={classLevel} onValueChange={setClassLevel}>
-                  <SelectTrigger id="classLevel" className="rounded-xl">
-                    <SelectValue placeholder="Select class level" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="JSS 1">JSS 1</SelectItem>
-                    <SelectItem value="JSS 2">JSS 2</SelectItem>
-                    <SelectItem value="JSS 3">JSS 3</SelectItem>
-                    <SelectItem value="SSS 1">SSS 1</SelectItem>
-                    <SelectItem value="SSS 2">SSS 2</SelectItem>
-                    <SelectItem value="SSS 3">SSS 3</SelectItem>
-                  </SelectContent>
-                </Select>
               </div>
 
               <div className="space-y-2">
@@ -674,6 +712,17 @@ export function AssessmentGenerator({ onNavigate, lessonPlan }: AssessmentGenera
           </div>
         </div>
       </main>
-    </SharedLayout>
+  );
+
+  return (
+    <SharedLayout 
+      onNavigate={onNavigate}
+      userRole="teacher"
+      title="Create Assessment"
+      subtitle="Generate quizzes and tests"
+      hideHeaderIcons={true}
+      activeMenu="assessment"
+      children={content}
+    />
   );
 }

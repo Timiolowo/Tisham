@@ -78,7 +78,7 @@ export const getTeachingPrompt = (): PromptConfig => ({
 /**
  * Lesson Generation Prompts
  */
-export const getLessonGenerationPrompt = (topic: string, subject: string, classLevel: string, duration: number, language: string = "english", resourceLevel: string = "medium"): PromptConfig => ({
+export const getLessonGenerationPrompt = (topic: string, subject: string, classLevel: string, duration: number, language: string = "english", resourceLevel: string = "medium", additionalNotes?: string): PromptConfig => ({
   system: `You are an expert curriculum developer for Nigerian secondary schools. Create comprehensive, engaging lesson plans that align with the Nigerian curriculum and use local examples and contexts.`,
   user: `Create a detailed lesson plan for:
 Topic: ${topic}
@@ -86,7 +86,8 @@ Subject: ${subject}
 Class: ${classLevel}
 Duration: ${duration} minutes
 Language: ${language}
-Resource Level: ${resourceLevel}
+Resource Level: ${resourceLevel}${additionalNotes ? `
+Additional Notes: ${additionalNotes}` : ''}
 
 IMPORTANT: Structure your response EXACTLY like this format:
 

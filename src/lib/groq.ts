@@ -139,7 +139,7 @@ export async function generateLessonPlan(
   resourceLevel: string = "medium",
   additionalNotes?: string
 ): Promise<string> {
-  const promptConfig = getLessonGenerationPrompt(topic, subject, classLevel, duration, language, resourceLevel);
+  const promptConfig = getLessonGenerationPrompt(topic, subject, classLevel, duration, language, resourceLevel, additionalNotes);
 
   const systemPrompt: Message = {
     role: 'system',
