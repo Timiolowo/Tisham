@@ -186,7 +186,7 @@ export function SettingsPage({ onBack, onLogout, onNavigate, userRole = 'teacher
                     </Button>
                   </div>
                   <div className="flex-1 text-center sm:text-left">
-                    <h3 className="text-lg sm:text-xl font-semibold">{name || 'Loading...'}</h3>
+                    <h3 className="text-xl sm:text-2xl font-semibold">{name || 'Loading...'}</h3>
                     <p className="text-sm text-muted-foreground">
                       {school && typeof school === 'object' && school.name 
                         ? school.name 

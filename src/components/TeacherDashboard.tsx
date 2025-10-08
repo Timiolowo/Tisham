@@ -5,15 +5,11 @@ import { Progress } from "./ui/progress";
 import { 
   FileText, ClipboardList, Languages, MessageSquare, 
   BookOpen, BarChart3, Map, Settings,
-  Sparkles, Clock, BookMarked, Award, Users,
-  Menu, Bell, User
+  Sparkles, Clock, BookMarked, Award, Users
 } from "lucide-react";
 import { SharedLayout } from "./SharedLayout";
-import { SharedSidebar } from "./SharedSidebar";
 import { useAuth } from "../contexts/AuthContext";
 import { ScrollReveal } from "./ScrollReveal";
-import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from "./ui/sheet";
-import { ThemeToggle } from "./ThemeToggle";
 
 interface TeacherDashboardProps {
   onNavigate: (page: any, role?: any) => void;
@@ -31,76 +27,21 @@ export function TeacherDashboard({ onNavigate }: TeacherDashboardProps) {
   ];
 
   return (
-    <div className="h-screen max-h-screen bg-gradient-to-br from-background via-muted/30 to-background flex overflow-hidden">
-      {/* Desktop Sidebar - Hidden on mobile */}
-      <aside className="hidden md:block h-full">
-        <SharedSidebar 
-          onNavigate={onNavigate}
-          userRole="teacher"
-          activeMenu="dashboard"
-          setActiveMenu={() => {}}
-        />
-      </aside>
-
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
-        {/* Top Navigation */}
-        <header className="bg-card/80 backdrop-blur-sm border-b px-4 sm:px-6 py-4 sticky top-0 z-40">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3 flex-1 min-w-0">
-              {/* Mobile Menu */}
-              <Sheet>
-                <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon" className="md:hidden">
-                    <Menu className="w-5 h-5" />
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="left" className="p-0 w-64">
-                  <SheetHeader className="sr-only">
-                    <SheetTitle>Navigation Menu</SheetTitle>
-                    <SheetDescription>Navigate between different sections</SheetDescription>
-                  </SheetHeader>
-                  <SharedSidebar 
-                    onNavigate={onNavigate}
-                    userRole="teacher"
-                    activeMenu="dashboard"
-                    setActiveMenu={() => {}}
-                    mobile
-                  />
-                </SheetContent>
-              </Sheet>
-              
-              <div className="flex-1 min-w-0">
-                <h1 className="text-base truncate">TeachMate</h1>
-                <p className="text-xs text-muted-foreground truncate">Continue your learning journey</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 sm:gap-3">
-              <div className="hidden md:block">
-                <ThemeToggle />
-              </div>
-              <Button variant="ghost" size="icon" className="relative">
-                <Bell className="w-5 h-5" />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-accent rounded-full"></span>
-              </Button>
-              <Button variant="ghost" size="icon">
-                <User className="w-5 h-5" />
-              </Button>
-            </div>
-          </div>
-        </header>
-
-        {/* Page Content */}
-        <main className="flex-1 overflow-hidden p-4">
-          <div className="max-w-7xl mx-auto h-full space-y-6 overflow-y-auto">
+    <SharedLayout 
+      onNavigate={onNavigate}
+      userRole="teacher"
+      title="TeachMate"
+      subtitle="Continue your learning journey"
+      activeMenu="dashboard"
+    >
+      <div className="space-y-6">
              {/* Welcome Section */}
              <ScrollReveal direction="up" delay={0.1}>
                <div className="bg-gradient-to-r from-primary/10 via-secondary/10 to-accent/10 rounded-xl p-3 border border-primary/20">
                <div className="flex items-center justify-between">
                  <div>
-                   <h1 className="text-base font-semibold mb-1">Welcome back, {userName}! 👋</h1>
-                   <p className="text-xs text-muted-foreground">Ready to create amazing lessons with AI? Let's get started!</p>
+                   <h1 className="text-lg sm:text-xl font-semibold mb-1">Welcome back, {userName}! 👋</h1>
+                   <p className="text-sm text-muted-foreground">Ready to create amazing lessons with AI? Let's get started!</p>
                  </div>
                </div>
                </div>
@@ -109,7 +50,7 @@ export function TeacherDashboard({ onNavigate }: TeacherDashboardProps) {
              {/* Quick Actions Grid */}
              <ScrollReveal direction="up" delay={0.2}>
                <div>
-                 <h2 className="text-base font-semibold mb-2">Quick Actions</h2>
+                 <h2 className="text-lg font-semibold mb-3">Quick Actions</h2>
                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2">
                  <Card 
                    className="rounded-2xl cursor-pointer gradient-primary text-white hover-lift hover-glow group overflow-hidden"
@@ -163,7 +104,7 @@ export function TeacherDashboard({ onNavigate }: TeacherDashboardProps) {
 
              {/* Stats Grid */}
              <div>
-               <h2 className="text-base font-semibold mb-2">Your Teaching Stats</h2>
+               <h2 className="text-lg font-semibold mb-3">Your Teaching Stats</h2>
                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
               {stats.map((stat) => {
                 const Icon = stat.icon;
@@ -190,7 +131,7 @@ export function TeacherDashboard({ onNavigate }: TeacherDashboardProps) {
              {/* Professional Development */}
              <ScrollReveal direction="up" delay={0.3}>
                <div>
-                 <h2 className="text-base font-semibold mb-2">Professional Development</h2>
+                 <h2 className="text-lg font-semibold mb-3">Professional Development</h2>
             <Card className="rounded-2xl">
               <CardHeader>
                 <div className="flex items-center justify-between">
@@ -241,7 +182,7 @@ export function TeacherDashboard({ onNavigate }: TeacherDashboardProps) {
              {/* Recent Activity */}
              <ScrollReveal direction="up" delay={0.4}>
                <div>
-                 <h2 className="text-base font-semibold mb-2">Recent Activity</h2>
+                 <h2 className="text-lg font-semibold mb-3">Recent Activity</h2>
             <Card className="rounded-2xl">
               <CardHeader>
                    <CardTitle>Your Latest Lessons</CardTitle>
@@ -311,9 +252,7 @@ export function TeacherDashboard({ onNavigate }: TeacherDashboardProps) {
             </Card>
              </div>
             </ScrollReveal>
-          </div>
-        </main>
       </div>
-    </div>
+    </SharedLayout>
   );
 }

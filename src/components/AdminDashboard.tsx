@@ -89,8 +89,8 @@ export function AdminDashboard({ onBack, onNavigate }: AdminDashboardProps) {
                 <CardContent className="p-4 sm:p-6">
                   <div className="flex items-start justify-between">
                     <div>
-                      <p className="text-xs sm:text-sm text-muted-foreground mb-1">{stat.label}</p>
-                      <p className="text-base sm:text-base">{stat.value}</p>
+                      <p className="text-sm text-muted-foreground mb-1">{stat.label}</p>
+                      <p className="text-xl sm:text-2xl font-bold">{stat.value}</p>
                     </div>
                     <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-muted flex items-center justify-center ${stat.color}`}>
                       <Icon className="w-5 h-5 sm:w-6 sm:h-6" />
@@ -247,49 +247,49 @@ export function AdminDashboard({ onBack, onNavigate }: AdminDashboardProps) {
           <CardContent>
             {/* Desktop Table */}
             <div className="hidden lg:block">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Teacher Name</TableHead>
-                    <TableHead>Subjects</TableHead>
-                    <TableHead>Last Active</TableHead>
-                    <TableHead>Lessons Created</TableHead>
-                    <TableHead>Status</TableHead>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Teacher Name</TableHead>
+                  <TableHead>Subjects</TableHead>
+                  <TableHead>Last Active</TableHead>
+                  <TableHead>Lessons Created</TableHead>
+                  <TableHead>Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {teachers.map((teacher, i) => (
+                  <TableRow key={i}>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                          <span className="text-sm">{teacher.name.charAt(0)}</span>
+                        </div>
+                        <span>{teacher.name}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">{teacher.subjects}</TableCell>
+                    <TableCell className="text-muted-foreground">{teacher.lastActive}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <span>{teacher.lessonsCreated}</span>
+                        {teacher.lessonsCreated > 10 && (
+                          <TrendingUp className="w-4 h-4 text-green-500" />
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge 
+                        variant={teacher.status === 'active' ? 'default' : 'secondary'}
+                        className={teacher.status === 'active' ? 'bg-green-100 text-green-700 hover:bg-green-100' : ''}
+                      >
+                        {teacher.status}
+                      </Badge>
+                    </TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {teachers.map((teacher, i) => (
-                    <TableRow key={i}>
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
-                            <span className="text-sm">{teacher.name.charAt(0)}</span>
-                          </div>
-                          <span>{teacher.name}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">{teacher.subjects}</TableCell>
-                      <TableCell className="text-muted-foreground">{teacher.lastActive}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <span>{teacher.lessonsCreated}</span>
-                          {teacher.lessonsCreated > 10 && (
-                            <TrendingUp className="w-4 h-4 text-green-500" />
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge 
-                          variant={teacher.status === 'active' ? 'default' : 'secondary'}
-                          className={teacher.status === 'active' ? 'bg-green-100 text-green-700 hover:bg-green-100' : ''}
-                        >
-                          {teacher.status}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                ))}
+              </TableBody>
+            </Table>
             </div>
 
             {/* Mobile Cards */}

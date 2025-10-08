@@ -58,7 +58,7 @@ export const handler: Handler = async (event, context) => {
         class: {
           id: classData.id,
           name: classData.name,
-          level: classData.level,
+          class_level: classData.class_level,
           class_code: classData.class_code,
           school_id: classData.school_id,
           school: classData.schools

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
@@ -10,7 +10,7 @@ import {
   Clock, Trophy, Target, Lightbulb, TrendingUp, Award, Loader2,
   Star, Zap, ChevronRight, GraduationCap, Download
 } from "lucide-react";
-import { toast } from "sonner@2.0.3";
+import { toast } from "sonner";
 import { explainConcept } from "../lib/groq";
 // Get Groq API key from environment
 import { runtimeEnv } from '../lib/runtime-env';

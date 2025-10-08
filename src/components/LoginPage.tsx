@@ -53,7 +53,7 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
         />
         <div className="absolute inset-0 z-20 flex flex-col items-center justify-center p-12 text-white">
           <div className="text-center space-y-6 backdrop-blur-sm bg-black/30 p-8 rounded-3xl">
-            <h2 className="text-base lg:text-base font-bold">
+            <h2 className="text-2xl lg:text-3xl font-bold">
               Empowering Nigerian Education
             </h2>
             <p className="text-lg opacity-90">
@@ -85,7 +85,7 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
             <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-4 gradient-primary">
               <Sparkles className="w-8 h-8 text-white" />
             </div>
-            <h1 className="text-base sm:text-base font-bold">TeachMate</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold">TeachMate</h1>
             <p className="text-sm text-muted-foreground mt-2">Sign in to continue</p>
           </div>
 
@@ -137,6 +137,16 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
                     )}
                   </Button>
                 </form>
+
+                <div className="text-center">
+                  <Button 
+                    variant="link" 
+                    onClick={() => onNavigate('forgot-password')}
+                    className="text-sm text-primary"
+                  >
+                    Forgot your password?
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>

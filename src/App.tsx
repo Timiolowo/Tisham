@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { LandingPage } from "./components/LandingPage";
 import { LoginPage } from "./components/LoginPage";
+import { ForgotPasswordPage } from "./components/ForgotPasswordPage";
 import { SchoolRegistration } from "./components/SchoolRegistration";
 import { TeacherDashboard } from "./components/TeacherDashboard";
 import { LessonGenerator } from "./components/LessonGenerator";
@@ -86,7 +87,7 @@ function AppContent() {
       // Handle hash-based routing
       if (hash) {
         const page = hash.substring(1) as Page;
-        if (['landing', 'register', 'login', 'dashboard', 'lesson-generator', 'assessment', 'copilot', 'simplify', 'library', 'pathway', 'admin', 'student-dashboard', 'class-management', 'class-details', 'class-chat', 'concept-explorer', 'learn-with-ai', 'teacher-learning', 'certificate', 'my-curriculum', 'edit-resource', 'settings'].includes(page)) {
+        if (['landing', 'register', 'login', 'forgot-password', 'dashboard', 'lesson-generator', 'assessment', 'copilot', 'simplify', 'library', 'pathway', 'admin', 'student-dashboard', 'class-management', 'class-details', 'class-chat', 'concept-explorer', 'learn-with-ai', 'teacher-learning', 'certificate', 'my-curriculum', 'edit-resource', 'settings'].includes(page)) {
           return page;
         }
       }
@@ -95,6 +96,7 @@ function AppContent() {
       if (path === '/' || path === '/landing') return 'landing';
       if (path === '/register') return 'register';
       if (path === '/login') return 'login';
+      if (path === '/forgot-password') return 'forgot-password';
       if (path === '/dashboard') return 'dashboard';
       if (path === '/lesson-generator') return 'lesson-generator';
       if (path === '/assessment') return 'assessment';
@@ -168,6 +170,8 @@ function AppContent() {
         return <SchoolRegistration onNavigate={navigate} />;
       case 'login':
         return <LoginPage onNavigate={navigate} />;
+      case 'forgot-password':
+        return <ForgotPasswordPage onNavigate={navigate} />;
       case 'dashboard':
         if (userRole === 'student') {
           return <StudentDashboard onNavigate={navigate} />;

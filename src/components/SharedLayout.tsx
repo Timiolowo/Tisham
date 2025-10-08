@@ -60,8 +60,8 @@ export function SharedLayout({ children, onNavigate, userRole, title, subtitle, 
               </Sheet>
               
               <div className="flex-1 min-w-0">
-                <h1 className="text-lg truncate">{title}</h1>
-                <p className="text-xs sm:text-sm text-muted-foreground truncate">{subtitle}</p>
+                <h1 className="text-xl sm:text-2xl truncate">{title}</h1>
+                <p className="text-sm sm:text-base text-muted-foreground truncate">{subtitle}</p>
               </div>
             </div>
 

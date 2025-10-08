@@ -41,7 +41,7 @@ export function RegistrationSuccess({ onNavigate }: RegistrationSuccessProps) {
       case 'student':
         return {
           title: "Student Registration Successful!",
-          description: "Welcome to TeachMate! You can now access your student dashboard.",
+          description: "Welcome to TeachMate! Your student ID has been generated. You can now access your student dashboard.",
           codeLabel: "Your Student ID",
           code: "STU" + Math.floor(10000 + Math.random() * 90000),
           buttonText: "Go to Dashboard",

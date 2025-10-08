@@ -263,8 +263,8 @@ export function StudentDashboard({ onNavigate }: StudentDashboardProps) {
               </Sheet>
               
               <div className="flex-1 min-w-0">
-                <h1 className="text-base truncate">Welcome back, Chidi! 👋</h1>
-                <p className="text-xs text-muted-foreground truncate">JSS 3 • Keep up the great work!</p>
+                <h1 className="text-lg sm:text-xl truncate">Welcome back, Chidi! 👋</h1>
+                <p className="text-sm text-muted-foreground truncate">JSS 3 • Keep up the great work!</p>
               </div>
             </div>
 
@@ -355,7 +355,7 @@ export function StudentDashboard({ onNavigate }: StudentDashboardProps) {
 
                  {/* Career Hints */}
                  <div>
-                   <h3 className="text-base font-semibold mb-3">🚀 Career Paths for You</h3>
+                   <h3 className="text-lg font-semibold mb-4">🚀 Career Paths for You</h3>
                   <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {careerHints.map((career, i) => (
                       <Card key={i} className="rounded-2xl glass-card hover-lift overflow-hidden group cursor-pointer">
@@ -372,7 +372,7 @@ export function StudentDashboard({ onNavigate }: StudentDashboardProps) {
 
                  {/* Shared Resources */}
                  <div>
-                   <h3 className="text-base font-semibold mb-3">📚 Your Lessons & Quizzes</h3>
+                   <h3 className="text-lg font-semibold mb-4">📚 Your Lessons & Quizzes</h3>
                   <div className="space-y-3">
                     {sharedResources.map((resource) => (
                       <Card key={resource.id} className="rounded-2xl glass-card hover-lift hover-glow group cursor-pointer">

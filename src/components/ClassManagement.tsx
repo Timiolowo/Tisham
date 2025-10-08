@@ -342,79 +342,11 @@ export function ClassManagement({ onNavigate }: ClassManagementProps) {
         </div>
 
         {/* Main Content */}
-        <Tabs defaultValue="students" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 rounded-2xl p-1">
-            <TabsTrigger value="students" className="rounded-xl">Students</TabsTrigger>
+        <Tabs defaultValue="classes" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-1 rounded-2xl p-1">
             <TabsTrigger value="classes" className="rounded-xl">Classes</TabsTrigger>
-            <TabsTrigger value="resources" className="rounded-xl">Shared Resources</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="students" className="space-y-4 animate-fade-in">
-            <div className="flex items-center gap-3">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search students..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="rounded-2xl pl-10"
-                />
-              </div>
-            </div>
-
-            <Card className="rounded-2xl glass-card">
-              <CardContent className="p-0">
-                <div className="divide-y">
-                  {students.map((student) => (
-                    <div
-                      key={student.id}
-                      className="p-4 hover:bg-muted/50 transition-colors flex items-center gap-4"
-                    >
-                      <div className="w-10 h-10 rounded-full gradient-primary flex items-center justify-center text-white font-semibold flex-shrink-0">
-                        {student.name.charAt(0)}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-semibold text-sm sm:text-base truncate">{student.name}</h4>
-                        <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
-                          <span>{student.class}</span>
-                          <span>•</span>
-                          <span>{student.xp} XP</span>
-                          <span>•</span>
-                          <span>Active {student.lastActive}</span>
-                        </div>
-                      </div>
-                      <Badge
-                        variant={student.status === 'active' ? 'default' : 'secondary'}
-                        className="text-xs"
-                      >
-                        {student.status}
-                      </Badge>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="flex-shrink-0">
-                            <MoreVertical className="w-4 h-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="rounded-xl">
-                          <DropdownMenuItem>View Progress</DropdownMenuItem>
-                          <DropdownMenuItem>Send Message</DropdownMenuItem>
-                          <DropdownMenuItem 
-                            className="text-destructive"
-                            onClick={() => {
-                              toast.success(`${student.name} removed from class`);
-                            }}
-                          >
-                            <Trash2 className="w-4 h-4 mr-2" />
-                            Remove Student
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
 
           <TabsContent value="classes" className="space-y-4 animate-fade-in">
             <div className="flex justify-between items-center">
@@ -594,71 +526,6 @@ export function ClassManagement({ onNavigate }: ClassManagementProps) {
             </div>
           </TabsContent>
 
-          <TabsContent value="resources" className="space-y-4 animate-fade-in">
-            <Card className="rounded-2xl glass-card">
-              <CardContent className="p-0">
-                <div className="divide-y">
-                  {sharedResources.map((resource) => (
-                    <div
-                      key={resource.id}
-                      className="p-4 hover:bg-muted/50 transition-colors"
-                    >
-                      <div className="flex items-start gap-4">
-                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                          resource.type === 'Assessment' ? 'gradient-secondary' : 'gradient-primary'
-                        }`}>
-                          {resource.type === 'Assessment' ? (
-                            <ClipboardList className="w-6 h-6 text-white" />
-                          ) : (
-                            <BookOpen className="w-6 h-6 text-white" />
-                          )}
-                        </div>
-
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-2 mb-2">
-                            <div>
-                              <h4 className="font-semibold text-sm sm:text-base">{resource.title}</h4>
-                              <p className="text-xs text-muted-foreground">
-                                Shared with: {resource.sharedWith.join(', ')}
-                              </p>
-                            </div>
-                            <Badge variant="outline" className="text-xs">
-                              {resource.type}
-                            </Badge>
-                          </div>
-
-                          <div className="grid grid-cols-3 gap-4 text-center">
-                            <div className="p-2 bg-muted/50 rounded-lg">
-                              <p className="text-lg font-semibold">{resource.views}</p>
-                              <p className="text-xs text-muted-foreground">Views</p>
-                            </div>
-                            <div className="p-2 bg-muted/50 rounded-lg">
-                              <p className="text-lg font-semibold">{resource.completions}</p>
-                              <p className="text-xs text-muted-foreground">Completed</p>
-                            </div>
-                            <div className="p-2 bg-muted/50 rounded-lg">
-                              <p className="text-lg font-semibold">{resource.avgScore}%</p>
-                              <p className="text-xs text-muted-foreground">Avg Score</p>
-                            </div>
-                          </div>
-
-                          <div className="flex gap-2 mt-3">
-                            <Button size="sm" variant="outline" className="rounded-xl text-xs">
-                              <Share2 className="w-3 h-3 mr-1" />
-                              Share More
-                            </Button>
-                            <Button size="sm" variant="outline" className="rounded-xl text-xs">
-                              View Analytics
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
         </Tabs>
       </main>
     </SharedLayout>

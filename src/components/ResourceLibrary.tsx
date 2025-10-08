@@ -179,7 +179,7 @@ export function ResourceLibrary({ onBack, onNavigate }: ResourceLibraryProps) {
                       {resource.type}
                     </Badge>
                   </div>
-                  <CardTitle className="line-clamp-2 text-sm sm:text-base">{resource.title}</CardTitle>
+                  <CardTitle className="line-clamp-2 text-base sm:text-lg">{resource.title}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3 sm:space-y-4">
                   <div className="space-y-1">

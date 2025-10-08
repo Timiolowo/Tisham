@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Input } from "./ui/input";
@@ -6,7 +6,7 @@ import { Label } from "./ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { ArrowLeft, CheckCircle2, School, GraduationCap, Users, Loader2 } from "lucide-react";
-import { toast } from "sonner@2.0.3";
+import { toast } from "sonner";
 import { useAuth } from "../contexts/AuthContext";
 import OTPRegistration from './OTPRegistration';
 
@@ -82,10 +82,10 @@ export function SchoolRegistration({ onNavigate }: RegistrationProps) {
 
       const data = await response.json();
       
-      if (data.success && data.class) {
-        setClassInfo(data.class);
-        toast.success(`Valid class code! Class: ${data.class.name}`);
-      } else {
+       if (data.success && data.class) {
+         setClassInfo(data.class);
+         toast.success(`Valid class code! Class: ${data.class.name}`);
+       } else {
         setClassInfo(null);
         toast.error(data.error || 'Invalid class code');
       }
@@ -115,9 +115,8 @@ export function SchoolRegistration({ onNavigate }: RegistrationProps) {
     adminName: '',
     subjects: [] as string[],
     yearsExperience: 0,
-    studentId: '',
-    classLevel: '',
-    parentEmail: ''
+     studentId: 'STU' + Math.floor(10000 + Math.random() * 90000),
+     parentEmail: ''
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -182,12 +181,11 @@ export function SchoolRegistration({ onNavigate }: RegistrationProps) {
           subjects: formData.subjects,
           yearsExperience: formData.yearsExperience,
         }),
-        ...(registrationType === 'student' && {
-          classCode: formData.classCode,
-          studentId: formData.studentId,
-          classLevel: formData.classLevel,
-          parentEmail: formData.parentEmail,
-        }),
+         ...(registrationType === 'student' && {
+           classCode: formData.classCode,
+           studentId: formData.studentId,
+           parentEmail: formData.parentEmail,
+         }),
       };
 
       console.log('Registration data being sent:', registrationData);
@@ -597,13 +595,13 @@ export function SchoolRegistration({ onNavigate }: RegistrationProps) {
                     {validatingClass && (
                       <p className="text-xs text-blue-600">Validating class code...</p>
                     )}
-                    {classInfo && (
-                      <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
-                        <p className="text-sm font-medium text-green-800">✓ Valid Class Code</p>
-                        <p className="text-sm text-green-700">Class: {classInfo.name}</p>
-                        <p className="text-xs text-green-600">Level: {classInfo.level}</p>
-                      </div>
-                    )}
+                     {classInfo && (
+                       <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                         <p className="text-sm font-medium text-green-800">✓ Valid Class Code</p>
+                         <p className="text-sm text-green-700">Class: {classInfo.name}</p>
+                         <p className="text-xs text-green-600">Level: {classInfo.class_level?.toUpperCase() || classInfo.level?.toUpperCase()}</p>
+                       </div>
+                     )}
                   </div>
 
                   <div className="space-y-2">
@@ -618,34 +616,7 @@ export function SchoolRegistration({ onNavigate }: RegistrationProps) {
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="studentId">Student ID</Label>
-                    <Input 
-                      id="studentId" 
-                      placeholder="e.g., STU001"
-                      className="rounded-xl"
-                      value={formData.studentId}
-                      onChange={(e) => setFormData({...formData, studentId: e.target.value})}
-                      required
-                    />
-                  </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="classLevel">Class Level</Label>
-                    <Select required onValueChange={(value) => setFormData({...formData, classLevel: value})}>
-                      <SelectTrigger className="rounded-xl">
-                        <SelectValue placeholder="Select your class" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="jss1">JSS 1</SelectItem>
-                        <SelectItem value="jss2">JSS 2</SelectItem>
-                        <SelectItem value="jss3">JSS 3</SelectItem>
-                        <SelectItem value="sss1">SSS 1</SelectItem>
-                        <SelectItem value="sss2">SSS 2</SelectItem>
-                        <SelectItem value="sss3">SSS 3</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="studentEmail">Email Address</Label>

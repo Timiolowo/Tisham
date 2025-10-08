@@ -131,8 +131,8 @@ export function CopilotChat({ onNavigate }: CopilotChatProps) {
                     <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-secondary to-primary rounded-full flex items-center justify-center mx-auto mb-4 animate-float">
                       <Sparkles className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
                     </div>
-                    <h2 className="text-xl sm:text-base mb-2">How can I help you teach better?</h2>
-                    <p className="text-sm sm:text-base text-muted-foreground mb-6 sm:mb-8">
+                    <h2 className="text-2xl sm:text-3xl mb-2">How can I help you teach better?</h2>
+                    <p className="text-base sm:text-lg text-muted-foreground mb-6 sm:mb-8">
                       Try one of these suggestions or ask your own question
                     </p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 max-w-2xl mx-auto">
