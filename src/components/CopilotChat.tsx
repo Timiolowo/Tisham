@@ -112,7 +112,7 @@ export function CopilotChat({ onNavigate }: CopilotChatProps) {
     <SharedLayout 
       onNavigate={onNavigate}
       userRole="teacher"
-      title="TeCHATer"
+      title="TeachMate"
       subtitle="Your AI Teaching Assistant"
       activeMenu="copilot"
       hideHeaderIcons={true}
@@ -170,21 +170,21 @@ export function CopilotChat({ onNavigate }: CopilotChatProps) {
                         : 'glass-card'
                     }`}>
                       <CardContent className="p-3 sm:p-4">
-                        <div className="whitespace-pre-wrap text-sm leading-relaxed">
+                        <div className="prose prose-sm max-w-none">
                           {message.content.split('\n').map((line, index) => {
                             // Format bullet points and numbered lists
-                            if (line.trim().startsWith('✅') || line.trim().startsWith('•') || line.trim().startsWith('-')) {
+                            if (line.trim().startsWith('✅') || line.trim().startsWith('•') || line.trim().startsWith('-') || line.trim().startsWith('*')) {
                               return (
-                                <div key={index} className="flex items-start gap-2 mb-2">
-                                  <span className="text-primary font-semibold mt-0.5 flex-shrink-0">•</span>
-                                  <span className="text-sm">{line.trim().replace(/^[✅•\-]\s*/, '')}</span>
+                                <div key={index} className="flex items-start gap-3 mb-3">
+                                  <span className="text-primary font-semibold mt-1 flex-shrink-0 text-lg">•</span>
+                                  <span className="text-sm leading-relaxed">{line.trim().replace(/^[✅•\-\*]\s*/, '')}</span>
                                 </div>
                               );
                             }
                             // Format headers (lines that are all caps or start with #)
                             if (line.trim().match(/^[A-Z\s]+$/) && line.trim().length > 3) {
                               return (
-                                <div key={index} className="font-semibold text-primary mb-3 mt-4 first:mt-0 text-base">
+                                <div key={index} className="font-semibold text-primary mb-4 mt-6 first:mt-0 text-base border-b border-primary/20 pb-2">
                                   {line.trim()}
                                 </div>
                               );
@@ -193,7 +193,7 @@ export function CopilotChat({ onNavigate }: CopilotChatProps) {
                             if (line.includes('**')) {
                               const parts = line.split(/(\*\*.*?\*\*)/g);
                               return (
-                                <div key={index} className="mb-2">
+                                <div key={index} className="mb-3">
                                   {parts.map((part, partIndex) => 
                                     part.startsWith('**') && part.endsWith('**') ? (
                                       <strong key={partIndex} className="font-semibold text-primary">
@@ -206,11 +206,22 @@ export function CopilotChat({ onNavigate }: CopilotChatProps) {
                                 </div>
                               );
                             }
-                            // Regular text
+                            // Format numbered lists
+                            if (line.trim().match(/^\d+\./)) {
+                              return (
+                                <div key={index} className="flex items-start gap-3 mb-3">
+                                  <span className="text-primary font-semibold mt-1 flex-shrink-0 text-sm bg-primary/10 rounded-full w-5 h-5 flex items-center justify-center">
+                                    {line.trim().match(/^\d+/)?.[0]}
+                                  </span>
+                                  <span className="text-sm leading-relaxed">{line.trim().replace(/^\d+\.\s*/, '')}</span>
+                                </div>
+                              );
+                            }
+                            // Regular text with better spacing
                             return line.trim() ? (
-                              <div key={index} className="mb-2 text-sm">{line}</div>
+                              <div key={index} className="mb-3 text-sm leading-relaxed">{line}</div>
                             ) : (
-                              <div key={index} className="mb-3"></div>
+                              <div key={index} className="mb-4"></div>
                             );
                           })}
                         </div>

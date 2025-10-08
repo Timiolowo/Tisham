@@ -37,8 +37,8 @@ export function SharedLayout({ children, onNavigate, userRole, title, subtitle, 
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-h-0">
-        {/* Top Navigation */}
-        <header className="bg-card/80 backdrop-blur-sm border-b px-6 py-4">
+        {/* Top Navigation - Always Visible */}
+        <header className="bg-card/80 backdrop-blur-sm border-b px-6 py-4 sticky top-0 z-50 safe-area-top">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               {/* Mobile Menu */}
@@ -85,7 +85,7 @@ export function SharedLayout({ children, onNavigate, userRole, title, subtitle, 
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto p-4">
+        <main className="flex-1 overflow-y-auto p-4 safe-area-left safe-area-right safe-area-bottom pb-6">
           <div className="max-w-7xl mx-auto">
             {children}
           </div>

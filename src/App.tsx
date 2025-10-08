@@ -24,7 +24,7 @@ import { EditResourcePage } from "./components/EditResourcePage";
 import { ThemeProvider } from "./components/ThemeProvider";
 import { Toaster } from "./components/ui/sonner";
 import { AIMascot } from "./components/AIMascot";
-import { AuthProvider } from "./contexts/AuthContext";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { SecurityWarning } from "./components/SecurityWarning";
 
 type Page = 
@@ -75,6 +75,7 @@ function AppContent() {
   const [editingResourceId, setEditingResourceId] = useState<string | null>(null);
   const [learningResourceTitle, setLearningResourceTitle] = useState<string>('');
   const [learningResourceId, setLearningResourceId] = useState<string | null>(null);
+  const { user } = useAuth();
 
   // URL-based routing
   useEffect(() => {
@@ -229,7 +230,11 @@ function AppContent() {
   return (
     <ThemeProvider defaultTheme="light">
       {renderPage()}
-      <AIMascot onOpenChat={() => navigate('copilot')} />
+      <AIMascot 
+        onOpenChat={() => navigate('copilot')} 
+        currentPage={currentPage}
+        isAuthenticated={!!user}
+      />
       <Toaster />
     </ThemeProvider>
   );

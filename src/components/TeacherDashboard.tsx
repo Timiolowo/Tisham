@@ -5,11 +5,15 @@ import { Progress } from "./ui/progress";
 import { 
   FileText, ClipboardList, Languages, MessageSquare, 
   BookOpen, BarChart3, Map, Settings,
-  Sparkles, Clock, BookMarked, Award, Users
+  Sparkles, Clock, BookMarked, Award, Users,
+  Menu, Bell, User
 } from "lucide-react";
 import { SharedLayout } from "./SharedLayout";
+import { SharedSidebar } from "./SharedSidebar";
 import { useAuth } from "../contexts/AuthContext";
 import { ScrollReveal } from "./ScrollReveal";
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from "./ui/sheet";
+import { ThemeToggle } from "./ThemeToggle";
 
 interface TeacherDashboardProps {
   onNavigate: (page: any, role?: any) => void;
@@ -27,13 +31,69 @@ export function TeacherDashboard({ onNavigate }: TeacherDashboardProps) {
   ];
 
   return (
-    <SharedLayout 
-      onNavigate={onNavigate}
-      userRole="teacher"
-      title="TeachMate"
-      subtitle="Continue your learning journey"
-    >
-      <div className="space-y-3 h-full overflow-y-auto">
+    <div className="h-screen max-h-screen bg-gradient-to-br from-background via-muted/30 to-background flex overflow-hidden">
+      {/* Desktop Sidebar - Hidden on mobile */}
+      <aside className="hidden md:block h-full">
+        <SharedSidebar 
+          onNavigate={onNavigate}
+          userRole="teacher"
+          activeMenu="dashboard"
+          setActiveMenu={() => {}}
+        />
+      </aside>
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
+        {/* Top Navigation */}
+        <header className="bg-card/80 backdrop-blur-sm border-b px-4 sm:px-6 py-4 sticky top-0 z-40">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              {/* Mobile Menu */}
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon" className="md:hidden">
+                    <Menu className="w-5 h-5" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="left" className="p-0 w-64">
+                  <SheetHeader className="sr-only">
+                    <SheetTitle>Navigation Menu</SheetTitle>
+                    <SheetDescription>Navigate between different sections</SheetDescription>
+                  </SheetHeader>
+                  <SharedSidebar 
+                    onNavigate={onNavigate}
+                    userRole="teacher"
+                    activeMenu="dashboard"
+                    setActiveMenu={() => {}}
+                    mobile
+                  />
+                </SheetContent>
+              </Sheet>
+              
+              <div className="flex-1 min-w-0">
+                <h1 className="text-base truncate">TeachMate</h1>
+                <p className="text-xs text-muted-foreground truncate">Continue your learning journey</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="hidden md:block">
+                <ThemeToggle />
+              </div>
+              <Button variant="ghost" size="icon" className="relative">
+                <Bell className="w-5 h-5" />
+                <span className="absolute top-1 right-1 w-2 h-2 bg-accent rounded-full"></span>
+              </Button>
+              <Button variant="ghost" size="icon">
+                <User className="w-5 h-5" />
+              </Button>
+            </div>
+          </div>
+        </header>
+
+        {/* Page Content */}
+        <main className="flex-1 overflow-hidden p-4">
+          <div className="max-w-7xl mx-auto h-full space-y-6 overflow-y-auto">
              {/* Welcome Section */}
              <ScrollReveal direction="up" delay={0.1}>
                <div className="bg-gradient-to-r from-primary/10 via-secondary/10 to-accent/10 rounded-xl p-3 border border-primary/20">
@@ -55,7 +115,7 @@ export function TeacherDashboard({ onNavigate }: TeacherDashboardProps) {
                    className="rounded-2xl cursor-pointer gradient-primary text-white hover-lift hover-glow group overflow-hidden"
                    onClick={() => onNavigate('lesson-generator')}
                  >
-                   <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+                   <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300 h-full"></div>
                    <CardContent className="p-3 relative">
                      <FileText className="w-6 h-6 mb-2 opacity-90 group-hover:scale-110 transition-transform" />
                      <h3 className="text-sm font-semibold mb-1">Generate Lesson</h3>
@@ -67,7 +127,7 @@ export function TeacherDashboard({ onNavigate }: TeacherDashboardProps) {
                    className="rounded-2xl cursor-pointer gradient-secondary text-white hover-lift hover-glow group overflow-hidden"
                    onClick={() => onNavigate('assessment')}
                  >
-                   <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+                   <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300 h-full"></div>
                    <CardContent className="p-3 relative">
                      <ClipboardList className="w-6 h-6 mb-2 opacity-90 group-hover:scale-110 transition-transform" />
                      <h3 className="text-sm font-semibold mb-1">Create Assessment</h3>
@@ -79,7 +139,7 @@ export function TeacherDashboard({ onNavigate }: TeacherDashboardProps) {
                    className="rounded-2xl cursor-pointer bg-gradient-to-br from-accent to-orange-500 text-white hover-lift hover-glow group overflow-hidden"
                    onClick={() => onNavigate('copilot')}
                  >
-                   <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+                   <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300 h-full"></div>
                    <CardContent className="p-3 relative">
                      <MessageSquare className="w-6 h-6 mb-2 opacity-90 group-hover:scale-110 transition-transform" />
                      <h3 className="text-sm font-semibold mb-1">AI Copilot</h3>
@@ -91,7 +151,7 @@ export function TeacherDashboard({ onNavigate }: TeacherDashboardProps) {
                    className="rounded-2xl cursor-pointer bg-gradient-to-br from-green-500 to-emerald-500 text-white hover-lift hover-glow group overflow-hidden"
                    onClick={() => onNavigate('class-management')}
                  >
-                   <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+                   <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300 h-full"></div>
                    <CardContent className="p-3 relative">
                      <Users className="w-6 h-6 mb-2 opacity-90 group-hover:scale-110 transition-transform" />
                      <h3 className="text-sm font-semibold mb-1">My Classes</h3>
@@ -251,7 +311,9 @@ export function TeacherDashboard({ onNavigate }: TeacherDashboardProps) {
             </Card>
              </div>
             </ScrollReveal>
+          </div>
+        </main>
       </div>
-    </SharedLayout>
+    </div>
   );
 }
