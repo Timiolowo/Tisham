@@ -82,11 +82,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const checkSession = async () => {
     try {
+      console.log('🔍 Checking session...');
       if (isSupabaseEnabled) {
         // Check localStorage first for stored user
         const storedUser = localStorage.getItem('user_data');
         if (!storedUser) {
           // No stored user found
+          console.log('❌ No stored user found');
+          setUser(null);
           setIsLoading(false);
           return;
         }
@@ -98,13 +101,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const { data: { session } } = await supabase.auth.getSession();
         if (session && session.user.id === userData.id) {
           // Session valid, using stored user data
+          console.log('✅ Session valid, user logged in');
           setUser(userData);
         } else {
           // Session invalid or expired, clearing stored data
+          console.log('❌ Session invalid or expired');
           localStorage.removeItem('user_data');
           setUser(null);
         }
-        setIsLoading(false);
       } else {
         // Use Netlify Functions for production
         const token = localStorage.getItem('auth_token');
