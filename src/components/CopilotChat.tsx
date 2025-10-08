@@ -14,6 +14,7 @@ const isApiKeyConfigured = () => {
   return !!(apiKey && apiKey !== '' && apiKey !== 'your_groq_api_key_here' && !apiKey.includes('placeholder'));
 };
 import { SharedLayout } from "./SharedLayout";
+import { useAuth } from "../contexts/AuthContext";
 
 interface CopilotChatProps {
   onNavigate: (page: any, role?: any) => void;
@@ -25,19 +26,37 @@ interface Message {
 }
 
 export function CopilotChat({ onNavigate }: CopilotChatProps) {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      role: 'assistant',
-      content: "Hello! I'm TeachMate, your AI teaching assistant! 🎓\n\nI can help you with:\n\n✅ **Lesson planning** and curriculum guidance\n✅ **Student explanations** and homework help\n✅ **Teaching strategies** and classroom management\n✅ **Nigerian educational context** and examples\n\nWhat would you like to know about teaching today?"
+  const { user } = useAuth();
+  const isStudent = user?.role === 'student';
+  
+  // Different initial messages for students vs teachers
+  const getInitialMessage = () => {
+    if (isStudent) {
+      return {
+        role: 'assistant' as const,
+        content: "Hello! I'm TeachMate, your AI learning companion! 🎓\n\nI can help you with:\n\n✅ **Understanding difficult topics** and concepts\n✅ **Homework help** and study guidance\n✅ **Learning strategies** and study tips\n✅ **Nigerian curriculum** explanations\n\nWhat would you like to learn about today?"
+      };
+    } else {
+      return {
+        role: 'assistant' as const,
+        content: "Hello! I'm TeachMate, your AI teaching assistant! 🎓\n\nI can help you with:\n\n✅ **Lesson planning** and curriculum guidance\n✅ **Student explanations** and homework help\n✅ **Teaching strategies** and classroom management\n✅ **Nigerian educational context** and examples\n\nWhat would you like to know about teaching today?"
+      };
     }
-  ]);
+  };
+
+  const [messages, setMessages] = useState<Message[]>([getInitialMessage()]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   // Check if API key is configured (for internal use only)
   const [apiKeyConfigured] = useState(isApiKeyConfigured());
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
-  const samplePrompts = [
+  const samplePrompts = isStudent ? [
+    "Help me understand photosynthesis for JSS 3",
+    "Explain fractions in simple terms",
+    "Help me study Nigerian history",
+    "How can I improve my mathematics skills?",
+  ] : [
     "Help me plan a lesson on photosynthesis for JSS 3",
     "Explain fractions in simple terms for my students",
     "Suggest activities for teaching Nigerian history",
@@ -84,7 +103,9 @@ export function CopilotChat({ onNavigate }: CopilotChatProps) {
       const errorMessage: Message = {
         role: 'assistant',
         content: error instanceof Error && error.message.includes('API key') 
-          ? "🤖 **AI not fully configured**\n\nI'm TeachMate, your AI teaching assistant! I can help you with:\n\n✅ Lesson planning and curriculum guidance\n✅ Student explanations and homework help\n✅ Teaching strategies and classroom management\n✅ Nigerian educational context and examples\n\nWhat would you like to know about teaching? 🎓"
+          ? isStudent 
+            ? "🤖 **AI not fully configured**\n\nI'm TeachMate, your AI learning companion! I can help you with:\n\n✅ Understanding difficult topics and concepts\n✅ Homework help and study guidance\n✅ Learning strategies and study tips\n✅ Nigerian curriculum explanations\n\nWhat would you like to learn about? 🎓"
+            : "🤖 **AI not fully configured**\n\nI'm TeachMate, your AI teaching assistant! I can help you with:\n\n✅ Lesson planning and curriculum guidance\n✅ Student explanations and homework help\n✅ Teaching strategies and classroom management\n✅ Nigerian educational context and examples\n\nWhat would you like to know about teaching? 🎓"
           : "I apologize, but I'm having trouble connecting right now. Please try again in a moment. 🙏"
       };
       setMessages(prev => [...prev, errorMessage]);
@@ -111,9 +132,9 @@ export function CopilotChat({ onNavigate }: CopilotChatProps) {
   return (
     <SharedLayout 
       onNavigate={onNavigate}
-      userRole="teacher"
+      userRole={isStudent ? "student" : "teacher"}
       title="TeachMate"
-      subtitle="Your AI Teaching Assistant"
+      subtitle={isStudent ? "Your AI Learning Companion" : "Your AI Teaching Assistant"}
       activeMenu="copilot"
       hideHeaderIcons={true}
     >

@@ -5,10 +5,9 @@ import { Progress } from "./ui/progress";
 import { Badge } from "./ui/badge";
 import { 
   Home, BookOpen, Trophy, Flame, Star, Target, TrendingUp,
-  Brain, Sparkles, Users, Menu, Bell, User, Award, Zap, Crown, Settings, MessageSquare, BookMarked, X
+  Brain, Sparkles, Award, Zap, Crown, Clock, Users, ChevronRight,
+  Play, CheckCircle, Lock, Star as StarIcon, Bookmark, Calendar
 } from "lucide-react";
-import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from "./ui/sheet";
-import { ThemeToggle } from "./ThemeToggle";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { DailyChallenges } from "./DailyChallenges";
 import { useAuth } from "../contexts/AuthContext";
@@ -18,6 +17,8 @@ import {
   getClassLeaderboard,
   isSupabaseConfigured 
 } from "../lib/supabase";
+import { SharedLayout } from "./SharedLayout";
+import { runtimeEnv } from '../lib/runtime-env';
 
 interface StudentDashboardProps {
   onNavigate: (page: any, role?: any) => void;
@@ -25,11 +26,11 @@ interface StudentDashboardProps {
 
 export function StudentDashboard({ onNavigate }: StudentDashboardProps) {
   const { user } = useAuth();
-  const [activeMenu, setActiveMenu] = useState('lessons');
   const [lessons, setLessons] = useState<any[]>([]);
   const [leaderboardData, setLeaderboardData] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
+  const [aiRecommendations, setAiRecommendations] = useState<any[]>([]);
+  const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false);
 
   // Load student data from Supabase
   useEffect(() => {
@@ -51,6 +52,9 @@ export function StudentDashboard({ onNavigate }: StudentDashboardProps) {
       const leaderboard = await getClassLeaderboard('demo-class');
       setLeaderboardData(leaderboard);
       
+      // Load AI recommendations
+      await loadAIRecommendations();
+      
       // Update stats if we have real data from Supabase
       if (user.total_xp !== undefined) {
         studentStats.xp = user.total_xp;
@@ -66,14 +70,159 @@ export function StudentDashboard({ onNavigate }: StudentDashboardProps) {
     }
   };
 
-  const menuItems = [
-    { id: 'lessons', label: 'My Lessons', icon: BookOpen },
-    { id: 'explorer', label: 'Concept Explorer', icon: Brain, onClick: () => onNavigate('concept-explorer') },
-    { id: 'curriculum', label: 'My Curriculum', icon: BookMarked, onClick: () => onNavigate('my-curriculum') },
-    { id: 'class-chat', label: 'Class Chat', icon: Users, onClick: () => onNavigate('class-chat') },
-    { id: 'copilot', label: 'AI Chat', icon: MessageSquare, onClick: () => onNavigate('copilot') },
-    { id: 'settings', label: 'Settings', icon: Settings, onClick: () => onNavigate('settings') },
+  const loadAIRecommendations = async () => {
+    if (!user) return;
+    
+    setIsLoadingRecommendations(true);
+    try {
+      const env = runtimeEnv.getEnv();
+      const apiKey = env.VITE_GROQ_API_KEY;
+      
+      if (!apiKey || apiKey === 'your-groq-api-key-here') {
+        // Fallback recommendations when API key is not configured
+        setAiRecommendations(getFallbackRecommendations());
+        setIsLoadingRecommendations(false);
+        return;
+      }
+
+      const studentProfile = {
+        name: user.full_name || user.email?.split('@')[0] || 'Student',
+        class: user.class_level || 'JSS 3',
+        subjects: user.subjects || ['Mathematics', 'English', 'Science'],
+        interests: user.interests || ['Technology', 'Science'],
+        performance: studentStats,
+        goals: user.goals || 'Academic Excellence'
+      };
+
+      const prompt = `Based on this student profile, recommend 6 personalized courses/lessons that would be most beneficial for their learning journey:
+
+Student Profile:
+- Name: ${studentProfile.name}
+- Class: ${studentProfile.class}
+- Subjects: ${studentProfile.subjects.join(', ')}
+- Interests: ${studentProfile.interests.join(', ')}
+- Current Performance: ${studentStats.xp} XP, ${studentStats.streak} day streak, ${studentStats.badges} badges
+- Goals: ${studentProfile.goals}
+
+Please provide 6 course recommendations in this JSON format:
+[
+  {
+    "id": "course-1",
+    "title": "Course Title",
+    "description": "Brief description of what the student will learn",
+    "subject": "Subject Area",
+    "difficulty": "Beginner|Intermediate|Advanced",
+    "duration": "X hours",
+    "skills": ["skill1", "skill2", "skill3"],
+    "icon": "🎯",
+    "color": "gradient-primary",
+    "isRecommended": true,
+    "reason": "Why this course is recommended for this student"
+  }
+]
+
+Make the recommendations highly personalized based on their class level, interests, and current performance. Focus on courses that will help them improve in their weak areas and build on their strengths.`;
+
+      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'llama-3.1-70b-versatile',
+          messages: [
+            {
+              role: 'system',
+              content: 'You are an AI educational advisor that provides personalized course recommendations for Nigerian secondary school students. Always respond with valid JSON only.'
+            },
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          temperature: 0.7,
+          max_tokens: 2000
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch AI recommendations');
+      }
+
+      const data = await response.json();
+      const content = data.choices[0].message.content;
+      
+      try {
+        const recommendations = JSON.parse(content);
+        setAiRecommendations(recommendations);
+      } catch (parseError) {
+        console.error('Error parsing AI recommendations:', parseError);
+        setAiRecommendations(getFallbackRecommendations());
+      }
+    } catch (error) {
+      console.error('Error loading AI recommendations:', error);
+      setAiRecommendations(getFallbackRecommendations());
+    } finally {
+      setIsLoadingRecommendations(false);
+    }
+  };
+
+  const getFallbackRecommendations = () => [
+    {
+      id: 'math-algebra',
+      title: 'Algebra Fundamentals',
+      description: 'Master basic algebraic concepts and problem-solving techniques',
+      subject: 'Mathematics',
+      difficulty: 'Intermediate',
+      duration: '3 hours',
+      skills: ['Problem Solving', 'Algebraic Thinking', 'Logical Reasoning'],
+      icon: '📐',
+      color: 'gradient-primary',
+      isRecommended: true,
+      reason: 'Builds on your mathematical foundation'
+    },
+    {
+      id: 'english-grammar',
+      title: 'Advanced Grammar & Composition',
+      description: 'Improve your English writing and communication skills',
+      subject: 'English',
+      difficulty: 'Intermediate',
+      duration: '4 hours',
+      skills: ['Writing', 'Grammar', 'Communication'],
+      icon: '📝',
+      color: 'gradient-secondary',
+      isRecommended: true,
+      reason: 'Essential for academic success'
+    },
+    {
+      id: 'science-physics',
+      title: 'Physics in Daily Life',
+      description: 'Understand physics concepts through real-world applications',
+      subject: 'Physics',
+      difficulty: 'Beginner',
+      duration: '2.5 hours',
+      skills: ['Critical Thinking', 'Problem Solving', 'Scientific Method'],
+      icon: '⚡',
+      color: 'gradient-success',
+      isRecommended: true,
+      reason: 'Makes science more relatable and interesting'
+    },
+    {
+      id: 'study-skills',
+      title: 'Effective Study Techniques',
+      description: 'Learn proven methods to improve your study habits and retention',
+      subject: 'Study Skills',
+      difficulty: 'Beginner',
+      duration: '2 hours',
+      skills: ['Memory Techniques', 'Time Management', 'Focus'],
+      icon: '🧠',
+      color: 'gradient-cool',
+      isRecommended: true,
+      reason: 'Will help you excel in all subjects'
+    }
   ];
+
 
   const studentStats = {
     xp: 2450,
@@ -95,390 +244,257 @@ export function StudentDashboard({ onNavigate }: StudentDashboardProps) {
   ];
 
   const sharedResources = [
-    {
-      id: 1,
-      title: 'Introduction to Robotics',
-      teacher: 'Mrs. Okonkwo',
-      subject: 'Computer Science',
-      type: 'Lesson',
-      status: 'new',
-      xp: 50
-    },
-    {
-      id: 2,
-      title: 'Algebra Basics Quiz',
-      teacher: 'Mr. Adeyemi',
-      subject: 'Mathematics',
-      type: 'Quiz',
-      status: 'completed',
-      score: 85,
-      xp: 40
-    },
-    {
-      id: 3,
-      title: 'Solar Energy Systems',
-      teacher: 'Dr. Bello',
-      subject: 'Physics',
-      type: 'Lesson',
-      status: 'in-progress',
-      xp: 60
-    }
+    // No lessons available yet
   ];
 
   const careerHints = [
-    {
-      title: 'Mechatronics Engineer',
-      description: 'Based on your interest in Robotics',
-      icon: '🤖',
-      color: 'from-blue-500 to-cyan-500'
-    },
-    {
-      title: 'Data Scientist',
-      description: 'You excel at Mathematics!',
-      icon: '📊',
-      color: 'from-purple-500 to-pink-500'
-    },
-    {
-      title: 'Renewable Energy Specialist',
-      description: 'Your Physics skills are strong',
-      icon: '⚡',
-      color: 'from-green-500 to-emerald-500'
-    }
+    // No career hints available yet
   ];
 
   const leaderboard = [
-    { rank: 1, name: 'Chioma A.', xp: 3200, avatar: '👑' },
-    { rank: 2, name: 'Ahmed K.', xp: 2890, avatar: '⭐' },
-    { rank: 3, name: 'You', xp: 2450, avatar: '🎯', isCurrentUser: true },
-    { rank: 4, name: 'Blessing O.', xp: 2340, avatar: '💫' },
-    { rank: 5, name: 'Emeka N.', xp: 2100, avatar: '✨' },
+    // No leaderboard data available yet
   ];
 
-  const Sidebar = ({ mobile = false }: { mobile?: boolean }) => (
-    <div className={`${mobile ? 'w-full' : sidebarCollapsed ? 'w-16' : 'w-64'} bg-card border-r h-full flex flex-col transition-all duration-300`}>
-      <div className="p-4 border-b">
-        <div className="flex items-center justify-between">
-          <div 
-            className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
-            onClick={() => setSidebarCollapsed(false)}
-          >
-            <div className="w-8 h-8 gradient-primary rounded-lg flex items-center justify-center flex-shrink-0">
-              <Sparkles className="w-5 h-5 text-white" />
-            </div>
-            {!sidebarCollapsed && (
-              <div className="min-w-0">
-                <p className="font-semibold text-sm">TeachMate</p>
-                <p className="text-xs text-muted-foreground">St. Mary's School</p>
-              </div>
-            )}
-          </div>
-          {!sidebarCollapsed && (
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="w-6 h-6"
-              onClick={() => setSidebarCollapsed(true)}
-            >
-              <X className="w-4 h-4" />
-            </Button>
-          )}
-        </div>
-      </div>
-
-      <nav className="flex-1 p-2 space-y-1">
-        {menuItems.map((item) => {
-          const Icon = item.icon;
-          return (
-            <button
-              key={item.id}
-              onClick={() => {
-                if (item.onClick) {
-                  item.onClick();
-                } else {
-                  setActiveMenu(item.id);
-                }
-              }}
-              className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
-                activeMenu === item.id
-                  ? 'bg-primary text-primary-foreground'
-                  : 'hover:bg-muted text-muted-foreground'
-              }`}
-              title={sidebarCollapsed ? item.label : undefined}
-            >
-              <Icon className="w-4 h-4 flex-shrink-0" />
-              {!sidebarCollapsed && <span className="text-sm">{item.label}</span>}
-            </button>
-          );
-        })}
-      </nav>
-
-      {/* XP Progress in Sidebar */}
-      {!sidebarCollapsed && (
-        <div className="p-4 border-t">
-          <div className="glass-card rounded-2xl p-4">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-sm font-semibold">Level {studentStats.level}</span>
-              <Zap className="w-4 h-4 text-accent" />
-            </div>
-            <Progress 
-              value={(studentStats.xp / studentStats.nextLevelXP) * 100} 
-              variant="xp" 
-              showLabel 
-              className="h-3 mb-3" 
-            />
-            <p className="text-xs text-muted-foreground">
-              {studentStats.xp} / {studentStats.nextLevelXP} XP
-            </p>
-          </div>
-        </div>
-      )}
-    </div>
-  );
 
   return (
-    <div className="h-screen max-h-screen bg-gradient-to-br from-background via-muted/30 to-background flex overflow-hidden">
-      {/* Desktop Sidebar */}
-      <aside className="hidden md:block h-full">
-        <Sidebar />
-      </aside>
+    <SharedLayout 
+      onNavigate={onNavigate}
+      userRole="student"
+      title={`Hello ${user?.full_name || user?.email?.split('@')[0] || 'Student'}`}
+      subtitle=""
+      activeMenu="dashboard"
+      hideHeaderIcons={true}
+    >
+      <div className="p-4">
+        <div className="max-w-7xl mx-auto h-full space-y-6">
+          {/* Stats Overview */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <Card className="rounded-2xl glass-card hover-lift overflow-hidden">
+              <div className="absolute inset-0 gradient-primary opacity-10"></div>
+              <CardContent className="p-4 relative">
+                <div className="flex items-center justify-between mb-2">
+                  <Zap className="w-6 h-6 text-accent" />
+                  <Crown className="w-4 h-4 text-accent/50" />
+                </div>
+                <p className="text-lg font-bold">{studentStats.xp}</p>
+                <p className="text-xs text-muted-foreground">Total XP</p>
+              </CardContent>
+            </Card>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
-        <header className="bg-card/80 backdrop-blur-sm border-b px-4 sm:px-6 py-4 sticky top-0 z-40">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3 flex-1 min-w-0">
-              <Sheet>
-                <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon" className="md:hidden">
-                    <Menu className="w-5 h-5" />
+            <Card className="rounded-2xl glass-card hover-lift overflow-hidden">
+              <div className="absolute inset-0 gradient-secondary opacity-10"></div>
+              <CardContent className="p-4 relative">
+                <div className="flex items-center justify-between mb-2">
+                  <Flame className="w-6 h-6 text-orange-500" />
+                  <Star className="w-4 h-4 text-orange-500/50" />
+                </div>
+                <p className="text-lg font-bold">{studentStats.streak}</p>
+                <p className="text-xs text-muted-foreground">Day Streak</p>
+              </CardContent>
+            </Card>
+
+            <Card className="rounded-2xl glass-card hover-lift overflow-hidden">
+              <div className="absolute inset-0 gradient-success opacity-10"></div>
+              <CardContent className="p-4 relative">
+                <div className="flex items-center justify-between mb-2">
+                  <Trophy className="w-6 h-6 text-success" />
+                  <Award className="w-4 h-4 text-success/50" />
+                </div>
+                <p className="text-lg font-bold">{studentStats.badges}</p>
+                <p className="text-xs text-muted-foreground">Badges</p>
+              </CardContent>
+            </Card>
+
+            <Card className="rounded-2xl glass-card hover-lift overflow-hidden">
+              <div className="absolute inset-0 gradient-warm opacity-10"></div>
+              <CardContent className="p-4 relative">
+                <div className="flex items-center justify-between mb-2">
+                  <TrendingUp className="w-6 h-6 text-primary" />
+                  <Target className="w-4 h-4 text-primary/50" />
+                </div>
+                <p className="text-lg font-bold">#{studentStats.rank}</p>
+                <p className="text-xs text-muted-foreground">Class Rank</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Main Tabs */}
+          <Tabs defaultValue="lessons" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-2 rounded-2xl p-1">
+              <TabsTrigger value="lessons" className="rounded-xl">My Lessons</TabsTrigger>
+              <TabsTrigger value="leaderboard" className="rounded-xl">Leaderboard</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="lessons" className="space-y-6 animate-fade-in">
+              {/* AI-Powered Course Recommendations */}
+              <div>
+                <div className="mb-4">
+                  <h3 className="text-lg font-semibold flex items-center gap-2 mb-2">
+                    <Brain className="w-5 h-5 text-primary" />
+                    AI Course Recommendations
+                  </h3>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Personalized courses based on your profile and performance
+                  </p>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={loadAIRecommendations}
+                    disabled={isLoadingRecommendations}
+                    className="rounded-lg text-xs"
+                  >
+                    {isLoadingRecommendations ? (
+                      <>
+                        <Sparkles className="w-3 h-3 mr-1 animate-spin" />
+                        Refreshing...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-3 h-3 mr-1" />
+                        Refresh
+                      </>
+                    )}
                   </Button>
-                </SheetTrigger>
-                <SheetContent side="left" className="p-0 w-64">
-                  <SheetHeader className="sr-only">
-                    <SheetTitle>Navigation Menu</SheetTitle>
-                    <SheetDescription>Navigate between different sections</SheetDescription>
-                  </SheetHeader>
-                  <Sidebar mobile />
-                </SheetContent>
-              </Sheet>
-              
-              <div className="flex-1 min-w-0">
-                <h1 className="text-lg sm:text-xl truncate">Welcome back, Chidi! 👋</h1>
-                <p className="text-sm text-muted-foreground truncate">JSS 3 • Keep up the great work!</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 sm:gap-3">
-              {/* Streak Indicator */}
-              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-orange-500 to-red-500 text-white">
-                <Flame className="w-4 h-4" />
-                <span className="text-sm font-semibold">{studentStats.streak}</span>
-              </div>
-
-              <div className="hidden md:block">
-                <ThemeToggle />
-              </div>
-              <Button variant="ghost" size="icon" className="relative">
-                <Bell className="w-5 h-5" />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-accent rounded-full"></span>
-              </Button>
-              <Button variant="ghost" size="icon">
-                <User className="w-5 h-5" />
-              </Button>
-            </div>
-          </div>
-        </header>
-
-         <main className="flex-1 overflow-hidden p-4">
-           <div className="max-w-7xl mx-auto h-full space-y-6 overflow-y-auto">
-            {/* Stats Overview */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-              <Card className="rounded-2xl glass-card hover-lift overflow-hidden">
-                <div className="absolute inset-0 gradient-primary opacity-10"></div>
-                <CardContent className="p-4 relative">
-                  <div className="flex items-center justify-between mb-2">
-                    <Zap className="w-6 h-6 text-accent" />
-                    <Crown className="w-4 h-4 text-accent/50" />
-                  </div>
-                  <p className="text-lg font-bold">{studentStats.xp}</p>
-                  <p className="text-xs text-muted-foreground">Total XP</p>
-                </CardContent>
-              </Card>
-
-              <Card className="rounded-2xl glass-card hover-lift overflow-hidden">
-                <div className="absolute inset-0 gradient-secondary opacity-10"></div>
-                <CardContent className="p-4 relative">
-                  <div className="flex items-center justify-between mb-2">
-                    <Flame className="w-6 h-6 text-orange-500" />
-                    <Star className="w-4 h-4 text-orange-500/50" />
-                  </div>
-                  <p className="text-lg font-bold">{studentStats.streak}</p>
-                  <p className="text-xs text-muted-foreground">Day Streak</p>
-                </CardContent>
-              </Card>
-
-              <Card className="rounded-2xl glass-card hover-lift overflow-hidden">
-                <div className="absolute inset-0 gradient-success opacity-10"></div>
-                <CardContent className="p-4 relative">
-                  <div className="flex items-center justify-between mb-2">
-                    <Trophy className="w-6 h-6 text-success" />
-                    <Award className="w-4 h-4 text-success/50" />
-                  </div>
-                  <p className="text-lg font-bold">{studentStats.badges}</p>
-                  <p className="text-xs text-muted-foreground">Badges</p>
-                </CardContent>
-              </Card>
-
-              <Card className="rounded-2xl glass-card hover-lift overflow-hidden">
-                <div className="absolute inset-0 gradient-warm opacity-10"></div>
-                <CardContent className="p-4 relative">
-                  <div className="flex items-center justify-between mb-2">
-                    <TrendingUp className="w-6 h-6 text-primary" />
-                    <Target className="w-4 h-4 text-primary/50" />
-                  </div>
-                  <p className="text-lg font-bold">#{studentStats.rank}</p>
-                  <p className="text-xs text-muted-foreground">Class Rank</p>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Main Tabs */}
-            <Tabs defaultValue="lessons" className="space-y-6">
-              <TabsList className="grid w-full grid-cols-2 rounded-2xl p-1">
-                <TabsTrigger value="lessons" className="rounded-xl">My Lessons</TabsTrigger>
-                <TabsTrigger value="leaderboard" className="rounded-xl">Leaderboard</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="lessons" className="space-y-6 animate-fade-in">
-                {/* Daily Challenges */}
-                <DailyChallenges />
-
-                 {/* Career Hints */}
-                 <div>
-                   <h3 className="text-lg font-semibold mb-4">🚀 Career Paths for You</h3>
-                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {careerHints.map((career, i) => (
-                      <Card key={i} className="rounded-2xl glass-card hover-lift overflow-hidden group cursor-pointer">
-                        <div className={`absolute inset-0 bg-gradient-to-br ${career.color} opacity-10 group-hover:opacity-20 transition-opacity`}></div>
-                        <CardContent className="p-4 relative">
-                          <div className="text-base mb-2">{career.icon}</div>
-                          <h4 className="font-semibold mb-1 text-sm">{career.title}</h4>
-                          <p className="text-xs text-muted-foreground">{career.description}</p>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
                 </div>
 
-                 {/* Shared Resources */}
-                 <div>
-                   <h3 className="text-lg font-semibold mb-4">📚 Your Lessons & Quizzes</h3>
-                  <div className="space-y-3">
-                    {sharedResources.map((resource) => (
-                      <Card key={resource.id} className="rounded-2xl glass-card hover-lift hover-glow group cursor-pointer">
+                {isLoadingRecommendations ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {[...Array(4)].map((_, i) => (
+                      <Card key={i} className="rounded-xl animate-pulse">
                         <CardContent className="p-4">
-                          <div className="flex items-start gap-4">
-                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                              resource.type === 'Quiz' ? 'gradient-secondary' : 'gradient-primary'
-                            }`}>
-                              {resource.type === 'Quiz' ? (
-                                <Target className="w-6 h-6 text-white" />
-                              ) : (
-                                <BookOpen className="w-6 h-6 text-white" />
-                              )}
+                          <div className="w-8 h-8 bg-muted rounded-lg mb-3"></div>
+                          <div className="h-4 bg-muted rounded mb-2"></div>
+                          <div className="h-3 bg-muted rounded mb-3 w-3/4"></div>
+                          <div className="space-y-1">
+                            <div className="h-2 bg-muted rounded"></div>
+                            <div className="h-2 bg-muted rounded w-1/2"></div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {aiRecommendations.map((course) => (
+                      <Card key={course.id} className="rounded-xl hover:shadow-md transition-shadow">
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="text-2xl">{course.icon}</div>
+                            {course.isRecommended && (
+                              <Badge variant="secondary" className="text-xs">
+                                <StarIcon className="w-3 h-3 mr-1" />
+                                Recommended
+                              </Badge>
+                            )}
+                          </div>
+                          
+                          <h4 className="font-semibold text-base mb-2">
+                            {course.title}
+                          </h4>
+                          
+                          <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+                            {course.description}
+                          </p>
+
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between text-xs text-muted-foreground">
+                              <div className="flex items-center gap-1">
+                                <BookOpen className="w-3 h-3" />
+                                <span>{course.subject}</span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <Clock className="w-3 h-3" />
+                                <span>{course.duration}</span>
+                              </div>
                             </div>
 
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-start justify-between gap-2 mb-1">
-                                <div className="flex-1 min-w-0">
-                                  <h4 className="font-semibold mb-1 text-sm sm:text-base truncate">{resource.title}</h4>
-                                  <p className="text-xs text-muted-foreground">
-                                    {resource.teacher} • {resource.subject}
-                                  </p>
-                                </div>
-                                {resource.status === 'new' && (
-                                  <Badge className="bg-accent text-accent-foreground text-xs">New!</Badge>
-                                )}
-                              </div>
+                            <div className="flex items-center justify-between">
+                              <Badge variant="outline" className="text-xs">
+                                {course.difficulty}
+                              </Badge>
+                              <span className="text-xs text-muted-foreground">
+                                Personalized
+                              </span>
+                            </div>
 
-                              <div className="flex items-center gap-3 mt-3 flex-wrap">
-                                {resource.status === 'completed' ? (
-                                  <>
-                                    <div className="flex items-center gap-1 text-xs text-success">
-                                      <Trophy className="w-3 h-3" />
-                                      <span>Score: {resource.score}%</span>
-                                    </div>
-                                    <div className="flex items-center gap-1 text-xs text-accent">
-                                      <Zap className="w-3 h-3" />
-                                      <span>+{resource.xp} XP earned</span>
-                                    </div>
-                                  </>
-                                ) : (
-                                  <>
-                                    <Button size="sm" className="rounded-xl text-xs h-8">
-                                      {resource.status === 'in-progress' ? 'Continue' : 'Start Learning'}
-                                    </Button>
-                                    <Button 
-                                      size="sm" 
-                                      variant="outline" 
-                                      className="rounded-xl text-xs h-8 group"
-                                      onClick={() => onNavigate('learn-with-ai')}
-                                    >
-                                      <Sparkles className="w-3 h-3 mr-1 group-hover:text-primary transition-colors" />
-                                      Learn with AI
-                                    </Button>
-                                    <span className="text-xs text-muted-foreground">+{resource.xp} XP</span>
-                                  </>
+                            <div className="space-y-1">
+                              <div className="text-xs text-muted-foreground">Skills:</div>
+                              <div className="flex flex-wrap gap-1">
+                                {course.skills.slice(0, 2).map((skill, index) => (
+                                  <Badge key={index} variant="secondary" className="text-xs px-2 py-0.5">
+                                    {skill}
+                                  </Badge>
+                                ))}
+                                {course.skills.length > 2 && (
+                                  <Badge variant="secondary" className="text-xs px-2 py-0.5">
+                                    +{course.skills.length - 2}
+                                  </Badge>
                                 )}
                               </div>
+                            </div>
+
+                            <div className="pt-2 border-t">
+                              <p className="text-xs text-muted-foreground mb-2">
+                                💡 {course.reason}
+                              </p>
+                              <Button 
+                                className="w-full rounded-lg text-sm"
+                                size="sm"
+                              >
+                                <Play className="w-3 h-3 mr-1" />
+                                Start Learning
+                              </Button>
                             </div>
                           </div>
                         </CardContent>
                       </Card>
                     ))}
                   </div>
-                </div>
-              </TabsContent>
+                )}
+              </div>
 
-              <TabsContent value="leaderboard" className="animate-fade-in">
-                <Card className="rounded-2xl glass-card">
-                  <CardHeader>
-                    <CardTitle>Class Leaderboard</CardTitle>
-                    <CardDescription>Top students this month</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    {leaderboard.map((student) => (
-                      <div
-                        key={student.rank}
-                        className={`flex items-center gap-4 p-4 rounded-xl transition-all ${
-                          student.isCurrentUser
-                            ? 'bg-primary/10 border-2 border-primary'
-                            : 'bg-muted/50 hover:bg-muted'
-                        }`}
-                      >
-                        <div className="flex-shrink-0 w-8 text-center font-bold text-muted-foreground">
-                          #{student.rank}
-                        </div>
-                        <div className="text-base">{student.avatar}</div>
-                        <div className="flex-1">
-                          <p className="font-semibold text-sm">{student.name}</p>
-                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                            <Zap className="w-3 h-3 text-accent" />
-                            {student.xp} XP
-                          </div>
-                        </div>
-                        {student.rank === 1 && <Crown className="w-5 h-5 text-yellow-500" />}
-                        {student.rank === 2 && <Star className="w-5 h-5 text-gray-400" />}
-                        {student.rank === 3 && <Award className="w-5 h-5 text-orange-600" />}
+              {/* Daily Challenges */}
+              <DailyChallenges />
+            </TabsContent>
+
+            <TabsContent value="leaderboard" className="animate-fade-in">
+              <Card className="rounded-2xl glass-card">
+                <CardHeader>
+                  <CardTitle>Class Leaderboard</CardTitle>
+                  <CardDescription>Top students this month</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {leaderboard.map((student) => (
+                    <div
+                      key={student.rank}
+                      className={`flex items-center gap-4 p-4 rounded-xl transition-all ${
+                        student.isCurrentUser
+                          ? 'bg-primary/10 border-2 border-primary'
+                          : 'bg-muted/50 hover:bg-muted'
+                      }`}
+                    >
+                      <div className="flex-shrink-0 w-8 text-center font-bold text-muted-foreground">
+                        #{student.rank}
                       </div>
-                    ))}
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
-          </div>
-        </main>
+                      <div className="text-base">{student.avatar}</div>
+                      <div className="flex-1">
+                        <p className="font-semibold text-sm">{student.name}</p>
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                          <Zap className="w-3 h-3 text-accent" />
+                          {student.xp} XP
+                        </div>
+                      </div>
+                      {student.rank === 1 && <Crown className="w-5 h-5 text-yellow-500" />}
+                      {student.rank === 2 && <Star className="w-5 h-5 text-gray-400" />}
+                      {student.rank === 3 && <Award className="w-5 h-5 text-orange-600" />}
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
-    </div>
+    </SharedLayout>
   );
 }

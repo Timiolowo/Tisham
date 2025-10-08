@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import { Progress } from "./ui/progress";
@@ -20,10 +20,10 @@ export function TeacherDashboard({ onNavigate }: TeacherDashboardProps) {
   const userName = user?.full_name || user?.email?.split('@')[0] || 'Teacher';
 
   const stats = [
-    { label: 'Lessons Created', value: '24', icon: FileText, color: 'text-primary' },
-    { label: 'Assessments Generated', value: '12', icon: ClipboardList, color: 'text-secondary' },
-    { label: 'Hours Saved with AI', value: '36', icon: Clock, color: 'text-accent' },
-    { label: 'Subjects Covered', value: '5', icon: BookMarked, color: 'text-green-500' },
+    { label: 'Lessons Created', value: '0', icon: FileText, color: 'text-primary' },
+    { label: 'Assessments Generated', value: '0', icon: ClipboardList, color: 'text-secondary' },
+    { label: 'Hours Saved with AI', value: '0', icon: Clock, color: 'text-accent' },
+    { label: 'Subjects Covered', value: '0', icon: BookMarked, color: 'text-green-500' },
   ];
 
   return (
@@ -35,223 +35,119 @@ export function TeacherDashboard({ onNavigate }: TeacherDashboardProps) {
       activeMenu="dashboard"
     >
       <div className="space-y-6">
-             {/* Welcome Section */}
-             <ScrollReveal direction="up" delay={0.1}>
-               <div className="bg-gradient-to-r from-primary/10 via-secondary/10 to-accent/10 rounded-xl p-3 border border-primary/20">
-               <div className="flex items-center justify-between">
-                 <div>
-                   <h1 className="text-lg sm:text-xl font-semibold mb-1">Welcome back, {userName}! 👋</h1>
-                   <p className="text-sm text-muted-foreground">Ready to create amazing lessons with AI? Let's get started!</p>
-                 </div>
-               </div>
-               </div>
-             </ScrollReveal>
-
-             {/* Quick Actions Grid */}
-             <ScrollReveal direction="up" delay={0.2}>
-               <div>
-                 <h2 className="text-lg font-semibold mb-3">Quick Actions</h2>
-               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2">
-                 <Card 
-                   className="rounded-2xl cursor-pointer gradient-primary text-white hover-lift hover-glow group overflow-hidden"
-                   onClick={() => onNavigate('lesson-generator')}
-                 >
-                   <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300 h-full"></div>
-                   <CardContent className="p-3 relative">
-                     <FileText className="w-6 h-6 mb-2 opacity-90 group-hover:scale-110 transition-transform" />
-                     <h3 className="text-sm font-semibold mb-1">Generate Lesson</h3>
-                     <p className="opacity-90 text-xs">Create curriculum-aligned lessons with AI</p>
-                   </CardContent>
-                 </Card>
-
-                 <Card 
-                   className="rounded-2xl cursor-pointer gradient-secondary text-white hover-lift hover-glow group overflow-hidden"
-                   onClick={() => onNavigate('assessment')}
-                 >
-                   <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300 h-full"></div>
-                   <CardContent className="p-3 relative">
-                     <ClipboardList className="w-6 h-6 mb-2 opacity-90 group-hover:scale-110 transition-transform" />
-                     <h3 className="text-sm font-semibold mb-1">Create Assessment</h3>
-                     <p className="opacity-90 text-xs">Generate quizzes and tests instantly</p>
-                   </CardContent>
-                 </Card>
-
-                 <Card 
-                   className="rounded-2xl cursor-pointer bg-gradient-to-br from-accent to-orange-500 text-white hover-lift hover-glow group overflow-hidden"
-                   onClick={() => onNavigate('copilot')}
-                 >
-                   <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300 h-full"></div>
-                   <CardContent className="p-3 relative">
-                     <MessageSquare className="w-6 h-6 mb-2 opacity-90 group-hover:scale-110 transition-transform" />
-                     <h3 className="text-sm font-semibold mb-1">AI Copilot</h3>
-                     <p className="opacity-90 text-xs">Get instant teaching assistance</p>
-                   </CardContent>
-                 </Card>
-
-                 <Card 
-                   className="rounded-2xl cursor-pointer bg-gradient-to-br from-green-500 to-emerald-500 text-white hover-lift hover-glow group overflow-hidden"
-                   onClick={() => onNavigate('class-management')}
-                 >
-                   <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300 h-full"></div>
-                   <CardContent className="p-3 relative">
-                     <Users className="w-6 h-6 mb-2 opacity-90 group-hover:scale-110 transition-transform" />
-                     <h3 className="text-sm font-semibold mb-1">My Classes</h3>
-                     <p className="opacity-90 text-xs">Manage your students and classes</p>
-                   </CardContent>
-                 </Card>
-               </div>
-             </div>
-
-             {/* Stats Grid */}
-             <div>
-               <h2 className="text-lg font-semibold mb-3">Your Teaching Stats</h2>
-               <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
-              {stats.map((stat) => {
-                const Icon = stat.icon;
-                return (
-                     <Card key={stat.label} className="rounded-2xl hover-lift">
-                       <CardContent className="p-3">
-                         <div className="flex items-center justify-between">
-                           <div>
-                             <p className="text-xs text-muted-foreground mb-1">{stat.label}</p>
-                             <p className="text-lg font-bold">{stat.value}</p>
-                           </div>
-                           <div className={`w-10 h-10 rounded-lg bg-muted flex items-center justify-center ${stat.color}`}>
-                             <Icon className="w-5 h-5" />
-                           </div>
-                         </div>
-                       </CardContent>
-                     </Card>
-                );
-              })}
-               </div>
-               </div>
-             </ScrollReveal>
-
-             {/* Professional Development */}
-             <ScrollReveal direction="up" delay={0.3}>
-               <div>
-                 <h2 className="text-lg font-semibold mb-3">Professional Development</h2>
-            <Card className="rounded-2xl">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Award className="w-6 h-6 text-accent" />
-                       <CardTitle>Continue Learning</CardTitle>
-                  </div>
-                  <Button 
-                    variant="outline" 
-                    className="rounded-xl"
-                    onClick={() => onNavigate('teacher-learning')}
-                  >
-                    View All
-                  </Button>
-                </div>
-                   <CardDescription className="hidden sm:block">Track your progress and unlock new skills</CardDescription>
-              </CardHeader>
-              <CardContent>
-                   <div className="space-y-6">
-                  <div>
-                       <div className="flex justify-between mb-3">
-                         <span className="text-sm font-medium">AI-Powered Lesson Planning</span>
-                      <span className="text-sm font-semibold text-primary">65%</span>
-                    </div>
-                    <Progress value={65} variant="gradient" className="h-3" />
-                  </div>
-                  <div>
-                       <div className="flex justify-between mb-3">
-                         <span className="text-sm font-medium">Digital Classroom Management</span>
-                      <span className="text-sm font-semibold text-accent">30%</span>
-                    </div>
-                    <Progress value={30} variant="accent" className="h-3" />
-                  </div>
-                  <Button 
-                    variant="outline" 
-                       className="w-full rounded-xl"
-                    onClick={() => onNavigate('teacher-learning')}
-                  >
-                    <Sparkles className="w-4 h-4 mr-2" />
-                    Continue Learning with AI
-                  </Button>
-                </div>
-                </CardContent>
-              </Card>
+        {/* Welcome Section */}
+        <ScrollReveal direction="up" delay={0.1}>
+          <div className="bg-gradient-to-r from-primary/10 via-secondary/10 to-accent/10 rounded-xl p-3 border border-primary/20">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-lg sm:text-xl font-semibold mb-1">Welcome back, {userName}! 👋</h1>
+                <p className="text-sm text-muted-foreground">Ready to create amazing lessons with AI? Let's get started!</p>
               </div>
-            </ScrollReveal>
+            </div>
+          </div>
+        </ScrollReveal>
 
-             {/* Recent Activity */}
-             <ScrollReveal direction="up" delay={0.4}>
-               <div>
-                 <h2 className="text-lg font-semibold mb-3">Recent Activity</h2>
+        {/* Quick Actions Grid */}
+        <ScrollReveal direction="up" delay={0.2}>
+          <div>
+            <h2 className="text-lg font-semibold mb-3">Quick Actions</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2">
+              <Button 
+                onClick={() => onNavigate('lesson-generator')}
+                className="h-auto p-4 flex flex-col items-center gap-2 hover:shadow-lg transition-all duration-300"
+                variant="outline"
+              >
+                <FileText className="w-6 h-6 text-primary" />
+                <span className="text-sm font-medium">Generate Lesson</span>
+              </Button>
+              <Button 
+                onClick={() => onNavigate('assessment')}
+                className="h-auto p-4 flex flex-col items-center gap-2 hover:shadow-lg transition-all duration-300"
+                variant="outline"
+              >
+                <ClipboardList className="w-6 h-6 text-secondary" />
+                <span className="text-sm font-medium">Create Assessment</span>
+              </Button>
+              <Button 
+                onClick={() => onNavigate('copilot')}
+                className="h-auto p-4 flex flex-col items-center gap-2 hover:shadow-lg transition-all duration-300"
+                variant="outline"
+              >
+                <MessageSquare className="w-6 h-6 text-accent" />
+                <span className="text-sm font-medium">AI Copilot</span>
+              </Button>
+              <Button 
+                onClick={() => onNavigate('library')}
+                className="h-auto p-4 flex flex-col items-center gap-2 hover:shadow-lg transition-all duration-300"
+                variant="outline"
+              >
+                <BookOpen className="w-6 h-6 text-green-500" />
+                <span className="text-sm font-medium">Resource Library</span>
+              </Button>
+            </div>
+          </div>
+        </ScrollReveal>
+
+        {/* Professional Development */}
+        <ScrollReveal direction="up" delay={0.3}>
+          <div>
+            <h2 className="text-lg font-semibold mb-3">Professional Development</h2>
             <Card className="rounded-2xl">
               <CardHeader>
-                   <CardTitle>Your Latest Lessons</CardTitle>
-                   <CardDescription>Recently generated content and activities</CardDescription>
+                <CardTitle>Continue Learning</CardTitle>
+                <CardDescription>Enhance your teaching skills with AI-powered resources</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3">
-                  {[
-                       { title: 'Introduction to Robotics', subject: 'Computer Science', class: 'JSS 3', date: '2 days ago', status: 'completed' },
-                       { title: 'Algebraic Expressions', subject: 'Mathematics', class: 'JSS 2', date: '3 days ago', status: 'in-progress' },
-                       { title: 'Solar Energy Systems', subject: 'Physics', class: 'JSS 3', date: '5 days ago', status: 'completed' },
-                  ].map((lesson, i) => (
-                       <div key={i} className="p-3 sm:p-4 bg-muted/50 rounded-xl hover:bg-muted transition-colors">
-                      {/* Desktop Layout */}
-                      <div className="hidden sm:flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                             <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
-                               <FileText className="w-6 h-6 text-primary" />
-                          </div>
-                          <div>
-                               <p className="font-semibold text-sm">{lesson.title}</p>
-                               <p className="text-xs text-muted-foreground">
-                              {lesson.subject} • {lesson.class}
-                            </p>
-                          </div>
-                        </div>
-                           <div className="flex items-center gap-3">
-                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                               lesson.status === 'completed' 
-                                 ? 'bg-green-100 text-green-700' 
-                                 : 'bg-yellow-100 text-yellow-700'
-                             }`}>
-                               {lesson.status === 'completed' ? 'Completed' : 'In Progress'}
-                             </span>
-                             <p className="text-xs text-muted-foreground">{lesson.date}</p>
-                           </div>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
+                        <BookOpen className="w-5 h-5 text-primary" />
                       </div>
-
-                      {/* Mobile Layout */}
-                      <div className="sm:hidden space-y-3">
-                        <div className="flex items-start gap-3">
-                          <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0">
-                            <FileText className="w-5 h-5 text-primary" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-semibold text-sm leading-tight">{lesson.title}</p>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              {lesson.subject} • {lesson.class}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            lesson.status === 'completed' 
-                              ? 'bg-green-100 text-green-700' 
-                              : 'bg-yellow-100 text-yellow-700'
-                          }`}>
-                            {lesson.status === 'completed' ? 'Completed' : 'In Progress'}
-                          </span>
-                          <p className="text-xs text-muted-foreground">{lesson.date}</p>
-                        </div>
+                      <div>
+                        <p className="font-medium">Teaching with AI</p>
+                        <p className="text-sm text-muted-foreground">Master AI tools for education</p>
                       </div>
                     </div>
-                  ))}
+                    <Button size="sm" variant="outline">Start</Button>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-secondary/10 rounded-xl flex items-center justify-center">
+                        <BarChart3 className="w-5 h-5 text-secondary" />
+                      </div>
+                      <div>
+                        <p className="font-medium">Assessment Design</p>
+                        <p className="text-sm text-muted-foreground">Create effective evaluations</p>
+                      </div>
+                    </div>
+                    <Button size="sm" variant="outline">Start</Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
-             </div>
-            </ScrollReveal>
+          </div>
+        </ScrollReveal>
+
+        {/* Recent Activity */}
+        <ScrollReveal direction="up" delay={0.4}>
+          <div>
+            <h2 className="text-lg font-semibold mb-3">Recent Activity</h2>
+            <Card className="rounded-2xl">
+              <CardHeader>
+                <CardTitle>Your Latest Lessons</CardTitle>
+                <CardDescription>Recently generated content and activities</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-8">
+                  <FileText className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">No recent activities yet</p>
+                  <p className="text-sm text-muted-foreground mt-2">Start creating lessons to see your activity here</p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </ScrollReveal>
       </div>
     </SharedLayout>
   );

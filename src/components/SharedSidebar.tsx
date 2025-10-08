@@ -45,7 +45,7 @@ export function SharedSidebar({ onNavigate, userRole, activeMenu, setActiveMenu,
   ];
 
   const studentMenuItems = [
-    { id: 'lessons', label: 'My Lessons', icon: BookOpen },
+    { id: 'dashboard', label: 'My Lessons', icon: BookOpen, onClick: () => onNavigate('dashboard') },
     { id: 'explorer', label: 'Concept Explorer', icon: Brain, onClick: () => onNavigate('concept-explorer') },
     { id: 'curriculum', label: 'My Curriculum', icon: BookMarked, onClick: () => onNavigate('my-curriculum') },
     { id: 'class-chat', label: 'Class Chat', icon: Users, onClick: () => onNavigate('class-chat') },
@@ -81,7 +81,7 @@ export function SharedSidebar({ onNavigate, userRole, activeMenu, setActiveMenu,
             {(!sidebarCollapsed || mobile) && (
               <div className="min-w-0">
                 <p className="font-semibold text-sm">TeachMate</p>
-                <p className="text-xs text-muted-foreground">St. Mary's School</p>
+                <p className="text-xs text-muted-foreground">School</p>
               </div>
             )}
           </div>

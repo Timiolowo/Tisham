@@ -34,6 +34,7 @@ interface Message {
 
 export function ClassChat({ onNavigate }: ClassChatProps) {
   const { user } = useAuth();
+  const isStudent = user?.role === 'student';
   const [message, setMessage] = useState("");
   const [currentClassIndex, setCurrentClassIndex] = useState(0);
   const [messages, setMessages] = useState<Message[]>([
@@ -190,49 +191,19 @@ export function ClassChat({ onNavigate }: ClassChatProps) {
     }
   };
 
-  return (
-    <SharedLayout 
-      onNavigate={onNavigate}
-      userRole="teacher"
-      title={currentClass?.name || "Class Chat"}
-      subtitle={`${currentClass?.students || 0} students online`}
-      hideHeaderIcons={true}
-      activeMenu="class-chat"
-    >
+  // If student, use SharedLayout
+  if (isStudent) {
+    return (
+      <SharedLayout 
+        onNavigate={onNavigate}
+        userRole="student"
+        title={currentClass?.name || "Class Chat"}
+        subtitle={`${currentClass?.students || 0} students online`}
+        activeMenu="class-chat"
+        hideHeaderIcons={true}
+      >
 
-      {/* Main Content Area with Sidebar */}
-      <div className="flex-1 overflow-hidden flex">
-        {/* Sidebar - Class List (Desktop only) */}
-        <div className="hidden md:flex md:w-64 lg:w-72 bg-card/50 backdrop-blur-sm border-r flex-col">
-          <div className="p-4 border-b">
-            <h3 className="text-sm font-medium text-muted-foreground">My Classes</h3>
-          </div>
-          <ScrollArea className="flex-1">
-            <div className="p-3 space-y-2">
-              {classes.map((cls, idx) => (
-                <Button
-                  key={cls.id}
-                  variant={idx === currentClassIndex ? "default" : "ghost"}
-                  size="sm"
-                  onClick={() => setCurrentClassIndex(idx)}
-                  className="w-full justify-start rounded-xl"
-                >
-                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center mr-3 flex-shrink-0">
-                    <Users className="w-4 h-4 text-primary" />
-                  </div>
-                  <div className="flex-1 text-left min-w-0">
-                    <p className="text-sm font-medium truncate">{cls.name}</p>
-                    <p className="text-xs text-muted-foreground">{cls.students} students</p>
-                  </div>
-                </Button>
-              ))}
-            </div>
-          </ScrollArea>
-        </div>
-
-        {/* Messages Area */}
-        <div className="flex-1 overflow-hidden flex flex-col">
-          <div className="max-w-5xl mx-auto w-full flex-1 flex flex-col p-4 sm:p-6">
+      <div className="max-w-5xl mx-auto w-full flex-1 flex flex-col p-4 sm:p-6">
           <ScrollArea className="flex-1 pr-4">
             <div className="space-y-4">
               {messages.map((msg) => (
@@ -316,8 +287,143 @@ export function ClassChat({ onNavigate }: ClassChatProps) {
             <p className="text-xs text-center text-muted-foreground mt-2">
               Messages are visible to all class members
             </p>
-          </div>
         </div>
+      </div>
+      </SharedLayout>
+    );
+  }
+
+  // Teacher layout
+  return (
+    <SharedLayout 
+      onNavigate={onNavigate}
+      userRole="teacher"
+      title={currentClass?.name || "Class Chat"}
+      subtitle={`${currentClass?.students || 0} students online`}
+      hideHeaderIcons={true}
+      activeMenu="class-chat"
+    >
+      {/* Main Content Area with Sidebar */}
+      <div className="flex-1 overflow-hidden flex">
+        {/* Sidebar - Class List (Desktop only) */}
+        <div className="hidden md:flex md:w-64 lg:w-72 bg-card/50 backdrop-blur-sm border-r flex-col">
+          <div className="p-4 border-b">
+            <h3 className="font-semibold text-sm">Your Classes</h3>
+          </div>
+          <ScrollArea className="flex-1">
+            <div className="p-2 space-y-1">
+              {classes.map((classItem, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentClassIndex(index)}
+                  className={`w-full text-left p-3 rounded-lg transition-colors ${
+                    index === currentClassIndex
+                      ? 'bg-primary text-primary-foreground'
+                      : 'hover:bg-muted'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium text-sm">{classItem.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {classItem.students} students
+                      </p>
+                    </div>
+                    {classItem.unread > 0 && (
+                      <Badge variant="destructive" className="text-xs">
+                        {classItem.unread}
+                      </Badge>
+                    )}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </ScrollArea>
+        </div>
+
+        {/* Chat Area */}
+        <div className="flex-1 flex flex-col">
+          {/* Chat Header */}
+          <div className="bg-card/50 backdrop-blur-sm border-b px-4 py-3 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                <Users className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <h2 className="font-semibold">{currentClass?.name}</h2>
+                <p className="text-sm text-muted-foreground">
+                  {currentClass?.students} students online
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="icon">
+                <Search className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+
+          {/* Messages Area */}
+          <ScrollArea className="flex-1 p-4">
+            <div className="space-y-4">
+              {messages.map((msg) => (
+                <div
+                  key={msg.id}
+                  className={`flex gap-3 ${
+                    msg.isCurrentUser ? 'flex-row-reverse' : ''
+                  }`}
+                >
+                  <Avatar className="w-8 h-8">
+                    <AvatarFallback className="text-xs">
+                      {msg.sender.split(' ').map(n => n[0]).join('')}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className={`flex-1 max-w-xs lg:max-w-md ${
+                    msg.isCurrentUser ? 'text-right' : ''
+                  }`}>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-sm font-medium">{msg.sender}</span>
+                      <span className="text-xs text-muted-foreground">{msg.time}</span>
+                    </div>
+                    <div className={`p-3 rounded-2xl ${
+                      msg.isCurrentUser
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-muted'
+                    }`}>
+                      <p className="text-sm">{msg.content}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </ScrollArea>
+
+          {/* Message Input */}
+          <div className="border-t p-4">
+            <div className="flex gap-2">
+              <Input
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder="Type a message..."
+                className="flex-1"
+                onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+              />
+              <Button
+                onClick={handleSend}
+                disabled={!message.trim() || isSending}
+                size="icon"
+              >
+                {isSending ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Send className="w-4 h-4" />
+                )}
+              </Button>
+            </div>
+            <div className="mt-2 text-xs text-muted-foreground">
+              Messages are visible to all class members
+            </div>
+          </div>
         </div>
       </div>
     </SharedLayout>

@@ -15,6 +15,8 @@ import { toast } from "sonner@2.0.3";
 import { explainConcept } from "../lib/groq";
 // Get Groq API key from environment
 import { runtimeEnv } from '../lib/runtime-env';
+import { SharedLayout } from "./SharedLayout";
+import { useAuth } from "../contexts/AuthContext";
 
 const getGroqApiKey = () => {
   const env = runtimeEnv.getEnv();
@@ -53,6 +55,7 @@ interface CareerInfo {
 }
 
 export function ConceptExplorer({ onBack, onNavigate }: ConceptExplorerProps) {
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedCareer, setSelectedCareer] = useState<string | null>(null);
@@ -458,21 +461,14 @@ Please provide detailed information in the following JSON format:
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background">
-      {/* Header */}
-      <header className="bg-card/80 backdrop-blur-sm border-b px-4 sm:px-6 py-4 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={onBack}>
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <div className="flex-1 min-w-0">
-            <h1 className="text-lg sm:text-xl md:text-base font-bold truncate">Concept & Career Explorer</h1>
-            <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">
-              Explore amazing concepts and discover your future career
-            </p>
-          </div>
-        </div>
-      </header>
+    <SharedLayout 
+      onNavigate={onNavigate || (() => {})}
+      userRole="student"
+      title="Concept & Career Explorer"
+      subtitle=""
+      activeMenu="explorer"
+      hideHeaderIcons={true}
+    >
 
       {/* Content */}
       <main className="max-w-7xl mx-auto p-4 sm:p-6">
@@ -649,6 +645,6 @@ Please provide detailed information in the following JSON format:
           </TabsContent>
         </Tabs>
       </main>
-    </div>
+    </SharedLayout>
   );
 }

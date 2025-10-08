@@ -22,6 +22,7 @@ import { CertificateGenerator } from "./components/CertificateGenerator";
 import { TeacherLearning } from "./components/TeacherLearning";
 import { MyCurriculumPage } from "./components/MyCurriculumPage";
 import { EditResourcePage } from "./components/EditResourcePage";
+import { StartLearningPage } from "./components/StartLearningPage";
 import { ThemeProvider } from "./components/ThemeProvider";
 import { Toaster } from "./components/ui/sonner";
 import { AIMascot } from "./components/AIMascot";
@@ -50,7 +51,8 @@ type Page =
   | 'certificate'
   | 'my-curriculum'
   | 'edit-resource'
-  | 'settings';
+  | 'settings'
+  | 'start-learning';
 
 type UserRole = 'admin' | 'teacher' | 'student';
 
@@ -173,9 +175,9 @@ function AppContent() {
       case 'forgot-password':
         return <ForgotPasswordPage onNavigate={navigate} />;
       case 'dashboard':
-        if (userRole === 'student') {
+        if (user?.role === 'student') {
           return <StudentDashboard onNavigate={navigate} />;
-        } else if (userRole === 'school_admin') {
+        } else if (user?.role === 'school_admin') {
           return <AdminDashboard onNavigate={navigate} onBack={() => navigate('landing')} />;
         }
         return <TeacherDashboard onNavigate={navigate} />;
@@ -200,7 +202,7 @@ function AppContent() {
       case 'class-details':
         return <ClassDetailsPage onNavigate={navigate} classId={currentPage?.classId || '1'} />;
       case 'class-chat':
-        return <ClassChat onBack={() => navigate('dashboard')} />;
+        return <ClassChat onNavigate={navigate} />;
       case 'concept-explorer':
         return <ConceptExplorer onBack={() => navigate('dashboard')} onNavigate={navigate} />;
       case 'learn-with-ai':
@@ -225,7 +227,9 @@ function AppContent() {
           resourceId={editingResourceId}
         />;
       case 'settings':
-        return <SettingsPage onBack={() => navigate('dashboard')} onLogout={handleLogout} onNavigate={navigate} userRole={userRole} />;
+        return <SettingsPage onBack={() => navigate('dashboard')} onLogout={handleLogout} onNavigate={navigate} userRole={user?.role || 'teacher'} />;
+      case 'start-learning':
+        return <StartLearningPage onNavigate={navigate} courseId={currentPage?.courseId} />;
       default:
         return <LandingPage onNavigate={navigate} />;
     }
