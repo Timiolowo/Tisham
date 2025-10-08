@@ -55,6 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isSupabaseEnabled] = useState(isSupabaseConfigured());
   const [isCheckingSession, setIsCheckingSession] = useState(false);
+  const [isExportingPDF, setIsExportingPDF] = useState(false);
   
   // Security warnings removed - no longer displayed
 
@@ -62,30 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Check for existing session on mount only (run once)
     checkSession();
 
-    // Set up periodic session validation
-    const sessionCheckInterval = setInterval(async () => {
-      if (isSupabaseEnabled) {
-        try {
-          const { data: { session }, error } = await supabase.auth.getSession();
-          if (error || !session) {
-            console.log('🔍 Session validation failed, forcing logout');
-            setUser(null);
-            localStorage.removeItem('user_data');
-            localStorage.removeItem('supabase.auth.token');
-            sessionStorage.clear();
-            window.location.href = '/';
-          }
-        } catch (error) {
-          console.error('Session validation error:', error);
-          // If we can't validate the session, assume it's lost
-          setUser(null);
-          localStorage.removeItem('user_data');
-          localStorage.removeItem('supabase.auth.token');
-          sessionStorage.clear();
-          window.location.href = '/';
-        }
-      }
-    }, 30000); // Check every 30 seconds
+    // Removed automatic session validation - only logout on explicit user action
 
     // Listen for Supabase auth state changes
     if (isSupabaseEnabled) {
@@ -93,15 +71,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         async (event, session) => {
           console.log('🔐 Auth state change:', event, session ? 'Session exists' : 'No session');
           
-          if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED' && !session) {
-            // User signed out or session expired
-            console.log('🚪 User signed out, clearing all data and redirecting to landing page');
+          if (event === 'SIGNED_OUT') {
+            // User explicitly signed out
+            console.log('🚪 User explicitly signed out, clearing all data');
             setUser(null);
             localStorage.removeItem('user_data');
             localStorage.removeItem('supabase.auth.token');
             sessionStorage.clear();
             
-            // Force redirect to landing page
+            // Only redirect on explicit sign out, not on session expiration
             window.location.href = '/';
           } else if (event === 'SIGNED_IN' && session) {
             // User signed in - only handle if we don't already have a user
@@ -128,13 +106,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       return () => {
         subscription.unsubscribe();
-        clearInterval(sessionCheckInterval);
       };
     }
-    
-    return () => {
-      clearInterval(sessionCheckInterval);
-    };
   }, [isSupabaseEnabled]);
 
   const checkSession = async () => {
@@ -168,13 +141,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           console.log('✅ Session valid, user logged in');
           setUser(userData);
         } else {
-          // Session invalid or expired, clearing stored data and redirecting
-          console.log('❌ Session invalid or expired, redirecting to landing page');
+          // Session invalid or expired, clearing stored data but not redirecting
+          console.log('❌ Session invalid or expired, clearing stored data');
           localStorage.removeItem('user_data');
           localStorage.removeItem('supabase.auth.token');
           sessionStorage.clear();
           setUser(null);
-          window.location.href = '/';
+          // No automatic redirect - user stays on current page
         }
       } else {
         // Use Netlify Functions for production

@@ -177,20 +177,9 @@ function AppContent() {
     return protectedPages.includes(page);
   };
 
-  // Redirect to landing page if user is not authenticated and trying to access protected pages
-  useEffect(() => {
-    if (isProtectedPage(currentPage) && !user) {
-      console.log('🔒 Unauthenticated access to protected page, redirecting to landing');
-      navigate('landing');
-    }
-  }, [currentPage, user]);
+  // Removed automatic redirect - users stay on current page even if session expires
 
   const renderPage = () => {
-    // If trying to access protected page without authentication, show landing page
-    if (isProtectedPage(currentPage) && !user) {
-      return <LandingPage onNavigate={navigate} />;
-    }
-
     switch (currentPage) {
       case 'landing':
         return <LandingPage onNavigate={navigate} />;
