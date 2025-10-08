@@ -218,38 +218,44 @@ export function LessonGenerator({ onNavigate, onSave }: LessonGeneratorProps) {
     
     let currentSection = '';
     
-    console.log('Parsing AI content:', content);
-    console.log('Lines to parse:', lines);
+    // First pass: Look for hardcoded step names even without STEP_X format
+    const hardcodedSteps = [
+      'STEP_1_INTRODUCTION:',
+      'STEP_2_DIRECT_INSTRUCTION:', 
+      'STEP_3_GUIDED_PRACTICE:',
+      'STEP_4_INDEPENDENT_PRACTICE:',
+      'STEP_5_ASSESSMENT:'
+    ];
     
     for (const line of lines) {
       const trimmedLine = line.trim();
       
-      // More flexible section detection
-      if (trimmedLine.toUpperCase().includes('LEARNING OBJECTIVES') || trimmedLine.toUpperCase().includes('OBJECTIVES')) {
-        currentSection = 'objectives';
-        console.log('Found objectives section');
-        continue;
-      } else if (trimmedLine.toUpperCase().includes('MATERIALS') || trimmedLine.toUpperCase().includes('RESOURCES')) {
-        currentSection = 'materials';
-        console.log('Found materials section');
-        continue;
-      } else if (trimmedLine.toUpperCase().includes('LESSON STEPS') || trimmedLine.toUpperCase().includes('STEPS') || trimmedLine.toUpperCase().includes('ACTIVITIES')) {
-        currentSection = 'steps';
-        console.log('Found lesson steps section');
-        continue;
-      } else if (trimmedLine.toUpperCase().includes('HOMEWORK') || trimmedLine.toUpperCase().includes('ASSIGNMENT')) {
-        currentSection = 'homework';
-        console.log('Found homework section');
-        continue;
-      } else if (trimmedLine.toUpperCase().includes('LOCAL EXAMPLES') || trimmedLine.toUpperCase().includes('EXAMPLES') || trimmedLine.toUpperCase().includes('NIGERIAN')) {
-        currentSection = 'examples';
-        console.log('Found examples section');
-        continue;
+      // More precise section detection - only look for section headers
+      if (trimmedLine.startsWith('**') && trimmedLine.endsWith('**')) {
+        const sectionText = trimmedLine.replace(/\*\*/g, '').toUpperCase();
+        
+        if (sectionText.includes('LEARNING OBJECTIVES') || sectionText.includes('OBJECTIVES')) {
+          currentSection = 'objectives';
+          continue;
+        } else if (sectionText.includes('MATERIALS') || sectionText.includes('RESOURCES')) {
+          currentSection = 'materials';
+          continue;
+        } else if (sectionText.includes('LESSON STEPS') || sectionText.includes('STEPS') || sectionText.includes('ACTIVITIES')) {
+          currentSection = 'steps';
+          continue;
+        } else if (sectionText.includes('HOMEWORK') || sectionText.includes('ASSIGNMENT')) {
+          currentSection = 'homework';
+          continue;
+        } else if (sectionText.includes('LOCAL EXAMPLES') || sectionText.includes('EXAMPLES')) {
+          currentSection = 'examples';
+          continue;
+        }
       }
       
       // Handle different bullet point formats and lesson steps
       if (trimmedLine.match(/^[-•*]\s/) || trimmedLine.match(/^\d+\.\s/) || 
-          (currentSection === 'steps' && trimmedLine.includes('minutes'))) {
+          (currentSection === 'steps' && (trimmedLine.includes('minutes') || trimmedLine.startsWith('STEP_'))) ||
+          trimmedLine.startsWith('STEP_')) {
         const item = trimmedLine.replace(/^[-•*]\s/, '').replace(/^\d+\.\s/, '').trim();
         
         if (currentSection === 'objectives' && item) {
@@ -257,34 +263,61 @@ export function LessonGenerator({ onNavigate, onSave }: LessonGeneratorProps) {
         } else if (currentSection === 'materials' && item) {
           materials.push(item);
         } else if (currentSection === 'examples' && item) {
+          // Skip STEP_ lines in examples section - they're not actual lesson steps
+          if (item.startsWith('STEP_') || hardcodedSteps.some(step => item.includes(step))) {
+            continue;
+          }
           localExamples.push(item);
-        } else if (currentSection === 'steps' && item) {
-          console.log('Processing lesson step:', item);
-          // Parse lesson steps with time and activity
-          // Handle format: "Introduction (4 minutes) - Description"
-          const timeMatch = item.match(/\((\d+)\s*minutes?\)/i);
-          const time = timeMatch ? `${timeMatch[1]} minutes` : '5 minutes';
-          
-          // Extract activity name and description
-          const activityMatch = item.match(/^([^-]+?)\s*\([^)]*\)\s*-\s*(.+)$/);
-          if (activityMatch) {
-            const activity = activityMatch[1].trim();
-            const description = activityMatch[2].trim();
-            console.log('Parsed step:', { time, activity, description });
-            lessonSteps.push({
-              time,
-              activity,
-              description
-            });
+        } else if (currentSection === 'steps' && (item.startsWith('STEP_') || hardcodedSteps.some(step => item.includes(step)))) {
+          // Handle STEP format: "STEP_1_INTRODUCTION: 4 minutes - Description"
+          if (item.startsWith('STEP_') || hardcodedSteps.some(step => item.includes(step))) {
+            // Try multiple regex patterns for flexibility
+            const stepMatch = item.match(/^STEP_(\d+)_([^:]+):\s*(\d+)\s*minutes?\s*-\s*(.+)$/i) ||
+                             item.match(/STEP_(\d+)_([^:]+):\s*(\d+)\s*minutes?\s*-\s*(.+)/i) ||
+                             item.match(/STEP_(\d+)_([^:]+):\s*(\d+)\s*minutes?\s*(.+)/i);
+            
+            if (stepMatch) {
+              // Hardcoded step names for direct matching
+              const stepNumber = stepMatch[1]; // First capture group is the step number
+              const stepNames = {
+                '1': 'Introduction',
+                '2': 'Direct Instruction', 
+                '3': 'Guided Practice',
+                '4': 'Independent Practice',
+                '5': 'Assessment'
+              };
+              const activity = stepNames[stepNumber as keyof typeof stepNames] || stepMatch[2]?.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
+              const time = `${stepMatch[3]} minutes`; // Third capture group is the time
+              const description = (stepMatch[4] || stepMatch[3] || '').trim(); // Fourth capture group is the description
+              lessonSteps.push({
+                time,
+                activity,
+                description
+              });
+            }
           } else {
-            // Fallback for different formats
-          const activity = item.replace(/\([^)]*\)/g, '').trim();
-            console.log('Fallback step:', { time, activity, description: activity });
-          lessonSteps.push({
-            time,
-            activity,
-            description: activity
-          });
+            // Handle old format: "Introduction (4 minutes) - Description"
+            const timeMatch = item.match(/\((\d+)\s*minutes?\)/i);
+            const time = timeMatch ? `${timeMatch[1]} minutes` : '5 minutes';
+            
+            const activityMatch = item.match(/^([^-]+?)\s*\([^)]*\)\s*-\s*(.+)$/);
+            if (activityMatch) {
+              const activity = activityMatch[1].trim();
+              const description = activityMatch[2].trim();
+              lessonSteps.push({
+                time,
+                activity,
+                description
+              });
+            } else {
+              // Fallback for different formats
+              const activity = item.replace(/\([^)]*\)/g, '').trim();
+              lessonSteps.push({
+                time,
+                activity,
+                description: activity
+              });
+            }
           }
         }
       } else if (currentSection === 'homework' && trimmedLine && !trimmedLine.toUpperCase().includes('HOMEWORK')) {
@@ -299,6 +332,7 @@ export function LessonGenerator({ onNavigate, onSave }: LessonGeneratorProps) {
       homework,
       localExamples
     });
+    
     
     return {
       objectives: objectives.length > 0 ? objectives : [
@@ -391,16 +425,8 @@ export function LessonGenerator({ onNavigate, onSave }: LessonGeneratorProps) {
     }
   };
 
-  return (
-    <SharedLayout 
-      onNavigate={onNavigate}
-      userRole="teacher"
-      title="Generate Lesson Plan"
-      subtitle="AI-powered lesson planning"
-      hideHeaderIcons={true}
-      activeMenu="lesson-generator"
-    >
-      <main className="max-w-7xl mx-auto p-4 sm:p-6">
+  const content = (
+    <main className="max-w-7xl mx-auto p-4 sm:p-6">
         <div className="grid lg:grid-cols-2 gap-6">
           {/* Input Section */}
           <div className="lg:sticky lg:top-6 lg:h-fit">
@@ -422,6 +448,10 @@ export function LessonGenerator({ onNavigate, onSave }: LessonGeneratorProps) {
                       <SelectItem value="Computer Science">Computer Science</SelectItem>
                       <SelectItem value="Physics">Physics</SelectItem>
                       <SelectItem value="Chemistry">Chemistry</SelectItem>
+                      <SelectItem value="AI">AI</SelectItem>
+                      <SelectItem value="Robotics">Robotics</SelectItem>
+                      <SelectItem value="Solar PV">Solar PV</SelectItem>
+                      <SelectItem value="Entrepreneurship">Entrepreneurship</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -707,6 +737,7 @@ export function LessonGenerator({ onNavigate, onSave }: LessonGeneratorProps) {
                   </Card>
                 </Collapsible>
 
+
                 <Button 
                   className="w-full rounded-2xl" 
                   size="lg"
@@ -720,6 +751,17 @@ export function LessonGenerator({ onNavigate, onSave }: LessonGeneratorProps) {
           </div>
         </div>
       </main>
-    </SharedLayout>
+  );
+
+  return (
+    <SharedLayout 
+      onNavigate={onNavigate}
+      userRole="teacher"
+      title="Generate Lesson Plan"
+      subtitle="AI-powered lesson planning"
+      hideHeaderIcons={true}
+      activeMenu="lesson-generator"
+      children={content}
+    />
   );
 }

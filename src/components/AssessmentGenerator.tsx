@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -6,7 +6,7 @@ import { Label } from "./ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Checkbox } from "./ui/checkbox";
 import { Sparkles, Download, FileText, Loader2, Eye, EyeOff } from "lucide-react";
-import { toast } from "sonner@2.0.3";
+import { toast } from "sonner";
 import type { LessonPlan } from "../App";
 import { SharedLayout } from "./SharedLayout";
 import { generateQuiz } from "../lib/groq";
@@ -399,6 +399,10 @@ export function AssessmentGenerator({ onNavigate, lessonPlan }: AssessmentGenera
                     <SelectItem value="Mathematics">Mathematics</SelectItem>
                     <SelectItem value="English Language">English Language</SelectItem>
                     <SelectItem value="Basic Science">Basic Science</SelectItem>
+                    <SelectItem value="AI">AI</SelectItem>
+                    <SelectItem value="Robotics">Robotics</SelectItem>
+                    <SelectItem value="Solar PV">Solar PV</SelectItem>
+                    <SelectItem value="Entrepreneurship">Entrepreneurship</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

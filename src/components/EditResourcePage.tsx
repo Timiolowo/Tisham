@@ -291,6 +291,10 @@ export function EditResourcePage({ onBack, onNavigate, resourceId }: EditResourc
                     <SelectItem value="Physics">Physics</SelectItem>
                     <SelectItem value="Chemistry">Chemistry</SelectItem>
                     <SelectItem value="Biology">Biology</SelectItem>
+                    <SelectItem value="AI">AI</SelectItem>
+                    <SelectItem value="Robotics">Robotics</SelectItem>
+                    <SelectItem value="Solar PV">Solar PV</SelectItem>
+                    <SelectItem value="Entrepreneurship">Entrepreneurship</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

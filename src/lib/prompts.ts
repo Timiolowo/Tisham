@@ -101,24 +101,30 @@ IMPORTANT: Structure your response EXACTLY like this format:
 - [Material 3 - appropriate for ${resourceLevel} resource level]
 
 **LESSON STEPS:**
-- Introduction (${Math.round(duration * 0.1)} minutes) - [Specific activities like asking questions, showing videos, writing on board, addressing misconceptions]
-- Direct Instruction (${Math.round(duration * 0.4)} minutes) - [Detailed teaching methods, visual aids used, examples given, questioning techniques]
-- Guided Practice (${Math.round(duration * 0.25)} minutes) - [Specific examples worked through, student participation methods, feedback strategies]
-- Independent Practice (${Math.round(duration * 0.2)} minutes) - [Specific exercises or activities, individual/pair work, teacher monitoring approach]
-- Assessment (${Math.round(duration * 0.05)} minutes) - [Specific assessment methods, questions asked, homework assignment, next lesson preview]
+STEP_1_INTRODUCTION: ${Math.round(duration * 0.1)} minutes - [Specific activities like asking questions, showing videos, writing on board, addressing misconceptions]
+STEP_2_DIRECT_INSTRUCTION: ${Math.round(duration * 0.4)} minutes - [Detailed teaching methods, visual aids used, examples given, questioning techniques]
+STEP_3_GUIDED_PRACTICE: ${Math.round(duration * 0.25)} minutes - [Specific examples worked through, student participation methods, feedback strategies]
+STEP_4_INDEPENDENT_PRACTICE: ${Math.round(duration * 0.2)} minutes - [Specific exercises or activities, individual/pair work, teacher monitoring approach]
+STEP_5_ASSESSMENT: ${Math.round(duration * 0.05)} minutes - [Specific assessment methods, questions asked, homework assignment, next lesson preview]
 
-IMPORTANT: Each lesson step must follow this EXACT format: "Activity Name (X minutes) - Detailed description"
-Make descriptions specific and actionable, not generic. Include specific teaching strategies, materials used, and student engagement methods.
+CRITICAL FORMAT REQUIREMENT: Each lesson step MUST start with exactly "STEP_X_NAME:" followed by the time and description. Use this EXACT format:
+- STEP_1_INTRODUCTION: X minutes - Description
+- STEP_2_DIRECT_INSTRUCTION: X minutes - Description  
+- STEP_3_GUIDED_PRACTICE: X minutes - Description
+- STEP_4_INDEPENDENT_PRACTICE: X minutes - Description
+- STEP_5_ASSESSMENT: X minutes - Description
+
+Do not use bullet points, Roman numerals, or any other format. Use ONLY the STEP_X_NAME: format above.
 
 **HOMEWORK:**
 [Age-appropriate homework assignment for ${classLevel} students in ${language}. For JSS 1-2: simple tasks like drawing, basic research, or simple questions. For JSS 3-SS 3: more complex assignments like essays, projects, or detailed research.]
 
 **LOCAL EXAMPLES:**
-- [Simple, relatable Nigerian example 1 - appropriate for ${classLevel}]
-- [Simple, relatable Nigerian example 2 - appropriate for ${classLevel}]
-- [Simple, relatable Nigerian example 3 - appropriate for ${classLevel}]
+- [Simple, relatable example 1 - appropriate for ${classLevel}]
+- [Simple, relatable example 2 - appropriate for ${classLevel}]
+- [Simple, relatable example 3 - appropriate for ${classLevel}]
 
-Use Nigerian examples when relevant, and cultural references. Consider the ${resourceLevel} resource level when suggesting materials and activities. Make examples simple and relatable for ${classLevel} students.`,
+Use relatable examples when relevant, and cultural references. Consider the ${resourceLevel} resource level when suggesting materials and activities. Make examples simple and relatable for ${classLevel} students.`,
   temperature: 0.7,
   maxTokens: 4000
 });

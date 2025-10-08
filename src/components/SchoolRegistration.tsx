@@ -528,6 +528,10 @@ export function SchoolRegistration({ onNavigate }: RegistrationProps) {
                         <SelectItem value="english">English</SelectItem>
                         <SelectItem value="science">Science</SelectItem>
                         <SelectItem value="social-studies">Social Studies</SelectItem>
+                        <SelectItem value="ai">AI</SelectItem>
+                        <SelectItem value="robotics">Robotics</SelectItem>
+                        <SelectItem value="solar-pv">Solar PV</SelectItem>
+                        <SelectItem value="entrepreneurship">Entrepreneurship</SelectItem>
                         <SelectItem value="other">Other</SelectItem>
                       </SelectContent>
                     </Select>

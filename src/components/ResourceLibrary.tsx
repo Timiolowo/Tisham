@@ -108,6 +108,10 @@ export function ResourceLibrary({ onBack, onNavigate }: ResourceLibraryProps) {
                     <SelectItem value="computer">Computer Science</SelectItem>
                     <SelectItem value="physics">Physics</SelectItem>
                     <SelectItem value="biology">Biology</SelectItem>
+                    <SelectItem value="ai">AI</SelectItem>
+                    <SelectItem value="robotics">Robotics</SelectItem>
+                    <SelectItem value="solar-pv">Solar PV</SelectItem>
+                    <SelectItem value="entrepreneurship">Entrepreneurship</SelectItem>
                   </SelectContent>
                 </Select>
                 <Select>

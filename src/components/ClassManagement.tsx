@@ -382,6 +382,10 @@ export function ClassManagement({ onNavigate }: ClassManagementProps) {
                             <SelectItem value="social-studies">Social Studies</SelectItem>
                             <SelectItem value="computer-science">Computer Science</SelectItem>
                             <SelectItem value="art">Art</SelectItem>
+                            <SelectItem value="ai">AI</SelectItem>
+                            <SelectItem value="robotics">Robotics</SelectItem>
+                            <SelectItem value="solar-pv">Solar PV</SelectItem>
+                            <SelectItem value="entrepreneurship">Entrepreneurship</SelectItem>
                             <SelectItem value="music">Music</SelectItem>
                             <SelectItem value="physical-education">Physical Education</SelectItem>
                           </SelectContent>
