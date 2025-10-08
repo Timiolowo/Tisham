@@ -44,8 +44,8 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
               Adapt to the new national curriculum with AI-powered lesson planning, real-time assistance, and multilingual support for secondary schools across Nigeria.
             </p>
             <div className="flex gap-4">
-              <Button size="lg" className="rounded-2xl" onClick={() => onNavigate('register')}>
-                Register School
+              <Button size="lg" className="rounded-2xl" onClick={() => onNavigate('login')}>
+                Login
               </Button>
             </div>
             <div className="flex items-center gap-6 pt-4">

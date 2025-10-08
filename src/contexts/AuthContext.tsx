@@ -60,25 +60,51 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     // Check for existing session on mount
     checkSession();
-  }, []);
+
+    // Listen for Supabase auth state changes (temporarily disabled for debugging)
+    if (isSupabaseEnabled) {
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(
+        async (event, session) => {
+          // Auth state change detected
+          
+          if (event === 'SIGNED_OUT') {
+            // User signed out
+            localStorage.removeItem('user_data');
+            setUser(null);
+          }
+          // Temporarily disable SIGNED_IN handling to let login function handle it
+        }
+      );
+
+      return () => subscription.unsubscribe();
+    }
+  }, [isSupabaseEnabled]);
 
   const checkSession = async () => {
     try {
       if (isSupabaseEnabled) {
-        // Use direct Supabase authentication
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-          // Fetch user profile
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
-
-          if (profile) {
-            setUser(profile);
-          }
+        // Check localStorage first for stored user
+        const storedUser = localStorage.getItem('user_data');
+        if (!storedUser) {
+          // No stored user found
+          setIsLoading(false);
+          return;
         }
+
+        const userData = JSON.parse(storedUser);
+        // Found stored user, validating session
+        
+        // Validate session with Supabase (quick check)
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session && session.user.id === userData.id) {
+          // Session valid, using stored user data
+          setUser(userData);
+        } else {
+          // Session invalid or expired, clearing stored data
+          localStorage.removeItem('user_data');
+          setUser(null);
+        }
+        setIsLoading(false);
       } else {
         // Use Netlify Functions for production
         const token = localStorage.getItem('auth_token');
@@ -107,39 +133,100 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const login = async (email: string, password: string, role?: 'school_admin' | 'teacher' | 'student') => {
-    // SECURITY: Check authentication permissions using proven approach
-    if (!isAuthenticationAllowed()) {
-      const currentPort = window.location.port;
-      throw new Error(`Authentication is not allowed on port ${currentPort}. Please use port 8888 (netlify dev) for authentication.`);
-    }
-    
-    if (isSupabaseEnabled) {
-      // Use direct Supabase authentication
+    try {
+      // Login attempt started
+      
+      // SECURITY: Check authentication permissions using proven approach
+      if (!isAuthenticationAllowed()) {
+        const currentPort = window.location.port;
+        // Authentication blocked on port
+        throw new Error(`Authentication is not allowed on port ${currentPort}. Please use port 8888 (netlify dev) for authentication.`);
+      }
+      
+      if (isSupabaseEnabled) {
+      // Using Supabase authentication
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      if (error) throw error;
+      // Supabase auth result
+      if (error) {
+        console.error('Supabase auth error:', error);
+        throw error;
+      }
 
       if (data.user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', data.user.id)
-          .single();
-
-        if (profile) {
-          // If role is specified, validate it matches the user's actual role
-          if (role && profile.role !== role) {
-            throw new Error(`Invalid role. This account is registered as ${profile.role}`);
+        // User authenticated successfully, fetching profile
+        try {
+          // Test Supabase connection
+          const { data: testData, error: testError } = await supabase
+            .from('profiles')
+            .select('id')
+            .limit(1);
+          
+          if (testError) {
+            console.error('Supabase connection error:', testError);
+            throw new Error(`Database connection failed: ${testError.message}`);
           }
-          setUser(profile);
-        } else {
-          throw new Error('User profile not found');
+          
+          // Fetch user profile
+          const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', data.user.id)
+            .single();
+
+          if (profileError) {
+            console.error('Profile fetch error:', profileError);
+            // If profile doesn't exist, create a basic one
+            if (profileError.code === 'PGRST116') {
+              // Profile not found, creating basic profile
+              const basicProfile = {
+                id: data.user.id,
+                email: data.user.email,
+                full_name: data.user.user_metadata?.full_name || data.user.email,
+                role: 'teacher', // Default role
+                created_at: new Date().toISOString()
+              };
+              
+              const { data: newProfile, error: insertError } = await supabase
+                .from('profiles')
+                .insert(basicProfile)
+                .select()
+                .single();
+                
+              if (insertError) {
+                console.error('Failed to create profile:', insertError);
+                throw new Error('Failed to create user profile');
+              }
+              
+              // Created basic profile
+              setUser(newProfile);
+              localStorage.setItem('user_data', JSON.stringify(newProfile));
+              return;
+            }
+            throw new Error(`User profile not found: ${profileError.message}`);
+          }
+
+          if (profile) {
+            // If role is specified, validate it matches the user's actual role
+            if (role && profile.role !== role) {
+              throw new Error(`Invalid role. This account is registered as ${profile.role}`);
+            }
+            // Set user and store in localStorage
+            setUser(profile);
+            localStorage.setItem('user_data', JSON.stringify(profile));
+          } else {
+            throw new Error('User profile not found');
+          }
+        } catch (error) {
+          console.error('Profile fetch failed:', error);
+          throw error;
         }
       }
     } else {
+      // Using Netlify Functions authentication
       // Use Netlify Functions for production
       const response = await fetch('/.netlify/functions/login', {
         method: 'POST',
@@ -149,12 +236,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify({ email, password }),
       });
 
+      // Netlify Functions response
+
       if (!response.ok) {
         const { error } = await response.json();
+        console.error('Netlify Functions error:', error);
         throw new Error(error || 'Login failed');
       }
 
       const { user: profile, session } = await response.json();
+      // Netlify Functions success
       
       // Store token for future requests
       if (session?.access_token) {
@@ -162,6 +253,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       
       setUser(profile);
+      // Store user data in localStorage for persistence
+      localStorage.setItem('user_data', JSON.stringify(profile));
+      // Login completed successfully
+    }
+    } catch (error) {
+      console.error('Login function error:', error);
+      throw error;
     }
   };
 
@@ -210,6 +308,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         if (profile) {
           setUser(profile);
+          // Store user data in localStorage for persistence
+          localStorage.setItem('user_data', JSON.stringify(profile));
         }
         return { user: profile, emailConfirmationRequired: !data.user.email_confirmed_at };
       }
@@ -231,6 +331,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const result = await response.json();
       if (result.user) {
         setUser(result.user);
+        // Store user data in localStorage for persistence
+        localStorage.setItem('user_data', JSON.stringify(result.user));
       }
       return result; // Return the full response including emailConfirmationRequired
     }
@@ -261,6 +363,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     
     setUser(null);
+    localStorage.removeItem('user_data');
   };
 
   return (
