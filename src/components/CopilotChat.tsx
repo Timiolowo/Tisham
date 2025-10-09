@@ -20,6 +20,64 @@ interface CopilotChatProps {
   onNavigate: (page: any, role?: any) => void;
 }
 
+// Function to format inline markdown (bold, italic, links, etc.)
+const formatInlineMarkdown = (text: string) => {
+  // Handle bold text (**text**)
+  let formatted = text.split(/(\*\*.*?\*\*)/g).map((part, index) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return (
+        <strong key={index} className="font-semibold text-primary">
+          {part.slice(2, -2)}
+        </strong>
+      );
+    }
+    return part;
+  });
+
+  // Handle italic text (*text*)
+  formatted = formatted.map((part, index) => {
+    if (typeof part === 'string') {
+      return part.split(/(\*[^*]+\*)/g).map((subPart, subIndex) => {
+        if (subPart.startsWith('*') && subPart.endsWith('*') && !subPart.startsWith('**')) {
+          return (
+            <em key={`${index}-${subIndex}`} className="italic text-gray-700 dark:text-gray-300">
+              {subPart.slice(1, -1)}
+            </em>
+          );
+        }
+        return subPart;
+      });
+    }
+    return part;
+  });
+
+  // Handle links ([text](url))
+  formatted = formatted.map((part, index) => {
+    if (typeof part === 'string') {
+      return part.split(/(\[.*?\]\(.*?\))/g).map((subPart, subIndex) => {
+        const linkMatch = subPart.match(/\[(.*?)\]\((.*?)\)/);
+        if (linkMatch) {
+          return (
+            <a 
+              key={`${index}-${subIndex}`} 
+              href={linkMatch[2]} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-primary hover:text-primary/80 underline decoration-primary/30 hover:decoration-primary/60 transition-colors"
+            >
+              {linkMatch[1]}
+            </a>
+          );
+        }
+        return subPart;
+      });
+    }
+    return part;
+  });
+
+  return formatted;
+};
+
 interface Message {
   role: 'user' | 'assistant';
   content: string;
@@ -31,15 +89,19 @@ export function CopilotChat({ onNavigate }: CopilotChatProps) {
   
   // Different initial messages for students vs teachers
   const getInitialMessage = () => {
+    // Use the same name logic as the dashboards
+    const userName = user?.full_name || user?.email?.split('@')[0] || (isStudent ? 'Student' : 'Teacher');
+    const firstName = userName.split(' ')[0];
+    
     if (isStudent) {
       return {
         role: 'assistant' as const,
-        content: "Hello! I'm TeachMate, your AI learning companion! 🎓\n\nI can help you with:\n\n✅ **Understanding difficult topics** and concepts\n✅ **Homework help** and study guidance\n✅ **Learning strategies** and study tips\n✅ **Nigerian curriculum** explanations\n\nWhat would you like to learn about today?"
+        content: `Hi ${firstName}! I'm TeachMate, your AI learning companion! 🎓\n\nI can help you with:\n\n✅ **Understanding difficult topics** and concepts\n✅ **Homework help** and study guidance\n✅ **Learning strategies** and study tips\n✅ **Nigerian curriculum** explanations\n\nWhat would you like to learn about today?`
       };
     } else {
       return {
         role: 'assistant' as const,
-        content: "Hello! I'm TeachMate, your AI teaching assistant! 🎓\n\nI can help you with:\n\n✅ **Lesson planning** and curriculum guidance\n✅ **Student explanations** and homework help\n✅ **Teaching strategies** and classroom management\n✅ **Nigerian educational context** and examples\n\nWhat would you like to know about teaching today?"
+        content: `Hi ${firstName}! I'm TeachMate, your AI teaching assistant! 🎓\n\nI can help you with:\n\n✅ **Lesson planning** and curriculum guidance\n✅ **Student explanations** and homework help\n✅ **Teaching strategies** and classroom management\n✅ **Nigerian educational context** and examples\n\nWhat would you like to know about teaching today?`
       };
     }
   };
@@ -52,13 +114,13 @@ export function CopilotChat({ onNavigate }: CopilotChatProps) {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   const samplePrompts = isStudent ? [
-    "Help me understand photosynthesis for JSS 3",
+    "Help me understand AI/ML",
     "Explain fractions in simple terms",
     "Help me study Nigerian history",
     "How can I improve my mathematics skills?",
   ] : [
-    "Help me plan a lesson on photosynthesis for JSS 3",
-    "Explain fractions in simple terms for my students",
+    "Help me plan a lesson on Robotiics",
+    "How can I engage students?",
     "Suggest activities for teaching Nigerian history",
     "How can I make mathematics more engaging?",
   ];
@@ -129,22 +191,14 @@ export function CopilotChat({ onNavigate }: CopilotChatProps) {
     }
   };
 
-  return (
-    <SharedLayout 
-      onNavigate={onNavigate}
-      userRole={isStudent ? "student" : "teacher"}
-      title="TeachMate"
-      subtitle={isStudent ? "Your AI Learning Companion" : "Your AI Teaching Assistant"}
-      activeMenu="copilot"
-      hideHeaderIcons={true}
-    >
-
+  const content = (
+    <>
       {/* Chat Area */}
       <div className="flex-1 overflow-hidden flex flex-col">
         <div className="max-w-4xl mx-auto w-full flex-1 flex flex-col">
           {/* Chat Interface - Always show */}
           <ScrollArea className="flex-1 pr-2 sm:pr-4 p-4 sm:p-6" ref={scrollAreaRef}>
-              <div className="space-y-4 sm:space-y-6 pb-6">
+              <div className="space-y-4 sm:space-y-6 pb-32 sm:pb-36">
                 {/* Sample Prompts - Show only when no messages */}
                 {messages.length === 1 && (
                 <div className="space-y-4 animate-fade-in">
@@ -152,22 +206,16 @@ export function CopilotChat({ onNavigate }: CopilotChatProps) {
                     <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-secondary to-primary rounded-full flex items-center justify-center mx-auto mb-4 animate-float">
                       <Sparkles className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
                     </div>
-                    <h2 className="text-2xl sm:text-3xl mb-2">How can I help you teach better?</h2>
-                    <p className="text-base sm:text-lg text-muted-foreground mb-6 sm:mb-8">
-                      Try one of these suggestions or ask your own question
-                    </p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 max-w-2xl mx-auto">
+                    <h2 className="text-2xl sm:text-3xl mb-6 sm:mb-8">How can I help you teach better?</h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-w-2xl mx-auto">
                       {samplePrompts.map((prompt, i) => (
                         <Button
                           key={i}
                           variant="outline"
-                          className="rounded-2xl h-auto py-2 px-3 sm:py-3 sm:px-4 text-left justify-start hover-lift text-xs sm:text-sm"
+                          className="rounded-xl h-auto py-2 px-3 text-left justify-start hover-lift text-xs"
                           onClick={() => handlePromptClick(prompt)}
                         >
-                          <div className="w-6 h-6 sm:w-8 sm:h-8 bg-primary/10 rounded-lg flex items-center justify-center mr-2 sm:mr-3 flex-shrink-0">
-                            <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 text-primary" />
-                          </div>
-                          <span className="text-xs sm:text-sm leading-tight">{prompt}</span>
+                          <span className="text-xs leading-tight">{prompt}</span>
                         </Button>
                       ))}
                     </div>
@@ -185,41 +233,41 @@ export function CopilotChat({ onNavigate }: CopilotChatProps) {
                 >
                   
                   <div className={`flex flex-col ${message.role === 'user' ? 'items-end' : 'items-start'} max-w-[90%] sm:max-w-[80%]`}>
-                    <Card className={`rounded-2xl ${
+                    <Card className={`rounded-2xl shadow-sm ${
                       message.role === 'user'
                         ? 'bg-primary text-primary-foreground'
-                        : 'glass-card'
+                        : 'bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50'
                     }`}>
-                      <CardContent className="p-3 sm:p-4">
+                      <CardContent className="p-4 sm:p-5">
                         <div className="prose prose-sm max-w-none">
                           {message.content.split('\n').map((line, index) => {
-                            // Format bullet points and numbered lists
-                            if (line.trim().startsWith('✅') || line.trim().startsWith('•') || line.trim().startsWith('-') || line.trim().startsWith('*')) {
+                            // Format code blocks (lines starting with ```)
+                            if (line.trim().startsWith('```')) {
                               return (
-                                <div key={index} className="flex items-start gap-3 mb-3">
-                                  <span className="text-primary font-semibold mt-1 flex-shrink-0 text-lg">•</span>
-                                  <span className="text-sm leading-relaxed">{line.trim().replace(/^[✅•\-\*]\s*/, '')}</span>
+                                <div key={index} className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 my-4 font-mono text-sm border border-gray-200 dark:border-gray-700">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <div className="flex gap-1">
+                                      <div className="w-2 h-2 bg-red-400 rounded-full"></div>
+                                      <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
+                                      <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                                    </div>
+                                    <span className="text-xs text-gray-500 dark:text-gray-400">Code</span>
+                                  </div>
+                                  <code className="text-gray-800 dark:text-gray-200 block whitespace-pre-wrap">{line.replace(/```/g, '')}</code>
                                 </div>
                               );
                             }
-                            // Format headers (lines that are all caps or start with #)
-                            if (line.trim().match(/^[A-Z\s]+$/) && line.trim().length > 3) {
+                            
+                            // Format inline code (text between `)
+                            if (line.includes('`') && !line.trim().startsWith('```')) {
+                              const parts = line.split(/(`[^`]+`)/g);
                               return (
-                                <div key={index} className="font-semibold text-primary mb-4 mt-6 first:mt-0 text-base border-b border-primary/20 pb-2">
-                                  {line.trim()}
-                                </div>
-                              );
-                            }
-                            // Format bold text (text between **)
-                            if (line.includes('**')) {
-                              const parts = line.split(/(\*\*.*?\*\*)/g);
-                              return (
-                                <div key={index} className="mb-3">
+                                <div key={index} className="mb-2">
                                   {parts.map((part, partIndex) => 
-                                    part.startsWith('**') && part.endsWith('**') ? (
-                                      <strong key={partIndex} className="font-semibold text-primary">
-                                        {part.slice(2, -2)}
-                                      </strong>
+                                    part.startsWith('`') && part.endsWith('`') ? (
+                                      <code key={partIndex} className="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-xs font-mono text-gray-800 dark:text-gray-200">
+                                        {part.slice(1, -1)}
+                                      </code>
                                     ) : (
                                       <span key={partIndex}>{part}</span>
                                     )
@@ -227,22 +275,49 @@ export function CopilotChat({ onNavigate }: CopilotChatProps) {
                                 </div>
                               );
                             }
-                            // Format numbered lists
-                            if (line.trim().match(/^\d+\./)) {
+                            
+                            // Format bullet points and numbered lists
+                            if (line.trim().startsWith('✅') || line.trim().startsWith('•') || line.trim().startsWith('-') || line.trim().startsWith('*')) {
                               return (
-                                <div key={index} className="flex items-start gap-3 mb-3">
-                                  <span className="text-primary font-semibold mt-1 flex-shrink-0 text-sm bg-primary/10 rounded-full w-5 h-5 flex items-center justify-center">
-                                    {line.trim().match(/^\d+/)?.[0]}
+                                <div key={index} className="flex items-start gap-2 mb-2">
+                                  <span className="text-primary font-semibold mt-1 flex-shrink-0 text-sm">•</span>
+                                  <span className="text-sm leading-relaxed">
+                                    {formatInlineMarkdown(line.trim().replace(/^[✅•\-\*]\s*/, ''))}
                                   </span>
-                                  <span className="text-sm leading-relaxed">{line.trim().replace(/^\d+\.\s*/, '')}</span>
                                 </div>
                               );
                             }
-                            // Regular text with better spacing
+                            
+                            // Format headers (lines that are all caps or start with #)
+                            if (line.trim().match(/^[A-Z\s]+$/) && line.trim().length > 3) {
+                              return (
+                                <div key={index} className="font-semibold text-primary mb-3 mt-4 first:mt-0 text-sm border-b border-primary/20 pb-1">
+                                  {line.trim()}
+                                </div>
+                              );
+                            }
+                            
+                            // Format numbered lists
+                            if (line.trim().match(/^\d+\./)) {
+                              return (
+                                <div key={index} className="flex items-start gap-2 mb-2">
+                                  <span className="text-primary font-semibold mt-1 flex-shrink-0 text-sm">
+                                    {line.trim().match(/^\d+/)?.[0]}.
+                                  </span>
+                                  <span className="text-sm leading-relaxed">
+                                    {formatInlineMarkdown(line.trim().replace(/^\d+\.\s*/, ''))}
+                                  </span>
+                                </div>
+                              );
+                            }
+                            
+                            // Regular text with inline markdown formatting
                             return line.trim() ? (
-                              <div key={index} className="mb-3 text-sm leading-relaxed">{line}</div>
+                              <div key={index} className="mb-2 text-sm leading-relaxed">
+                                {formatInlineMarkdown(line)}
+                              </div>
                             ) : (
-                              <div key={index} className="mb-4"></div>
+                              <div key={index} className="mb-1"></div>
                             );
                           })}
                         </div>
@@ -297,48 +372,62 @@ export function CopilotChat({ onNavigate }: CopilotChatProps) {
               </div>
             </ScrollArea>
 
-          {/* Input Area - Fixed at bottom */}
-          <div className="sticky bottom-0 bg-background/95 backdrop-blur-sm border-t p-3 sm:p-4">
-            <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md rounded-2xl border border-gray-200/50 dark:border-gray-700/50 shadow-lg">
-              <div className="p-3">
-                <div className="flex items-end gap-3">
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="flex-shrink-0 rounded-xl h-9 w-9 sm:h-10 sm:w-10 hover:bg-primary/10 transition-colors"
-                  >
-                    <Mic className="w-4 h-4 sm:w-5 sm:h-5" />
-                  </Button>
+          {/* Input Area - Fixed at bottom of viewport */}
+          <div className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t p-3 sm:p-4">
+            <div className="max-w-4xl mx-auto w-full">
+              <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-lg">
+                <div className="p-3">
+                  <div className="flex items-end gap-3">
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="flex-shrink-0 rounded-xl h-9 w-9 sm:h-10 sm:w-10 hover:bg-primary/10 transition-colors"
+                    >
+                      <Mic className="w-4 h-4 sm:w-5 sm:h-5" />
+                    </Button>
 
-                  <div className="flex-1 relative">
-                    <Textarea
-                      placeholder="Ask me anything about teaching..."
-                      value={input}
-                      onChange={(e) => setInput(e.target.value)}
-                      onKeyDown={handleKeyPress}
-                      className="min-h-[40px] sm:min-h-[44px] max-h-24 sm:max-h-32 resize-none rounded-xl border border-gray-200/50 dark:border-gray-700/50 bg-white/50 dark:bg-gray-800/50 text-sm placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-                      disabled={isLoading}
-                    />
+                    <div className="flex-1 relative">
+                      <Textarea
+                        placeholder="Ask me anything about teaching..."
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        onKeyDown={handleKeyPress}
+                        className="min-h-[40px] sm:min-h-[44px] max-h-24 sm:max-h-32 resize-none rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                        disabled={isLoading}
+                      />
+                    </div>
+
+                    <Button 
+                      size="icon" 
+                      onClick={handleSend}
+                      disabled={!input.trim() || isLoading}
+                      className="rounded-xl bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white shadow-lg hover:shadow-xl transition-all duration-200 flex-shrink-0 h-9 w-9 sm:h-11 sm:w-11 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isLoading ? (
+                        <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
+                      ) : (
+                        <Send className="w-4 h-4 sm:w-5 sm:h-5" />
+                      )}
+                    </Button>
                   </div>
-
-                  <Button 
-                    size="icon" 
-                    onClick={handleSend}
-                    disabled={!input.trim() || isLoading}
-                    className="rounded-xl bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white shadow-lg hover:shadow-xl transition-all duration-200 flex-shrink-0 h-9 w-9 sm:h-11 sm:w-11 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isLoading ? (
-                      <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
-                    ) : (
-                      <Send className="w-4 h-4 sm:w-5 sm:h-5" />
-                    )}
-                  </Button>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </SharedLayout>
+    </>
+  );
+
+  return (
+    <SharedLayout 
+      onNavigate={onNavigate}
+      userRole={isStudent ? "student" : "teacher"}
+      title="TeachMate"
+      subtitle={isStudent ? "Your AI Learning Companion" : "Your AI Teaching Assistant"}
+      activeMenu="copilot"
+      hideHeaderIcons={true}
+      children={content}
+    />
   );
 }
