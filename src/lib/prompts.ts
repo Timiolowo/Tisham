@@ -133,13 +133,24 @@ Use relatable examples when relevant, and cultural references. Consider the ${re
 /**
  * Quiz Generation Prompts
  */
-export const getQuizGenerationPrompt = (topic: string, numberOfQuestions: number, difficulty: string, classLevel?: string): PromptConfig => ({
-  system: `You are an expert assessment creator for Nigerian secondary schools. Create high-quality quiz questions that test understanding and use Nigerian examples where relevant.`,
-  user: `Create EXACTLY ${numberOfQuestions} ${difficulty} multiple-choice questions about "${topic}" for ${classLevel || 'Nigerian secondary school'} students. 
-
-IMPORTANT: Format each question EXACTLY like this:
-
-### Question 1: [Topic Name]
+export const getQuizGenerationPrompt = (topic: string, numberOfQuestions: number, difficulty: string, classLevel?: string, questionTypes?: { mcq: boolean; short: boolean; essay: boolean }): PromptConfig => {
+  // Determine which question types to include
+  const types = questionTypes || { mcq: true, short: true, essay: false };
+  const selectedTypes = [];
+  
+  if (types.mcq) selectedTypes.push('Multiple Choice Questions (MCQ)');
+  if (types.short) selectedTypes.push('Short Answer Questions');
+  if (types.essay) selectedTypes.push('Essay Questions');
+  
+  const questionTypesText = selectedTypes.join(', ');
+  
+  // Create format instructions based on selected types
+  let formatInstructions = '';
+  
+  if (types.mcq) {
+    formatInstructions += `
+### Multiple Choice Questions Format:
+### Question [Number]: [Topic Name]
 1. **Question**: [Your question here]
 2. **Answer Options**:
    - A: [Option A]
@@ -149,16 +160,56 @@ IMPORTANT: Format each question EXACTLY like this:
 3. **Correct Answer**: [Letter]: [Answer text]
 4. **Explanation**: [Brief explanation]
 
+`;
+  }
+  
+  if (types.short) {
+    formatInstructions += `
+### Short Answer Questions Format:
+### Question [Number]: [Topic Name]
+1. **Question**: [Your question here]
+2. **Explanation**: [Key points that should be included]
+3. **Sample Answer**: [Example of a good answer]
+4. **Marks**: [Number of marks allocated]
+
+`;
+  }
+  
+  if (types.essay) {
+    formatInstructions += `
+### Essay Questions Format:
+### Question [Number]: [Topic Name]
+1. **Question**: [Your essay question here]
+2. **Instructions**: [Specific instructions for the essay]
+3. **Explanation**: [Main points that should be addressed]
+4. **Marks**: [Number of marks allocated]
+5. **Word Limit**: [Suggested word count]
+
+`;
+  }
+
+  return {
+    system: `You are an expert assessment creator for Nigerian secondary schools. Create high-quality quiz questions that test understanding and use Nigerian examples where relevant.`,
+    user: `Create EXACTLY ${numberOfQuestions} ${difficulty} questions about "${topic}" for ${classLevel || 'Nigerian secondary school'} students.
+
+Question Types to Include: ${questionTypesText}
+
+IMPORTANT: Format each question EXACTLY like this:${formatInstructions}
+
 Requirements:
 - Create EXACTLY ${numberOfQuestions} questions (no more, no less)
 - Difficulty level: ${difficulty}
 - Target audience: ${classLevel || 'Nigerian secondary school students'}
 - Use Nigerian examples, locations, and cultural references
 - Make questions age-appropriate for ${classLevel || 'secondary school'} students
-- Each question must have exactly 4 options (A, B, C, D)`,
-  temperature: 0.5,
-  maxTokens: 2000
-});
+- Distribute question types based on what's selected: ${questionTypesText}
+- For MCQ: Each question must have exactly 4 options (A, B, C, D)
+- For Short Answer: Provide clear expected answers and key points
+- For Essay: Include specific instructions and key points to cover`,
+    temperature: 0.5,
+    maxTokens: 3000
+  };
+};
 
 /**
  * Content Analysis Prompts

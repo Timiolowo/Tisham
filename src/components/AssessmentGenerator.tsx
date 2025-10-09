@@ -35,6 +35,11 @@ export function AssessmentGenerator({ onNavigate, lessonPlan }: AssessmentGenera
   const [classLevel, setClassLevel] = useState("JSS 3");
   const [numberOfQuestions, setNumberOfQuestions] = useState(5);
   const [difficulty, setDifficulty] = useState("medium");
+  const [questionTypes, setQuestionTypes] = useState({
+    mcq: true,
+    short: true,
+    essay: false
+  });
 
   // Function to get subjects based on class level
   const getSubjectsForClass = (level: string) => {
@@ -83,6 +88,14 @@ export function AssessmentGenerator({ onNavigate, lessonPlan }: AssessmentGenera
     if (!availableSubjects.includes(subject)) {
       setSubject(availableSubjects[0]); // Set to first available subject
     }
+  };
+
+  // Handle question type changes
+  const handleQuestionTypeChange = (type: 'mcq' | 'short' | 'essay', checked: boolean) => {
+    setQuestionTypes(prev => ({
+      ...prev,
+      [type]: checked
+    }));
   };
 
   // Default hardcoded questions
@@ -152,7 +165,7 @@ export function AssessmentGenerator({ onNavigate, lessonPlan }: AssessmentGenera
     // If API key is configured, generate AI questions
     if (isApiKeyConfigured()) {
       try {
-        const generatedContent = await generateQuiz(topic, numberOfQuestions, difficulty, classLevel);
+        const generatedContent = await generateQuiz(topic, numberOfQuestions, difficulty, classLevel, questionTypes);
         setAiGeneratedContent(generatedContent);
         
         // Parse the AI-generated content into the same format as hardcoded questions
@@ -196,25 +209,33 @@ export function AssessmentGenerator({ onNavigate, lessonPlan }: AssessmentGenera
       if (line.match(/^### Question \d+:|^Question \d+:/)) {
         questionCount++;
         
-        // Create a simple question structure
-        const question = {
-          type: "mcq",
+        // Determine question type based on the format
+        let questionType = "mcq"; // default
+        let question = {
+          type: questionType,
           question: '',
           options: [],
           answer: '',
-          explanation: ''
+          explanation: '',
+          sampleAnswer: '',
+          marks: '',
+          instructions: '',
+          keyPoints: '',
+          wordLimit: ''
         };
         
         // Look for the numbered sections in the next few lines
-        for (let j = i + 1; j < Math.min(i + 20, lines.length); j++) {
+        for (let j = i + 1; j < Math.min(i + 25, lines.length); j++) {
           const nextLine = lines[j].trim();
           
           // Section 1: Question
           if (nextLine.match(/^1\.\s*\*\*Question\*\*:/)) {
             question.question = nextLine.replace(/^1\.\s*\*\*Question\*\*:\s*/, '');
           }
-          // Section 2: Answer Options
+          // Section 2: Check for different formats
           else if (nextLine.match(/^2\.\s*\*\*Answer Options\*\*:/)) {
+            // This is an MCQ question
+            question.type = "mcq";
             // Collect options in the next few lines
             for (let k = j + 1; k < Math.min(j + 10, lines.length); k++) {
               const optionLine = lines[k].trim();
@@ -228,8 +249,18 @@ export function AssessmentGenerator({ onNavigate, lessonPlan }: AssessmentGenera
               }
             }
           }
-          // Section 3: Correct Answer
+          else if (nextLine.match(/^2\.\s*\*\*Explanation\*\*:/)) {
+            // This could be Short Answer or Essay
+            question.explanation = nextLine.replace(/^2\.\s*\*\*Explanation\*\*:\s*/, '');
+          }
+          else if (nextLine.match(/^2\.\s*\*\*Instructions\*\*:/)) {
+            // This is an Essay question
+            question.type = "essay";
+            question.instructions = nextLine.replace(/^2\.\s*\*\*Instructions\*\*:\s*/, '');
+          }
+          // Section 3: Check for different formats
           else if (nextLine.match(/^3\.\s*\*\*Correct Answer\*\*:/)) {
+            // MCQ question
             const answerLine = nextLine.replace(/^3\.\s*\*\*Correct Answer\*\*:\s*/, '');
             // Extract just the letter
             const letterMatch = answerLine.match(/^([A-D])/);
@@ -239,9 +270,25 @@ export function AssessmentGenerator({ onNavigate, lessonPlan }: AssessmentGenera
               question.answer = answerLine;
             }
           }
-          // Section 4: Explanation
+          else if (nextLine.match(/^3\.\s*\*\*Sample Answer\*\*:/)) {
+            // Short Answer question
+            question.type = "short";
+            question.sampleAnswer = nextLine.replace(/^3\.\s*\*\*Sample Answer\*\*:\s*/, '');
+          }
+          else if (nextLine.match(/^3\.\s*\*\*Explanation\*\*:/)) {
+            // Essay question
+            question.keyPoints = nextLine.replace(/^3\.\s*\*\*Explanation\*\*:\s*/, '');
+          }
+          // Section 4: Check for different formats
           else if (nextLine.match(/^4\.\s*\*\*Explanation\*\*:/)) {
             question.explanation = nextLine.replace(/^4\.\s*\*\*Explanation\*\*:\s*/, '');
+          }
+          else if (nextLine.match(/^4\.\s*\*\*Marks\*\*:/)) {
+            question.marks = nextLine.replace(/^4\.\s*\*\*Marks\*\*:\s*/, '');
+          }
+          // Section 5: Check for Essay-specific fields
+          else if (nextLine.match(/^5\.\s*\*\*Word Limit\*\*:/)) {
+            question.wordLimit = nextLine.replace(/^5\.\s*\*\*Word Limit\*\*:\s*/, '');
           }
           // Stop if we hit the next question
           else if (nextLine.match(/^### Question|^Question \d+:/)) {
@@ -281,12 +328,17 @@ export function AssessmentGenerator({ onNavigate, lessonPlan }: AssessmentGenera
   const handleExportCSV = () => {
     const csvContent = questions.map((q, i) => {
       const options = q.type === 'mcq' && q.options ? q.options.join(' | ') : '';
-      const answer = showAnswers ? q.answer : 'Hidden';
+      const answer = showAnswers ? (q.answer || q.sampleAnswer || 'N/A') : 'Hidden';
       const explanation = showAnswers && q.explanation ? q.explanation : 'Hidden';
-      return `${i + 1},"${q.question}","${options}","${answer}","${explanation}"`;
+      const marks = q.marks || 'N/A';
+      const instructions = q.instructions || 'N/A';
+      const keyPoints = q.keyPoints || 'N/A';
+      const wordLimit = q.wordLimit || 'N/A';
+      
+      return `${i + 1},"${q.question}","${q.type}","${options}","${answer}","${explanation}","${marks}","${instructions}","${keyPoints}","${wordLimit}"`;
     }).join('\n');
 
-    const header = 'Question Number,Question,Options,Answer,Explanation\n';
+    const header = 'Question Number,Question,Type,Options,Answer,Explanation,Marks,Instructions,Key Points,Word Limit\n';
     const csv = header + csvContent;
     
     const blob = new Blob([csv], { type: 'text/csv' });
@@ -390,9 +442,27 @@ export function AssessmentGenerator({ onNavigate, lessonPlan }: AssessmentGenera
                 <div class="answer-line"></div>
                 <div class="answer-line"></div>
               ` : ''}
+              ${q.type === 'essay' ? `
+                <div class="answer-line" style="height: 100px;"></div>
+                <div class="answer-line" style="height: 100px;"></div>
+                <div class="answer-line" style="height: 100px;"></div>
+              ` : ''}
               ${showAnswers ? `
-                <div class="answer"><strong>Answer:</strong> ${q.answer}</div>
-                ${q.explanation ? `<div class="answer" style="background: #3B82F6; margin-top: 10px;"><strong>Explanation:</strong> ${q.explanation}</div>` : ''}
+                ${q.type === 'mcq' ? `
+                  <div class="answer"><strong>Answer:</strong> ${q.answer}</div>
+                  ${q.explanation ? `<div class="answer" style="background: #3B82F6; margin-top: 10px;"><strong>Explanation:</strong> ${q.explanation}</div>` : ''}
+                ` : ''}
+                ${q.type === 'short' ? `
+                  ${q.explanation ? `<div class="answer" style="background: #3B82F6; margin-top: 10px;"><strong>Explanation:</strong> ${q.explanation}</div>` : ''}
+                  ${q.sampleAnswer ? `<div class="answer" style="background: #10B981; margin-top: 10px;"><strong>Sample Answer:</strong> ${q.sampleAnswer}</div>` : ''}
+                  ${q.marks ? `<div class="answer" style="background: #F59E0B; margin-top: 10px;"><strong>Marks:</strong> ${q.marks}</div>` : ''}
+                ` : ''}
+                ${q.type === 'essay' ? `
+                  ${q.instructions ? `<div class="answer" style="background: #8B5CF6; margin-top: 10px;"><strong>Instructions:</strong> ${q.instructions}</div>` : ''}
+                  ${q.keyPoints ? `<div class="answer" style="background: #3B82F6; margin-top: 10px;"><strong>Key Points to Cover:</strong> ${q.keyPoints}</div>` : ''}
+                  ${q.marks ? `<div class="answer" style="background: #F59E0B; margin-top: 10px;"><strong>Marks:</strong> ${q.marks}</div>` : ''}
+                  ${q.wordLimit ? `<div class="answer" style="background: #F97316; margin-top: 10px;"><strong>Word Limit:</strong> ${q.wordLimit}</div>` : ''}
+                ` : ''}
               ` : ''}
             </div>
           `).join('')}
@@ -505,19 +575,31 @@ export function AssessmentGenerator({ onNavigate, lessonPlan }: AssessmentGenera
                 <Label>Question Types</Label>
                 <div className="space-y-2">
                   <div className="flex items-center space-x-2">
-                    <Checkbox id="mcq" defaultChecked />
+                    <Checkbox 
+                      id="mcq" 
+                      checked={questionTypes.mcq}
+                      onCheckedChange={(checked) => handleQuestionTypeChange('mcq', checked as boolean)}
+                    />
                     <label htmlFor="mcq" className="text-sm cursor-pointer">
                       Multiple Choice Questions (MCQ)
                     </label>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Checkbox id="short" defaultChecked />
+                    <Checkbox 
+                      id="short" 
+                      checked={questionTypes.short}
+                      onCheckedChange={(checked) => handleQuestionTypeChange('short', checked as boolean)}
+                    />
                     <label htmlFor="short" className="text-sm cursor-pointer">
                       Short Answer Questions
                     </label>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Checkbox id="essay" />
+                    <Checkbox 
+                      id="essay" 
+                      checked={questionTypes.essay}
+                      onCheckedChange={(checked) => handleQuestionTypeChange('essay', checked as boolean)}
+                    />
                     <label htmlFor="essay" className="text-sm cursor-pointer">
                       Essay Questions
                     </label>
@@ -674,22 +756,110 @@ export function AssessmentGenerator({ onNavigate, lessonPlan }: AssessmentGenera
                             </div>
                           )}
 
+                          {q.type === "essay" && (
+                            <div className="ml-11">
+                              <div className="space-y-3">
+                                <div className="border-b border-dashed border-muted-foreground/30 py-8"></div>
+                                <div className="border-b border-dashed border-muted-foreground/30 py-8"></div>
+                                <div className="border-b border-dashed border-muted-foreground/30 py-8"></div>
+                              </div>
+                            </div>
+                          )}
+
                           {showAnswers && (
                             <div className="ml-8 sm:ml-11 mt-3 space-y-3">
-                              <div className="p-3 bg-green-50 border border-green-200 rounded-lg overflow-hidden">
-                                <p className="text-sm text-green-800 break-words">
-                                  <span className="font-semibold">Correct Answer: </span>
-                                {q.answer}
-                              </p>
-                              </div>
-                              
-                              {q.explanation && (
-                                <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg overflow-hidden">
-                                  <p className="text-sm text-blue-800 leading-relaxed break-words hyphens-auto">
-                                    <span className="font-semibold">Explanation: </span>
-                                    {q.explanation}
-                                  </p>
-                                </div>
+                              {/* MCQ Answers */}
+                              {q.type === "mcq" && (
+                                <>
+                                  <div className="p-3 bg-green-50 border border-green-200 rounded-lg overflow-hidden">
+                                    <p className="text-sm text-green-800 break-words">
+                                      <span className="font-semibold">Correct Answer: </span>
+                                      {q.answer}
+                                    </p>
+                                  </div>
+                                  
+                                  {q.explanation && (
+                                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg overflow-hidden">
+                                      <p className="text-sm text-blue-800 leading-relaxed break-words hyphens-auto">
+                                        <span className="font-semibold">Explanation: </span>
+                                        {q.explanation}
+                                      </p>
+                                    </div>
+                                  )}
+                                </>
+                              )}
+
+                              {/* Short Answer Answers */}
+                              {q.type === "short" && (
+                                <>
+                                  {q.explanation && (
+                                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg overflow-hidden">
+                                      <p className="text-sm text-blue-800 leading-relaxed break-words hyphens-auto">
+                                        <span className="font-semibold">Explanation: </span>
+                                        {q.explanation}
+                                      </p>
+                                    </div>
+                                  )}
+                                  
+                                  {q.sampleAnswer && (
+                                    <div className="p-3 bg-green-50 border border-green-200 rounded-lg overflow-hidden">
+                                      <p className="text-sm text-green-800 break-words">
+                                        <span className="font-semibold">Sample Answer: </span>
+                                        {q.sampleAnswer}
+                                      </p>
+                                    </div>
+                                  )}
+                                  
+                                  {q.marks && (
+                                    <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg overflow-hidden">
+                                      <p className="text-sm text-yellow-800 break-words">
+                                        <span className="font-semibold">Marks: </span>
+                                        {q.marks}
+                                      </p>
+                                    </div>
+                                  )}
+                                </>
+                              )}
+
+                              {/* Essay Answers */}
+                              {q.type === "essay" && (
+                                <>
+                                  {q.instructions && (
+                                    <div className="p-3 bg-purple-50 border border-purple-200 rounded-lg overflow-hidden">
+                                      <p className="text-sm text-purple-800 break-words">
+                                        <span className="font-semibold">Instructions: </span>
+                                        {q.instructions}
+                                      </p>
+                                    </div>
+                                  )}
+                                  
+                                  {q.keyPoints && (
+                                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg overflow-hidden">
+                                      <p className="text-sm text-blue-800 leading-relaxed break-words hyphens-auto">
+                                        <span className="font-semibold">Key Points to Cover: </span>
+                                        {q.keyPoints}
+                                      </p>
+                                    </div>
+                                  )}
+                                  
+                                  {q.marks && (
+                                    <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg overflow-hidden">
+                                      <p className="text-sm text-yellow-800 break-words">
+                                        <span className="font-semibold">Marks: </span>
+                                        {q.marks}
+                                      </p>
+                                    </div>
+                                  )}
+                                  
+                                  {q.wordLimit && (
+                                    <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg overflow-hidden">
+                                      <p className="text-sm text-orange-800 break-words">
+                                        <span className="font-semibold">Word Limit: </span>
+                                        {q.wordLimit}
+                                      </p>
+                                    </div>
+                                  )}
+                                </>
                               )}
                             </div>
                           )}

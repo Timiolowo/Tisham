@@ -194,10 +194,11 @@ export async function generateQuiz(
   topic: string,
   numberOfQuestions: number = 5,
   difficulty: 'easy' | 'medium' | 'hard' = 'medium',
-  classLevel?: string
+  classLevel?: string,
+  questionTypes?: { mcq: boolean; short: boolean; essay: boolean }
 ): Promise<string> {
   const { getQuizGenerationPrompt } = await import('./prompts');
-  const promptConfig = getQuizGenerationPrompt(topic, numberOfQuestions, difficulty, classLevel);
+  const promptConfig = getQuizGenerationPrompt(topic, numberOfQuestions, difficulty, classLevel, questionTypes);
   
   const systemPrompt: Message = {
     role: 'system',
