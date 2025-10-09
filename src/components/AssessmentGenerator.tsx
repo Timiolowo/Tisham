@@ -426,9 +426,13 @@ export function AssessmentGenerator({ onNavigate, lessonPlan }: AssessmentGenera
           <div class="meta">
             <strong>Subject:</strong> ${subject} | 
             <strong>Level:</strong> JSS 3 | 
-            <strong>Total Marks:</strong> ${questions.length * 2}
+            <strong>Total Marks:</strong> ${questions.reduce((sum, q) => {
+              if (!q.marks) return sum + 2;
+              const marksMatch = q.marks.match(/(\d+)/);
+              return sum + (marksMatch ? parseInt(marksMatch[1]) : 2);
+            }, 0)}
           </div>
-          <p><em>Instructions: Answer all questions. Each question carries 2 marks.</em></p>
+          <p><em>Instructions: Answer all questions. Marks are indicated for each question.</em></p>
           ${questions.map((q, i) => `
             <div class="question">
               <div>
@@ -715,7 +719,12 @@ export function AssessmentGenerator({ onNavigate, lessonPlan }: AssessmentGenera
                       </div>
                       <div className="text-left sm:text-right">
                         <p className="text-sm text-muted-foreground">Total Marks</p>
-                        <p className="text-base font-semibold">{questions.reduce((sum, q) => sum + (q.marks || 1), 0)}</p>
+                        <p className="text-base font-semibold">{questions.reduce((sum, q) => {
+                          if (!q.marks) return sum + 2; // Default 2 marks if no marks specified
+                          // Extract number from marks string (e.g., "5 marks" -> 5)
+                          const marksMatch = q.marks.match(/(\d+)/);
+                          return sum + (marksMatch ? parseInt(marksMatch[1]) : 2);
+                        }, 0)}</p>
                       </div>
                     </div>
                   </CardHeader>
@@ -723,7 +732,7 @@ export function AssessmentGenerator({ onNavigate, lessonPlan }: AssessmentGenera
                     <div className="space-y-4 sm:space-y-6">
                       <div>
                         <p className="mb-4 text-sm text-muted-foreground">
-                          Instructions: Answer all questions. Each question carries 2 marks.
+                          Instructions: Answer all questions. Marks are indicated for each question.
                         </p>
                       </div>
 
