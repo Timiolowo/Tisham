@@ -98,51 +98,14 @@ export function StudentDashboard({ onNavigate }: StudentDashboardProps) {
         goals: user.goals || 'Academic Excellence'
       };
 
-      const prompt = `Based on this student profile, recommend 6 personalized courses/lessons that would be most beneficial for their learning journey:
-
-Student Profile:
-- Name: ${studentProfile.name}
-- Class: ${studentProfile.class}
-- Subjects: ${studentProfile.subjects.join(', ')}
-- Interests: ${studentProfile.interests.join(', ')}
-- Current Performance: ${studentStats.xp} XP, ${studentStats.streak} day streak, ${studentStats.badges} badges
-- Goals: ${studentProfile.goals}
-
-Please provide 6 course recommendations in this JSON format:
-[
-  {
-    "id": "course-1",
-    "title": "Course Title",
-    "description": "Brief description of what the student will learn",
-    "subject": "Subject Area",
-    "difficulty": "Beginner|Intermediate|Advanced",
-    "duration": "X hours",
-    "skills": ["skill1", "skill2", "skill3"],
-    "icon": "🎯",
-    "color": "gradient-primary",
-    "isRecommended": true,
-    "reason": "Why this course is recommended for this student"
-  }
-]
-
-Make the recommendations highly personalized based on their class level, interests, and current performance. Focus on courses that will help them improve in their weak areas and build on their strengths.`;
-
-      // Use the existing Groq service instead of direct API calls
-      const { sendChatMessage } = await import('../lib/groq');
+      // Use the centralized prompt system
+      const { generateStudentRecommendations } = await import('../lib/groq');
       
-      const content = await sendChatMessage([
-        {
-          role: 'system',
-          content: 'You are an AI educational advisor that provides personalized course recommendations for Nigerian secondary school students. Always respond with valid JSON only.'
-        },
-        {
-          role: 'user',
-          content: prompt
-        }
-      ], {
-        model: 'llama-3.3-70b-versatile',
-        temperature: 0.7,
-        maxTokens: 2000
+      const content = await generateStudentRecommendations({
+        ...studentProfile,
+        xp: studentStats.xp,
+        streak: studentStats.streak,
+        badges: studentStats.badges
       });
       
       try {

@@ -11,8 +11,8 @@ import {
   Star, Zap, ChevronRight, GraduationCap, Download
 } from "lucide-react";
 import { toast } from "sonner";
-import { explainConcept } from "../lib/groq";
-// Get Groq API key from environment
+import { SharedLayout } from "./SharedLayout";
+import { useAuth } from "../contexts/AuthContext";
 import { runtimeEnv } from '../lib/runtime-env';
 
 const getGroqApiKey = () => {
@@ -50,6 +50,7 @@ interface AILearningContent {
 }
 
 export function TeacherLearning({ onBack, onNavigate }: TeacherLearningProps) {
+  const { user } = useAuth();
   const [selectedModule, setSelectedModule] = useState<LearningModule | null>(null);
   const [isGeneratingContent, setIsGeneratingContent] = useState(false);
   const [aiContent, setAiContent] = useState<AILearningContent | null>(null);
@@ -58,9 +59,11 @@ export function TeacherLearning({ onBack, onNavigate }: TeacherLearningProps) {
   const [quizAnswers, setQuizAnswers] = useState<Record<number, number>>({});
   const [currentTab, setCurrentTab] = useState("lesson");
   const [completedModules, setCompletedModules] = useState<number[]>([]);
+  const [customLearningInput, setCustomLearningInput] = useState("");
 
   useEffect(() => {
-    setHasApiKey(!!getGroqApiKey());
+    const apiKey = getGroqApiKey();
+    setHasApiKey(!!apiKey);
     // Load completed modules from localStorage
     const saved = localStorage.getItem('teacherCompletedModules');
     if (saved) {
@@ -71,7 +74,7 @@ export function TeacherLearning({ onBack, onNavigate }: TeacherLearningProps) {
   const learningModules: LearningModule[] = [
     {
       id: 1,
-      title: "AI-Powered Lesson Planning",
+      title: "Tishami-Powered Lesson Planning",
       description: "Master the art of creating engaging lesson plans using AI tools",
       duration: "2 hours",
       progress: completedModules.includes(1) ? 100 : 0,
@@ -79,7 +82,7 @@ export function TeacherLearning({ onBack, onNavigate }: TeacherLearningProps) {
       topics: [
         "Understanding AI in Education",
         "Effective Prompt Engineering for Lessons",
-        "Customizing AI-Generated Content",
+        "Customizing Tishami-Generated Content",
         "Aligning Lessons with Curriculum"
       ],
       difficulty: "Beginner",
@@ -87,7 +90,7 @@ export function TeacherLearning({ onBack, onNavigate }: TeacherLearningProps) {
     },
     {
       id: 2,
-      title: "Differentiated Instruction with Technology",
+      title: "Understanding Tishami in Education",
       description: "Learn to adapt teaching methods for diverse learning needs",
       duration: "3 hours",
       progress: completedModules.includes(2) ? 100 : 0,
@@ -95,7 +98,7 @@ export function TeacherLearning({ onBack, onNavigate }: TeacherLearningProps) {
       topics: [
         "Understanding Learning Styles",
         "Creating Adaptive Assessments",
-        "Using AI for Personalization",
+        "Using Tishami for Personalization",
         "Tracking Individual Progress"
       ],
       difficulty: "Intermediate",
@@ -127,7 +130,7 @@ export function TeacherLearning({ onBack, onNavigate }: TeacherLearningProps) {
       topics: [
         "Formative vs Summative Assessment",
         "Creating Valid Test Items",
-        "Using AI for Auto-Grading",
+        "Using Tishami for Auto-Grading",
         "Interpreting Student Data"
       ],
       difficulty: "Advanced",
@@ -179,55 +182,94 @@ export function TeacherLearning({ onBack, onNavigate }: TeacherLearningProps) {
     
     try {
       const topic = module.topics[currentTopicIndex];
-      const prompt = `As an expert educator, create comprehensive learning content for a teacher professional development module on "${topic}" within the broader course "${module.title}".
-
-Please provide:
-1. A clear overview (2-3 paragraphs) explaining the concept
-2. 5 key points teachers must understand
-3. 4 practical applications they can use in Nigerian classrooms
-4. 3 real-world examples specific to Nigerian education context
-5. 2 quiz questions to test understanding
-
-Format as JSON with this structure:
-{
-  "overview": "...",
-  "keyPoints": ["point 1", "point 2", ...],
-  "practicalApplications": ["app 1", "app 2", ...],
-  "examples": ["example 1", "example 2", "example 3"],
-  "quiz": [
-    {
-      "question": "...",
-      "options": ["opt1", "opt2", "opt3", "opt4"],
-      "correct": 0
-    }
-  ]
-}`;
-
+      
       if (hasApiKey) {
-        const response = await explainConcept(topic, prompt);
+        // Import the learning pathway function from groq
+        const { generateLearningPathwayContent } = await import('../lib/groq');
+        const response = await generateLearningPathwayContent(topic, module.title);
         
         try {
-          const jsonMatch = response.match(/\{[\s\S]*\}/);
-          if (jsonMatch) {
-            const parsed = JSON.parse(jsonMatch[0]);
-            setAiContent(parsed);
-          } else {
-            throw new Error("No JSON found");
-          }
-        } catch {
-          setAiContent(createDemoContent(topic));
+          // Clean the JSON response
+          let jsonString = response.trim();
+          
+          // Remove any markdown code blocks
+          jsonString = jsonString.replace(/```json\n?/g, '').replace(/```\n?/g, '');
+          
+          // Remove trailing commas
+          jsonString = jsonString.replace(/,(\s*[}\]])/g, '$1');
+          
+          // Escape unescaped quotes
+          jsonString = jsonString.replace(/(?<!\\)"/g, '\\"');
+          
+          // Remove control characters
+          jsonString = jsonString.replace(/[\x00-\x1F\x7F]/g, '');
+          
+          // Fix newlines and tabs
+          jsonString = jsonString.replace(/\n/g, '\\n').replace(/\t/g, '\\t').replace(/\r/g, '\\r');
+          
+          const parsed = JSON.parse(jsonString);
+          setAiContent(parsed);
+        } catch (parseError) {
+          // Fallback content extraction
+          setAiContent(extractContentFromText(response, topic));
         }
       } else {
         setAiContent(createDemoContent(topic));
       }
       
-      toast.success("Learning content generated!");
+      toast.success("Tishami-generated learning content ready!");
     } catch (error) {
-      console.error('Content generation error:', error);
       setAiContent(createDemoContent(module.topics[currentTopicIndex]));
+      toast.error("Content could not be extracted from Tishami response.");
     } finally {
       setIsGeneratingContent(false);
     }
+  };
+
+  const extractContentFromText = (text: string, topic: string): AILearningContent => {
+    return {
+      overview: `This topic covers important concepts related to ${topic}. The content is being generated by Tishami to provide you with comprehensive learning materials.`,
+      keyPoints: [
+        `Key concept 1 related to ${topic}`,
+        `Key concept 2 related to ${topic}`,
+        `Key concept 3 related to ${topic}`,
+        `Key concept 4 related to ${topic}`,
+        `Key concept 5 related to ${topic}`
+      ],
+      practicalApplications: [
+        `Practical application 1 for ${topic}`,
+        `Practical application 2 for ${topic}`,
+        `Practical application 3 for ${topic}`,
+        `Practical application 4 for ${topic}`
+      ],
+      examples: [
+        `Example 1 demonstrating ${topic}`,
+        `Example 2 demonstrating ${topic}`,
+        `Example 3 demonstrating ${topic}`
+      ],
+      quiz: [
+        {
+          question: `What is the main focus of ${topic}?`,
+          options: [
+            "Option A",
+            "Option B", 
+            "Option C",
+            "Option D"
+          ],
+          correct: 0
+        },
+        {
+          question: `How can ${topic} be applied effectively?`,
+          options: [
+            "Method 1",
+            "Method 2",
+            "Method 3", 
+            "Method 4"
+          ],
+          correct: 0
+        }
+      ]
+    };
   };
 
   const createDemoContent = (topic: string): AILearningContent => {
@@ -247,9 +289,9 @@ Format as JSON with this structure:
         "Professional growth: Document your journey and reflect on improvements"
       ],
       examples: [
-        "A teacher in Lagos used these strategies to increase student participation by 40% in one term",
-        "Primary school in Abuja adapted the approach for mixed-ability classes with excellent results",
-        "Rural classroom in Kano implemented low-tech versions that achieved significant learning gains"
+        `Example 1 demonstrating ${topic}`,
+        `Example 2 demonstrating ${topic}`,
+        `Example 3 demonstrating ${topic}`
       ],
       quiz: [
         {
@@ -276,6 +318,7 @@ Format as JSON with this structure:
     };
   };
 
+
   const handleStartModule = (module: LearningModule) => {
     setSelectedModule(module);
     setCurrentTopicIndex(0);
@@ -289,6 +332,7 @@ Format as JSON with this structure:
       setCurrentTopicIndex(prev => prev + 1);
       generateAIContent(selectedModule);
       setCurrentTab("lesson");
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
@@ -298,7 +342,11 @@ Format as JSON with this structure:
       if (selectedModule) {
         generateAIContent(selectedModule);
         setCurrentTab("lesson");
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       }
+    } else {
+      // If on first topic, go back to main learning pathway page
+      setSelectedModule(null);
     }
   };
 
@@ -327,6 +375,78 @@ Format as JSON with this structure:
     setSelectedModule(null);
   };
 
+  const generateCustomLearning = async () => {
+    if (!customLearningInput.trim()) {
+      toast.error("Please enter what you'd like to learn about");
+      return;
+    }
+
+    if (!hasApiKey) {
+      toast.error("API key required for custom learning generation");
+      return;
+    }
+
+    setIsGeneratingContent(true);
+    setAiContent(null);
+    
+    try {
+      // Create a custom module for the user's input
+      const customModule: LearningModule = {
+        id: 999,
+        title: "Custom Learning",
+        description: "Your personalized learning experience",
+        duration: "1 hour",
+        progress: 0,
+        completed: false,
+        topics: [customLearningInput, "Key Concepts and Principles", "Practical Applications", "Real-World Examples"],
+        difficulty: "Beginner",
+        xp: 100
+      };
+
+      setSelectedModule(customModule);
+      setCurrentTopicIndex(0);
+      setQuizAnswers({});
+      setCurrentTab("lesson");
+
+      // Generate content for the custom topic
+      const { generateLearningPathwayContent } = await import('../lib/groq');
+      const response = await generateLearningPathwayContent(customLearningInput, "Custom Learning");
+      
+      try {
+        // Clean the JSON response
+        let jsonString = response.trim();
+        
+        // Remove any markdown code blocks
+        jsonString = jsonString.replace(/```json\n?/g, '').replace(/```\n?/g, '');
+        
+        // Remove trailing commas
+        jsonString = jsonString.replace(/,(\s*[}\]])/g, '$1');
+        
+        // Escape unescaped quotes
+        jsonString = jsonString.replace(/(?<!\\)"/g, '\\"');
+        
+        // Remove control characters
+        jsonString = jsonString.replace(/[\x00-\x1F\x7F]/g, '');
+        
+        // Fix newlines and tabs
+        jsonString = jsonString.replace(/\n/g, '\\n').replace(/\t/g, '\\t').replace(/\r/g, '\\r');
+        
+        const parsed = JSON.parse(jsonString);
+        setAiContent(parsed);
+      } catch (parseError) {
+        // Fallback content extraction
+        setAiContent(extractContentFromText(response, customLearningInput));
+      }
+      
+      toast.success("Tishami-generated learning content ready!");
+    } catch (error) {
+      setAiContent(extractContentFromText("", customLearningInput));
+      toast.error("Content could not be extracted from Tishami response.");
+    } finally {
+      setIsGeneratingContent(false);
+    }
+  };
+
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
       case 'Beginner': return 'bg-success/10 text-success border-success/20';
@@ -337,276 +457,244 @@ Format as JSON with this structure:
   };
 
   if (selectedModule) {
-    return (
+    const content = (
       <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background">
-        {/* Header */}
-        <header className="bg-card/80 backdrop-blur-sm border-b px-4 sm:px-6 py-4 sticky top-0 z-40">
-          <div className="max-w-5xl mx-auto">
-            <div className="flex items-center gap-4 mb-3">
-              <Button variant="ghost" size="icon" onClick={() => setSelectedModule(null)}>
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
-              <div className="flex-1 min-w-0">
-                <h1 className="text-lg sm:text-xl font-bold truncate">{selectedModule.title}</h1>
-                <p className="text-xs sm:text-sm text-muted-foreground">
-                  Topic {currentTopicIndex + 1} of {selectedModule.topics.length}
-                </p>
-              </div>
-            </div>
-            
-            {/* Progress */}
-            <div className="flex items-center gap-2">
-              {selectedModule.topics.map((_, idx) => (
-                <div
-                  key={idx}
-                  className={`flex-1 h-2 rounded-full transition-all ${
-                    idx < currentTopicIndex
-                      ? 'bg-success'
-                      : idx === currentTopicIndex
-                      ? 'bg-primary'
-                      : 'bg-muted'
-                  }`}
-                />
-              ))}
-            </div>
-          </div>
-        </header>
-
         {/* Content */}
         <main className="max-w-5xl mx-auto p-4 sm:p-6">
-          <ScrollArea className="h-[calc(100vh-200px)]">
-            <div className="space-y-6">
-              {/* Current Topic */}
-              <Card className="rounded-2xl glass-card">
-                <CardHeader>
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                      <Brain className="w-6 h-6 text-primary" />
-                    </div>
-                    <div className="flex-1">
-                      <CardTitle>{selectedModule.topics[currentTopicIndex]}</CardTitle>
-                      <CardDescription>AI-Powered Learning Content</CardDescription>
-                    </div>
+          <div className="space-y-6">
+            {/* Current Topic */}
+            <Card className="rounded-2xl glass-card">
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <Brain className="w-6 h-6 text-primary" />
                   </div>
-                </CardHeader>
+                  <div className="flex-1">
+                    <CardTitle className="text-base sm:text-lg">{selectedModule.topics[currentTopicIndex]}</CardTitle>
+                    <CardDescription className="text-xs sm:text-sm">Powered by Tishami</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+            </Card>
+
+            {isGeneratingContent ? (
+              <Card className="rounded-2xl glass-card">
+                <CardContent className="p-12 text-center">
+                  <Loader2 className="w-12 h-12 text-primary mx-auto mb-4 animate-spin" />
+                  <p className="text-lg font-semibold mb-2">Generating Your Learning Content...</p>
+                  <p className="text-sm text-muted-foreground">
+                    Tishami is creating personalized content for you
+                  </p>
+                </CardContent>
               </Card>
+            ) : aiContent ? (
+              <div className="space-y-6">
+                  {/* Overview */}
+                  <Card className="rounded-2xl glass-card">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Lightbulb className="w-5 h-5 text-accent" />
+                        Overview
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
+                        {aiContent.overview}
+                      </p>
+                    </CardContent>
+                  </Card>
 
-              {isGeneratingContent ? (
-                <Card className="rounded-2xl glass-card">
-                  <CardContent className="p-12 text-center">
-                    <Loader2 className="w-12 h-12 text-primary mx-auto mb-4 animate-spin" />
-                    <p className="text-lg font-semibold mb-2">Generating Your Learning Content...</p>
-                    <p className="text-sm text-muted-foreground">
-                      AI is creating personalized content for you
-                    </p>
-                  </CardContent>
-                </Card>
-              ) : aiContent ? (
-                <div className="space-y-6">
-                    {/* Overview */}
-                    <Card className="rounded-2xl glass-card">
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                          <Lightbulb className="w-5 h-5 text-accent" />
-                          Overview
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
-                          {aiContent.overview}
-                        </p>
-                      </CardContent>
-                    </Card>
-
-                    {/* Key Points */}
-                    <Card className="rounded-2xl glass-card">
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                          <Target className="w-5 h-5 text-primary" />
-                          Key Learning Points
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-3">
-                          {aiContent.keyPoints.map((point, idx) => (
-                            <div key={idx} className="flex items-start gap-3">
-                              <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                <span className="text-xs font-semibold text-primary">{idx + 1}</span>
-                              </div>
-                              <p className="text-sm text-muted-foreground flex-1">{point}</p>
+                  {/* Key Points */}
+                  <Card className="rounded-2xl glass-card">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Target className="w-5 h-5 text-primary" />
+                        Key Learning Points
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        {aiContent.keyPoints.map((point, idx) => (
+                          <div key={idx} className="flex items-start gap-3">
+                            <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                              <span className="text-xs font-semibold text-primary">{idx + 1}</span>
                             </div>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    {/* Practical Applications */}
-                    <Card className="rounded-2xl glass-card">
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                          <Zap className="w-5 h-5 text-accent" />
-                          Practical Applications
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-3">
-                          {aiContent.practicalApplications.map((app, idx) => (
-                            <div key={idx} className="flex items-start gap-3 p-3 rounded-xl bg-accent/5 border border-accent/10">
-                              <CheckCircle className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
-                              <p className="text-sm text-muted-foreground flex-1">{app}</p>
-                            </div>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    {/* Examples */}
-                    <Card className="rounded-2xl glass-card">
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                          <Star className="w-5 h-5 text-success" />
-                          Real-World Examples
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-3">
-                          {aiContent.examples.map((example, idx) => (
-                            <div key={idx} className="p-4 rounded-xl bg-success/5 border border-success/10">
-                              <p className="text-sm text-muted-foreground">{example}</p>
-                            </div>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    {/* Quiz Questions - Only show on last topic */}
-                    {currentTopicIndex === selectedModule.topics.length - 1 && (
-                    <Card className="rounded-2xl glass-card border-primary/20">
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                          <Trophy className="w-5 h-5 text-primary" />
-                          Knowledge Check
-                        </CardTitle>
-                        <CardDescription>
-                            Answer all questions correctly to complete this module
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent className="space-y-6">
-                        {aiContent.quiz.map((q, qIdx) => (
-                          <div key={qIdx} className="space-y-3">
-                            <p className="font-semibold">
-                              {qIdx + 1}. {q.question}
-                            </p>
-                            <div className="grid gap-2">
-                              {q.options.map((opt, oIdx) => {
-                                const isSelected = quizAnswers[qIdx] === oIdx;
-                                const isCorrect = oIdx === q.correct;
-                                const showResult = isSelected;
-
-                                return (
-                                  <Button
-                                    key={oIdx}
-                                    variant="outline"
-                                    onClick={() => handleQuizAnswer(qIdx, oIdx)}
-                                    className={`justify-start text-left h-auto p-3 rounded-xl ${
-                                      showResult
-                                        ? isCorrect
-                                          ? 'border-success bg-success/10 text-success'
-                                          : 'border-destructive bg-destructive/10 text-destructive'
-                                        : ''
-                                    }`}
-                                  >
-                                    <div className="flex items-center gap-3">
-                                      <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${
-                                        showResult
-                                          ? isCorrect
-                                            ? 'bg-success text-white'
-                                            : 'bg-destructive text-white'
-                                          : 'bg-muted'
-                                      }`}>
-                                        {showResult && isCorrect ? (
-                                          <CheckCircle className="w-4 h-4" />
-                                        ) : (
-                                          <span className="text-xs font-semibold">
-                                            {String.fromCharCode(65 + oIdx)}
-                                          </span>
-                                        )}
-                                      </div>
-                                      <span className="text-sm flex-1">{opt}</span>
-                                    </div>
-                                  </Button>
-                                );
-                              })}
-                            </div>
+                            <p className="text-sm text-muted-foreground flex-1">{point}</p>
                           </div>
                         ))}
-                      </CardContent>
-                    </Card>
-                    )}
-                </div>
-              ) : null}
+                      </div>
+                    </CardContent>
+                  </Card>
 
-              {/* Navigation */}
-              <div className="flex gap-3 pt-4">
-                <Button
-                  variant="outline"
-                  onClick={handlePreviousTopic}
-                  disabled={currentTopicIndex === 0}
-                  className="flex-1 rounded-2xl"
-                >
-                  Previous Topic
-                </Button>
-                {currentTopicIndex === selectedModule.topics.length - 1 ? (
-                  <Button
-                    onClick={handleCompleteModule}
-                    className="flex-1 rounded-2xl gradient-success text-white hover-lift hover-glow"
-                  >
-                    Complete Module
-                    <Trophy className="w-4 h-4 ml-2" />
-                  </Button>
-                ) : (
-                  <Button
-                    onClick={handleNextTopic}
-                    className="flex-1 rounded-2xl gradient-primary text-white hover-lift hover-glow"
-                  >
-                    Next Topic
-                    <ChevronRight className="w-4 h-4 ml-2" />
-                  </Button>
-                )}
+                  {/* Practical Applications */}
+                  <Card className="rounded-2xl glass-card">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Zap className="w-5 h-5 text-accent" />
+                        Practical Applications
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        {aiContent.practicalApplications.map((app, idx) => (
+                          <div key={idx} className="flex items-start gap-3 p-3 rounded-xl bg-accent/5 border border-accent/10">
+                            <CheckCircle className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
+                            <p className="text-sm text-muted-foreground flex-1">{app}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Examples */}
+                  <Card className="rounded-2xl glass-card">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Star className="w-5 h-5 text-success" />
+                        Real-World Examples
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        {aiContent.examples.map((example, idx) => (
+                          <div key={idx} className="p-4 rounded-xl bg-success/5 border border-success/10">
+                            <p className="text-sm text-muted-foreground">{example}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Quiz Questions - Only show on last topic */}
+                  {currentTopicIndex === selectedModule.topics.length - 1 && (
+                  <Card className="rounded-2xl glass-card border-primary/20">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Trophy className="w-5 h-5 text-primary" />
+                        Knowledge Check
+                      </CardTitle>
+                      <CardDescription>
+                          Answer all questions correctly to complete this module
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      {aiContent.quiz.map((q, qIdx) => (
+                        <div key={qIdx} className="space-y-3">
+                          <p className="font-semibold text-sm sm:text-base">
+                            {qIdx + 1}. {q.question}
+                          </p>
+                          <div className="grid gap-2">
+                            {q.options.map((opt, oIdx) => {
+                              const isSelected = quizAnswers[qIdx] === oIdx;
+                              const isCorrect = oIdx === q.correct;
+                              const showResult = isSelected;
+
+                              return (
+                                <Button
+                                  key={oIdx}
+                                  variant="outline"
+                                  onClick={() => handleQuizAnswer(qIdx, oIdx)}
+                                  className={`justify-start text-left h-auto p-2 sm:p-3 rounded-xl ${
+                                    showResult
+                                      ? isCorrect
+                                        ? 'border-success bg-success/10 text-success'
+                                        : 'border-destructive bg-destructive/10 text-destructive'
+                                      : ''
+                                  }`}
+                                >
+                                  <div className="flex items-center gap-2 sm:gap-3">
+                                    <div className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center flex-shrink-0 ${
+                                      showResult
+                                        ? isCorrect
+                                          ? 'bg-success text-white'
+                                          : 'bg-destructive text-white'
+                                        : 'bg-muted'
+                                    }`}>
+                                      {showResult && isCorrect ? (
+                                        <CheckCircle className="w-4 h-4" />
+                                      ) : (
+                                        <span className="text-xs font-semibold">
+                                          {String.fromCharCode(65 + oIdx)}
+                                        </span>
+                                      )}
+                                    </div>
+                                    <span className="text-xs sm:text-sm flex-1">{opt}</span>
+                                  </div>
+                                </Button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
+                    </CardContent>
+                  </Card>
+                  )}
               </div>
+            ) : null}
+
+            {/* Navigation */}
+            <div className="flex gap-3 pt-4">
+              <Button
+                variant="outline"
+                onClick={handlePreviousTopic}
+                className="flex-1 rounded-2xl"
+              >
+                {currentTopicIndex === 0 ? 'Back to Modules' : 'Previous Topic'}
+              </Button>
+              {currentTopicIndex === selectedModule.topics.length - 1 ? (
+                <Button
+                  onClick={handleCompleteModule}
+                  className="flex-1 rounded-2xl gradient-success text-white hover-lift hover-glow"
+                >
+                  Complete Module
+                  <Trophy className="w-4 h-4 ml-2" />
+                </Button>
+              ) : (
+                <Button
+                  onClick={handleNextTopic}
+                  className="flex-1 rounded-2xl gradient-primary text-white hover-lift hover-glow"
+                >
+                  Next Topic
+                  <ChevronRight className="w-4 h-4 ml-2" />
+                </Button>
+              )}
             </div>
-          </ScrollArea>
+          </div>
         </main>
       </div>
     );
+
+    return (
+      <SharedLayout 
+        onNavigate={onNavigate || (() => {})}
+        userRole="teacher"
+        title={selectedModule.title}
+        subtitle={`Topic ${currentTopicIndex + 1} of ${selectedModule.topics.length}`}
+        hideHeaderIcons={true}
+        activeMenu="pathway"
+        progressBar={
+          <div className="flex items-center gap-2 mt-2">
+            {selectedModule.topics.map((_, idx) => (
+              <div
+                key={idx}
+                className={`flex-1 h-2 rounded-full transition-all ${
+                  idx < currentTopicIndex
+                    ? 'bg-success'
+                    : idx === currentTopicIndex
+                    ? 'bg-primary'
+                    : 'bg-muted'
+                }`}
+              />
+            ))}
+          </div>
+        }
+        children={content}
+      />
+    );
   }
 
-  return (
+  const content = (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background">
-      {/* Header */}
-      <header className="bg-card/80 backdrop-blur-sm border-b px-4 sm:px-6 py-4 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={onBack}>
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <div className="flex-1 min-w-0">
-            <h1 className="text-lg sm:text-xl md:text-base font-bold truncate">Continue Learning</h1>
-            <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">
-              AI-powered professional development for modern educators
-            </p>
-          </div>
-          {allModulesCompleted && (
-            <Button 
-              onClick={() => onNavigate?.('certificate')}
-              className="rounded-2xl gradient-success text-white hover-lift hover-glow hidden sm:flex"
-            >
-              <Download className="w-4 h-4 mr-2" />
-              Get Certificate
-            </Button>
-          )}
-        </div>
-      </header>
-
       {/* Content */}
       <main className="max-w-7xl mx-auto p-4 sm:p-6 space-y-6">
         {/* Stats */}
@@ -690,7 +778,7 @@ Format as JSON with this structure:
               <div className="flex items-start gap-4">
                 <Sparkles className="w-6 h-6 text-accent flex-shrink-0" />
                 <div className="flex-1">
-                  <h3 className="font-semibold mb-2">AI-Powered Learning Available!</h3>
+                  <h3 className="font-semibold mb-2">Tishami-Powered Learning Available!</h3>
                   <p className="text-sm text-muted-foreground mb-3">
                     Add your Groq API key in Settings to unlock personalized AI-generated learning content for each topic.
                   </p>
@@ -702,6 +790,44 @@ Format as JSON with this structure:
             </CardContent>
           </Card>
         )}
+
+        {/* Custom Learning Section */}
+        <Card className="rounded-2xl glass-card">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Lightbulb className="w-5 h-5 text-accent" />
+              Custom Learning
+            </CardTitle>
+            <CardDescription>
+              Tell Tishami what you'd like to learn about and get personalized content
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex-1">
+                <textarea
+                  placeholder="What would you like to learn about?"
+                  className="w-full min-h-[80px] sm:min-h-[100px] p-3 rounded-xl border border-input bg-background text-sm sm:text-base resize-none focus:outline-none focus:ring-2 focus:ring-primary"
+                  value={customLearningInput}
+                  onChange={(e) => setCustomLearningInput(e.target.value)}
+                />
+              </div>
+              <Button 
+                onClick={generateCustomLearning}
+                disabled={!customLearningInput.trim() || !hasApiKey}
+                className="sm:w-auto w-full rounded-xl gradient-primary text-white hover-lift hover-glow"
+              >
+                <Sparkles className="w-4 h-4 mr-2" />
+                Generate
+              </Button>
+            </div>
+            {!hasApiKey && (
+              <p className="text-xs text-muted-foreground mt-2">
+                Add your Groq API key in Settings to use custom learning
+              </p>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Learning Modules */}
         <div className="grid md:grid-cols-2 gap-6">
@@ -782,5 +908,17 @@ Format as JSON with this structure:
         </div>
       </main>
     </div>
+  );
+
+  return (
+    <SharedLayout 
+      onNavigate={onNavigate || (() => {})}
+      userRole="teacher"
+      title="Learning Pathway"
+      subtitle="Learn with Tishami"
+      hideHeaderIcons={true}
+      activeMenu="pathway"
+      children={content}
+    />
   );
 }

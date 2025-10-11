@@ -38,6 +38,13 @@ export function LessonGenerator({ onNavigate, onSave }: LessonGeneratorProps) {
   const [availableTopics, setAvailableTopics] = useState<string[]>([]);
   const [loadingSubjects, setLoadingSubjects] = useState(false);
   const [loadingTopics, setLoadingTopics] = useState(false);
+  const [curriculumDataStatus, setCurriculumDataStatus] = useState({
+    loaded: false,
+    totalRecords: 0,
+    classes: [] as string[],
+    subjects: [] as string[],
+    lastChecked: ''
+  });
   
 
   // Function to check curriculum data status
@@ -158,7 +165,7 @@ export function LessonGenerator({ onNavigate, onSave }: LessonGeneratorProps) {
     // The useEffect will handle loading subjects and resetting subject/topic
   };
   
-  const [lessonPlanData, setLessonPlanData] = useState<LessonPlan>({
+  const [lessonPlanData, setLessonPlanData] = useState({
     topic: topic,
     subject: subject,
     class: classLevel,
@@ -533,7 +540,7 @@ export function LessonGenerator({ onNavigate, onSave }: LessonGeneratorProps) {
         objectives: lessonPlanData.objectives,
         materials: lessonPlanData.materials,
         duration_minutes: duration,
-        teacher_id: user.id,
+        teacher_id: user?.id || 'anonymous',
       });
       toast.success("Lesson plan saved to Supabase!");
     } catch (error) {

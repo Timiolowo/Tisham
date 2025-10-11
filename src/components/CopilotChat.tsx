@@ -21,9 +21,9 @@ interface CopilotChatProps {
 }
 
 // Function to format inline markdown (bold, italic, links, etc.)
-const formatInlineMarkdown = (text: string) => {
+const formatInlineMarkdown = (text: string): (string | React.ReactElement)[] => {
   // Handle bold text (**text**)
-  let formatted = text.split(/(\*\*.*?\*\*)/g).map((part, index) => {
+  let formatted: (string | React.ReactElement)[] = text.split(/(\*\*.*?\*\*)/g).map((part, index) => {
     if (part.startsWith('**') && part.endsWith('**')) {
       return (
         <strong key={index} className="font-semibold text-primary">
@@ -35,7 +35,7 @@ const formatInlineMarkdown = (text: string) => {
   });
 
   // Handle italic text (*text*)
-  formatted = formatted.map((part, index) => {
+  formatted = formatted.flatMap((part, index) => {
     if (typeof part === 'string') {
       return part.split(/(\*[^*]+\*)/g).map((subPart, subIndex) => {
         if (subPart.startsWith('*') && subPart.endsWith('*') && !subPart.startsWith('**')) {
@@ -52,7 +52,7 @@ const formatInlineMarkdown = (text: string) => {
   });
 
   // Handle links ([text](url))
-  formatted = formatted.map((part, index) => {
+  formatted = formatted.flatMap((part, index) => {
     if (typeof part === 'string') {
       return part.split(/(\[.*?\]\(.*?\))/g).map((subPart, subIndex) => {
         const linkMatch = subPart.match(/\[(.*?)\]\((.*?)\)/);
@@ -198,7 +198,7 @@ export function CopilotChat({ onNavigate }: CopilotChatProps) {
         <div className="max-w-4xl mx-auto w-full flex-1 flex flex-col">
           {/* Chat Interface - Always show */}
           <ScrollArea className="flex-1 pr-2 sm:pr-4 p-4 sm:p-6" ref={scrollAreaRef}>
-              <div className="space-y-4 sm:space-y-6 pb-32 sm:pb-36">
+              <div className="space-y-4 sm:space-y-6 pb-24 sm:pb-28">
                 {/* Sample Prompts - Show only when no messages */}
                 {messages.length === 1 && (
                 <div className="space-y-4 animate-fade-in">
@@ -372,18 +372,58 @@ export function CopilotChat({ onNavigate }: CopilotChatProps) {
               </div>
             </ScrollArea>
 
-          {/* Input Area - Fixed at bottom of viewport */}
-          <div className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t p-3 sm:p-4">
+          {/* Input Area - Fixed at bottom of main content area */}
+          <div className="sticky bottom-0 z-40 bg-background border-t p-3 sm:p-4">
             <div className="max-w-4xl mx-auto w-full">
-              <div className="bg-background rounded-2xl border shadow-lg">
-                <div className="p-3">
+              {/* Mobile: Simple layout with buttons inside textarea */}
+              <div className="sm:hidden">
+                <div className="relative">
+                  <Textarea
+                    placeholder="Ask me anything about teaching..."
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={handleKeyPress}
+                    className="min-h-[44px] max-h-24 resize-none rounded-xl border bg-background text-foreground text-sm placeholder:text-muted-foreground focus:ring-1 focus:ring-primary/30 focus:border-primary transition-all pr-12 pl-12"
+                    disabled={isLoading}
+                  />
+                  {/* Record button inside textarea (left) - only show when input is empty */}
+                  {!input.trim() && (
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-lg hover:bg-primary/10 transition-colors"
+                    >
+                      <Mic className="w-4 h-4" />
+                    </Button>
+                  )}
+                  {/* Send button inside textarea (right) - only show when there's text */}
+                  {input.trim() && (
+                    <Button 
+                      size="icon" 
+                      onClick={handleSend}
+                      disabled={isLoading}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-lg bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isLoading ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Send className="w-4 h-4" />
+                      )}
+                    </Button>
+                  )}
+                </div>
+              </div>
+
+              {/* Desktop: Original layout with buttons outside */}
+              <div className="hidden sm:block">
+                <div className="bg-background rounded-2xl border shadow-lg p-3">
                   <div className="flex items-end gap-3">
                     <Button 
                       variant="ghost" 
                       size="icon" 
-                      className="flex-shrink-0 rounded-xl h-9 w-9 sm:h-10 sm:w-10 hover:bg-primary/10 transition-colors"
+                      className="flex-shrink-0 rounded-xl h-10 w-10 hover:bg-primary/10 transition-colors"
                     >
-                      <Mic className="w-4 h-4 sm:w-5 sm:h-5" />
+                      <Mic className="w-5 h-5" />
                     </Button>
 
                     <div className="flex-1 relative">
@@ -392,7 +432,7 @@ export function CopilotChat({ onNavigate }: CopilotChatProps) {
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         onKeyDown={handleKeyPress}
-                        className="min-h-[40px] sm:min-h-[44px] max-h-24 sm:max-h-32 resize-none rounded-xl border bg-background text-foreground text-sm placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                        className="min-h-[44px] max-h-32 resize-none rounded-xl border bg-background text-foreground text-sm placeholder:text-muted-foreground focus:ring-1 focus:ring-primary/30 focus:border-primary transition-all"
                         disabled={isLoading}
                       />
                     </div>
@@ -401,12 +441,12 @@ export function CopilotChat({ onNavigate }: CopilotChatProps) {
                       size="icon" 
                       onClick={handleSend}
                       disabled={!input.trim() || isLoading}
-                      className="rounded-xl bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white shadow-lg hover:shadow-xl transition-all duration-200 flex-shrink-0 h-9 w-9 sm:h-11 sm:w-11 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="rounded-xl bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white shadow-lg hover:shadow-xl transition-all duration-200 flex-shrink-0 h-11 w-11 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {isLoading ? (
-                        <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
+                        <Loader2 className="w-5 h-5 animate-spin" />
                       ) : (
-                        <Send className="w-4 h-4 sm:w-5 sm:h-5" />
+                        <Send className="w-5 h-5" />
                       )}
                     </Button>
                   </div>

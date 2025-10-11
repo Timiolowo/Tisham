@@ -12,6 +12,11 @@
   SECRETS_SCAN_OMIT_PATHS = "*.md,docs/**,SUPABASE_SETUP.md,TROUBLESHOOTING.md"
 
 [[redirects]]
+  from = "/confirm"
+  to = "/.netlify/functions/confirm"
+  status = 200
+
+[[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200

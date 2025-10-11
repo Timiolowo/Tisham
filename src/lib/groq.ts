@@ -223,28 +223,75 @@ export async function explainConcept(
   concept: string,
   grade: string = 'JSS 3'
 ): Promise<string> {
-  const prompt = `Explain "${concept}" to a ${grade} student in Nigeria.
-
-Make it:
-- Easy to understand with simple language
-- Use Nigerian examples and context
-- Include real-world applications
-- Add fun facts or interesting points
-- Use emojis to make it engaging
-
-Keep it concise but comprehensive.`;
-
+  const { getConceptExplanationPrompt } = await import('./prompts');
+  const promptConfig = getConceptExplanationPrompt(concept, grade);
+  
   const systemPrompt: Message = {
     role: 'system',
-    content: 'You are Tishami, a friendly AI teacher that makes learning fun and easy for Nigerian students. I am Tisham but you can call me Tishami. The app name "Tisham" sounds like "Teach am" in Nigerian Pidgin English, meaning "Teach him". "Tishami" is Tisham with "mi" (Yoruba for "my"), so it means "My Teacher" - a creative blend of Pidgin, English, and Yoruba reflecting the app\'s teaching purpose. Use emojis, local examples, and encouraging language.'
+    content: promptConfig.system
   };
 
-  return sendChatMessage([
-    systemPrompt,
-    { role: 'user', content: prompt }
-  ], {
+  const userPrompt: Message = {
+    role: 'user',
+    content: promptConfig.user
+  };
+
+  return sendChatMessage([systemPrompt, userPrompt], {
     model: 'llama-3.3-70b-versatile',
-    temperature: 0.7,
-    maxTokens: 1024
+    temperature: promptConfig.temperature,
+    maxTokens: promptConfig.maxTokens
+  });
+}
+
+/**
+ * Generate learning pathway content
+ */
+export async function generateLearningPathwayContent(
+  topic: string,
+  moduleTitle: string
+): Promise<string> {
+  const { getLearningPathwayPrompt } = await import('./prompts');
+  const promptConfig = getLearningPathwayPrompt(topic, moduleTitle);
+  
+  const systemPrompt: Message = {
+    role: 'system',
+    content: promptConfig.system
+  };
+
+  const userPrompt: Message = {
+    role: 'user',
+    content: promptConfig.user
+  };
+
+  return sendChatMessage([systemPrompt, userPrompt], {
+    model: 'llama-3.3-70b-versatile',
+    temperature: promptConfig.temperature,
+    maxTokens: promptConfig.maxTokens
+  });
+}
+
+/**
+ * Generate student recommendations
+ */
+export async function generateStudentRecommendations(
+  studentProfile: any
+): Promise<string> {
+  const { getStudentRecommendationPrompt } = await import('./prompts');
+  const promptConfig = getStudentRecommendationPrompt(studentProfile);
+  
+  const systemPrompt: Message = {
+    role: 'system',
+    content: promptConfig.system
+  };
+
+  const userPrompt: Message = {
+    role: 'user',
+    content: promptConfig.user
+  };
+
+  return sendChatMessage([systemPrompt, userPrompt], {
+    model: 'llama-3.3-70b-versatile',
+    temperature: promptConfig.temperature,
+    maxTokens: promptConfig.maxTokens
   });
 }

@@ -270,6 +270,110 @@ Requirements:
 };
 
 /**
+ * Learning Pathway Prompts
+ */
+export const getLearningPathwayPrompt = (topic: string, moduleTitle: string): PromptConfig => ({
+  system: `You are an expert educator creating comprehensive learning content for teacher professional development. Focus on practical, actionable content that teachers can immediately apply in Nigerian classrooms.`,
+  user: `Create comprehensive learning content for a teacher professional development module on "${topic}" within the broader course "${moduleTitle}".
+
+Please provide:
+1. A dynamic, short title that captures the essence of this specific topic
+2. Main content (3-4 paragraphs) that directly teaches the concept - no introduction or "this module will guide you" language
+3. 5 key points that explain the core concepts teachers must understand about this topic
+4. 4 detailed practical applications with specific steps and examples teachers can implement in Nigerian classrooms
+5. 3 detailed real-world examples with specific outcomes from Nigerian education context
+6. 2 quiz questions to test understanding
+
+Format as JSON with this structure:
+{
+  "title": "Dynamic and short title for this specific topic",
+  "mainContent": "Direct teaching content - no introductions or explanations about the module itself",
+  "keyPoints": ["Specific concept explanation 1", "Specific concept explanation 2", ...],
+  "practicalApplications": ["Detailed application with specific steps and examples", "Detailed application with specific steps and examples", ...],
+  "examples": ["Detailed real-world example with specific outcomes and context", "Detailed real-world example with specific outcomes and context", ...],
+  "quiz": [
+    {
+      "question": "...",
+      "options": ["opt1", "opt2", "opt3", "opt4"],
+      "correct": 0
+    }
+  ]
+}
+
+IMPORTANT: 
+- The "title" should be specific to the content you're generating, not just repeat the topic name. Make it engaging, short and descriptive of what teachers will actually learn.
+- The "mainContent" should be direct educational content that teaches the actual concept. DO NOT use phrases like "represents a fundamental shift", "involves understanding", "the key is to", or "by mastering these techniques". Instead, directly explain what the concept is, how it works, and provide specific examples.
+- The "keyPoints" should explain specific concepts about the topic, not generic statements like "understand the foundation" or "apply strategies". Focus on what the concept actually is and how it works.
+- The "practicalApplications" should be detailed with specific steps, tools, and examples. Include the "how" and "what" of implementation, not just "use this strategy".
+- The "examples" should be detailed real-world cases with specific outcomes, numbers, and context from Nigerian education settings.
+
+CRITICAL JSON FORMATTING REQUIREMENTS:
+- Return ONLY valid JSON - no additional text before or after
+- Escape all quotes and newlines properly in strings
+- Do not include trailing commas
+- Use double quotes for all strings
+- Ensure all strings are properly escaped for JSON parsing
+- Test your JSON for validity before returning`,
+  temperature: 0.7,
+  maxTokens: 5000
+});
+
+/**
+ * Student Recommendation Prompts
+ */
+export const getStudentRecommendationPrompt = (studentProfile: any): PromptConfig => ({
+  system: `You are an AI educational advisor that provides personalized course recommendations for Nigerian secondary school students. Always respond with valid JSON only.`,
+  user: `Based on this student profile, recommend 6 personalized courses/lessons that would be most beneficial for their learning journey:
+
+Student Profile:
+- Name: ${studentProfile.name}
+- Class: ${studentProfile.class}
+- Subjects: ${studentProfile.subjects.join(', ')}
+- Interests: ${studentProfile.interests.join(', ')}
+- Current Performance: ${studentProfile.xp} XP, ${studentProfile.streak} day streak, ${studentProfile.badges} badges
+- Goals: ${studentProfile.goals}
+
+Please provide 6 course recommendations in this JSON format:
+[
+  {
+    "id": "course-1",
+    "title": "Course Title",
+    "description": "Brief description of what the student will learn",
+    "subject": "Subject Area",
+    "difficulty": "Beginner|Intermediate|Advanced",
+    "duration": "X hours",
+    "skills": ["skill1", "skill2", "skill3"],
+    "icon": "🎯",
+    "color": "gradient-primary",
+    "isRecommended": true,
+    "reason": "Why this course is recommended for this student"
+  }
+]
+
+Make the recommendations highly personalized based on their class level, interests, and current performance. Focus on courses that will help them improve in their weak areas and build on their strengths.`,
+  temperature: 0.7,
+  maxTokens: 2000
+});
+
+/**
+ * Concept Explanation Prompts
+ */
+export const getConceptExplanationPrompt = (concept: string, grade: string = 'JSS 3'): PromptConfig => ({
+  system: `You are an expert educator who explains complex concepts in simple, engaging ways for Nigerian secondary school students. Use relatable examples and clear language.`,
+  user: `Explain "${concept}" to a ${grade} student in Nigeria.
+
+Requirements:
+- Use simple, age-appropriate language
+- Include Nigerian examples and contexts
+- Make it engaging and relatable
+- Break down complex ideas into digestible parts
+- Use analogies and real-world connections
+- Keep explanations clear and concise`,
+  temperature: 0.7,
+  maxTokens: 1000
+});
+
+/**
  * Content Analysis Prompts
  */
 export const getContentAnalysisPrompt = (content: string): PromptConfig => ({
@@ -297,5 +401,8 @@ export const getPromptTypes = () => [
   'teaching',
   'lesson-generation',
   'quiz-generation',
+  'learning-pathway',
+  'student-recommendation',
+  'concept-explanation',
   'content-analysis'
 ];

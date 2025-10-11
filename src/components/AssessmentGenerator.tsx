@@ -235,7 +235,7 @@ export function AssessmentGenerator({ onNavigate, lessonPlan }: AssessmentGenera
     // If API key is configured, generate AI questions
     if (isApiKeyConfigured()) {
       try {
-        const generatedContent = await generateQuiz(topic, numQuestions, difficulty, classLevel, questionTypes, additionalNotes);
+        const generatedContent = await generateQuiz(topic, numQuestions, difficulty as "easy" | "medium" | "hard", classLevel, questionTypes, additionalNotes);
         setAiGeneratedContent(generatedContent);
         
         // Parse the AI-generated content into the same format as hardcoded questions

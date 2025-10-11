@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { 
   Users, UserPlus, Share2, Copy,
   BookOpen, ClipboardList, Search, MoreVertical, Trash2, MessageCircle,
-  Plus, GraduationCap, RefreshCw
+  Plus, GraduationCap
 } from "lucide-react";
 import { SharedLayout } from "./SharedLayout";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
@@ -57,76 +57,69 @@ export function ClassManagement({ onNavigate }: ClassManagementProps) {
     description: ""
   });
   
-  // Load classes from Supabase
+  // Load classes from Supabase - try multiple times
   useEffect(() => {
-    
-    if (isSupabaseConfigured() && user && user.role === 'teacher') {
-      loadClasses();
-    } else {
-    }
-  }, [user, user?.id, user?.role]);
-
-  // Test Supabase connection and load classes on mount
-  useEffect(() => {
-    const testSupabaseConnection = async () => {
-      if (isSupabaseConfigured()) {
-        try {
-          // Test basic connection by checking if we can access the classes table
-          const { supabase } = await import('../lib/supabase');
-          const { data, error } = await supabase
-            .from('classes')
-            .select('count')
-            .limit(1);
-          
-          if (error) {
-            console.error('Supabase connection test failed:', error);
-          } else {
-            // If connection is successful and we have a user, try loading classes
-            if (user && user.role === 'teacher') {
-              loadClasses();
-            }
-          }
-        } catch (error) {
-          console.error('Supabase connection test error:', error);
-        }
+    const attemptLoad = () => {
+      if (isSupabaseConfigured() && user && user.role === 'teacher') {
+        loadClasses();
       }
     };
+
+    // Try immediately
+    attemptLoad();
     
-    testSupabaseConnection();
-  }, [user]);
+    // Try after 200ms
+    const timer1 = setTimeout(attemptLoad, 200);
+    
+    // Try after 1 second
+    const timer2 = setTimeout(attemptLoad, 1000);
+    
+    // Try after 2 seconds
+    const timer3 = setTimeout(attemptLoad, 2000);
+
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+      clearTimeout(timer3);
+    };
+  }, [user?.id, user?.role]);
 
   const loadClasses = async () => {
     if (!user) {
       return;
     }
     
+    // Try to load from cache first
+    const cacheKey = `teacher_classes_${user.id}`;
+    const cacheTimestampKey = `teacher_classes_timestamp_${user.id}`;
+    const cachedClasses = localStorage.getItem(cacheKey);
+    const cacheTimestamp = localStorage.getItem(cacheTimestampKey);
+    
+    // Check if cache is less than 5 minutes old
+    const isCacheValid = cacheTimestamp && 
+      (Date.now() - parseInt(cacheTimestamp)) < 5 * 60 * 1000; // 5 minutes
+    
+    if (cachedClasses && isCacheValid) {
+      try {
+        const parsedClasses = JSON.parse(cachedClasses);
+        setSupabaseClasses(parsedClasses);
+        console.log('📚 Loaded classes from cache:', parsedClasses.length);
+      } catch (error) {
+        console.error('Failed to parse cached classes:', error);
+      }
+    }
     
     setIsLoadingClasses(true);
     try {
-      // Test direct Supabase query first
-      const { supabase } = await import('../lib/supabase');
-      
-      // First, let's see if there are ANY classes in the database
-      const { data: allClasses, error: allClassesError } = await supabase
-        .from('classes')
-        .select('*');
-      
-      
-      // Now query for this specific teacher
-      const { data: directData, error: directError } = await supabase
-        .from('classes')
-        .select('*')
-        .eq('teacher_id', user.id);
-      
-      
-      // Now try the function
       const classes = await getTeacherClasses(user.id);
-      
       setSupabaseClasses(classes);
+      
+      // Cache the classes with timestamp
+      localStorage.setItem(cacheKey, JSON.stringify(classes));
+      localStorage.setItem(cacheTimestampKey, Date.now().toString());
+      console.log('💾 Cached classes:', classes.length);
     } catch (error) {
       console.error('Failed to load classes:', error);
-      console.error('Error details:', error);
-      console.error('Error stack:', error.stack);
     } finally {
       setIsLoadingClasses(false);
     }
@@ -496,68 +489,6 @@ export function ClassManagement({ onNavigate }: ClassManagementProps) {
             </div>
             
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {/* Debug Information */}
-              <div className="col-span-full p-4 bg-yellow-50 border border-yellow-200 rounded-lg mb-4">
-                <h4 className="font-semibold text-yellow-800 mb-2">Debug Information:</h4>
-                <div className="text-sm text-yellow-700 space-y-1">
-                  <p>User ID: {user?.id || 'No user ID'}</p>
-                  <p>User Role: {user?.role || 'No role'}</p>
-                  <p>User Email: {user?.email || 'No email'}</p>
-                  <p>User School ID: {user?.school_id || 'No school ID'}</p>
-                  <p>Current Port: {window.location.port}</p>
-                  <p>Current Host: {window.location.hostname}</p>
-                  <p>API Access Allowed: {isAPIAccessAllowed() ? 'Yes' : 'No'}</p>
-                  <p>Supabase Configured: {isSupabaseConfigured() ? 'Yes' : 'No'}</p>
-                  <p>Loading Classes: {isLoadingClasses ? 'Yes' : 'No'}</p>
-                  <p>Classes Count: {supabaseClasses.length}</p>
-                  <p>Classes Data: {JSON.stringify(supabaseClasses, null, 2)}</p>
-                </div>
-                <div className="mt-3 flex gap-2">
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    onClick={loadClasses}
-                    disabled={isLoadingClasses}
-                    className="text-xs"
-                  >
-                    {isLoadingClasses ? 'Loading...' : 'Manual Load Classes'}
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    onClick={async () => {
-                      
-                      // Test direct Supabase import
-                      try {
-                        const { supabase } = await import('../lib/supabase');
-                        
-                        // Test basic query
-                        const { data, error } = await supabase
-                          .from('classes')
-                          .select('*')
-                          .limit(5);
-                        
-                      } catch (error) {
-                        console.error('Direct query failed:', error);
-                      }
-                    }}
-                    className="text-xs"
-                  >
-                    Test Direct Query
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    onClick={() => {
-                      alert(`To fix the class loading issue:\n\n1. You're currently on port ${window.location.port}\n2. API access is only allowed on port 8888 for localhost\n3. Please run: npm run dev:fullstack\n4. Or access the app at: http://localhost:8888\n\nThis is a security restriction to prevent API access on development ports.`);
-                    }}
-                    className="text-xs bg-red-50 text-red-700 border-red-200"
-                  >
-                    Fix Port Issue
-                  </Button>
-                </div>
-              </div>
-              
               {/* Display classes from Supabase */}
               {isLoadingClasses ? (
                 <div className="col-span-full flex items-center justify-center py-8">
@@ -580,17 +511,17 @@ export function ClassManagement({ onNavigate }: ClassManagementProps) {
                 supabaseClasses.map((classItem) => (
                   <Card key={classItem.id} className="rounded-2xl glass-card hover-lift hover-glow">
                     <CardHeader>
-                      <CardTitle className="text-base">{classItem.name}</CardTitle>
-                      <CardDescription className="flex items-center gap-2">
-                        <Users className="w-4 h-4" />
+                      <CardTitle className="text-sm sm:text-base">{classItem.name}</CardTitle>
+                      <CardDescription className="flex items-center gap-2 text-xs">
+                        <Users className="w-3 h-3" />
                         {classItem.students || 0} students
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-3">
-                      <div className="p-3 bg-muted rounded-xl">
+                      <div className="p-2 sm:p-3 bg-muted rounded-xl">
                         <p className="text-xs text-muted-foreground mb-1">Class Code</p>
                         <div className="flex items-center justify-between">
-                          <code className="text-sm font-mono font-semibold">{classItem.code || classItem.class_code}</code>
+                          <code className="text-xs sm:text-sm font-mono font-semibold">{classItem.code || classItem.class_code}</code>
                           <Button
                             size="sm"
                             variant="ghost"
@@ -598,6 +529,7 @@ export function ClassManagement({ onNavigate }: ClassManagementProps) {
                               navigator.clipboard.writeText(classItem.code || classItem.class_code);
                               toast.success("Code copied!");
                             }}
+                            className="h-6 w-6 p-0"
                           >
                             <Copy className="w-3 h-3" />
                           </Button>
@@ -605,7 +537,7 @@ export function ClassManagement({ onNavigate }: ClassManagementProps) {
                       </div>
                       <div className="flex gap-2">
                         <Button 
-                          className="flex-1 rounded-xl" 
+                          className="flex-1 rounded-xl text-xs" 
                           size="sm"
                           onClick={() => {
                             onNavigate?.('class-details', { classId: classItem.id });
@@ -615,7 +547,7 @@ export function ClassManagement({ onNavigate }: ClassManagementProps) {
                         </Button>
                         <Button 
                           variant="outline" 
-                          className="flex-1 rounded-xl" 
+                          className="flex-1 rounded-xl text-xs" 
                           size="sm"
                           onClick={() => onNavigate?.('class-chat')}
                         >

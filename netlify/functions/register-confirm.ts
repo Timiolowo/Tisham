@@ -197,11 +197,15 @@ export const handler: Handler = async (event, context) => {
 
     console.log('Profile created successfully:', profile);
 
-    // 3. Send confirmation email
+    // 3. Send confirmation email with custom redirect URL
     console.log('Sending confirmation email to:', email);
+    const baseUrl = process.env.URL || 'https://tisham.netlify.app';
     const { data: emailData, error: emailError } = await supabase.auth.resend({
       type: 'signup',
-      email: email
+      email: email,
+      options: {
+        emailRedirectTo: `${baseUrl}/confirm`
+      }
     });
 
     if (emailError) {

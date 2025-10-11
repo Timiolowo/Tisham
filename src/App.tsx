@@ -12,7 +12,7 @@ import { AssessmentGenerator } from "./components/AssessmentGenerator";
 import { CopilotChat } from "./components/CopilotChat";
 import { SimplifyTranslate } from "./components/SimplifyTranslate";
 import { ResourceLibrary } from "./components/ResourceLibrary";
-import { LearningPathway } from "./components/LearningPathway";
+import { TeacherLearning } from "./components/TeacherLearning";
 import { AdminDashboard } from "./components/AdminDashboard";
 import { StudentDashboard } from "./components/StudentDashboard";
 import { ClassManagement } from "./components/ClassManagement";
@@ -22,7 +22,6 @@ import { SettingsPage } from "./components/SettingsPage";
 import { ClassChat } from "./components/ClassChat";
 import { LearnWithAIPage } from "./components/LearnWithAIPage";
 import { CertificateGenerator } from "./components/CertificateGenerator";
-import { TeacherLearning } from "./components/TeacherLearning";
 import { MyCurriculumPage } from "./components/MyCurriculumPage";
 import { EditResourcePage } from "./components/EditResourcePage";
 import { StartLearningPage } from "./components/StartLearningPage";
@@ -53,7 +52,6 @@ type Page =
   | 'class-chat'
   | 'concept-explorer'
   | 'learn-with-ai'
-  | 'teacher-learning'
   | 'certificate'
   | 'my-curriculum'
   | 'edit-resource'
@@ -101,7 +99,7 @@ function AppContent() {
       // Handle hash-based routing
       if (hash) {
         const page = hash.substring(1) as Page;
-        if (['landing', 'register', 'registration-success', 'email-confirmation-success', 'reset-password', 'login', 'forgot-password', 'dashboard', 'lesson-generator', 'assessment', 'copilot', 'simplify', 'library', 'pathway', 'admin', 'student-dashboard', 'class-management', 'class-details', 'class-chat', 'concept-explorer', 'learn-with-ai', 'teacher-learning', 'certificate', 'my-curriculum', 'edit-resource', 'settings'].includes(page)) {
+        if (['landing', 'register', 'registration-success', 'email-confirmation-success', 'reset-password', 'login', 'forgot-password', 'dashboard', 'lesson-generator', 'assessment', 'copilot', 'simplify', 'library', 'pathway', 'admin', 'student-dashboard', 'class-management', 'class-details', 'class-chat', 'concept-explorer', 'learn-with-ai', 'certificate', 'my-curriculum', 'edit-resource', 'settings'].includes(page)) {
           return page;
         }
       }
@@ -128,7 +126,6 @@ function AppContent() {
       if (path === '/class-chat') return 'class-chat';
       if (path === '/concept-explorer') return 'concept-explorer';
       if (path === '/learn-with-ai') return 'learn-with-ai';
-      if (path === '/teacher-learning') return 'teacher-learning';
       if (path === '/certificate') return 'certificate';
       if (path === '/my-curriculum') return 'my-curriculum';
       if (path === '/edit-resource') return 'edit-resource';
@@ -230,7 +227,7 @@ function AppContent() {
       'dashboard', 'lesson-generator', 'assessment', 'copilot', 'simplify', 
       'library', 'pathway', 'admin', 'student-dashboard', 'class-management', 
       'class-details', 'class-chat', 'concept-explorer', 'learn-with-ai', 
-      'teacher-learning', 'certificate', 'my-curriculum', 'edit-resource', 'settings'
+      'certificate', 'my-curriculum', 'edit-resource', 'settings'
     ];
     return protectedPages.includes(page);
   };
@@ -292,7 +289,7 @@ function AppContent() {
       case 'library':
         return <ResourceLibrary onBack={() => navigate('dashboard')} onNavigate={navigate} />;
       case 'pathway':
-        return <LearningPathway onBack={() => navigate('dashboard')} onNavigate={navigate} />;
+        return <TeacherLearning onBack={() => navigate('dashboard')} onNavigate={navigate} />;
       case 'admin':
         return <AdminDashboard onNavigate={navigate} onBack={() => navigate('dashboard')} />;
       case 'student-dashboard':
@@ -311,8 +308,6 @@ function AppContent() {
           resourceTitle={learningResourceTitle}
           lessonId={learningResourceId}
         />;
-      case 'teacher-learning':
-        return <TeacherLearning onBack={() => navigate('dashboard')} />;
       case 'certificate':
         return <CertificateGenerator onBack={() => navigate('dashboard')} />;
       case 'my-curriculum':

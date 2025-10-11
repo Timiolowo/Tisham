@@ -57,20 +57,34 @@ export function AIMascot({ onOpenChat, currentPage, isAuthenticated }: AIMascotP
 
   // Drag functionality
   const handleMouseDown = (e: React.MouseEvent) => {
-    if (!mascotRef.current) return;
-    setIsDragging(true);
-    const rect = mascotRef.current.getBoundingClientRect();
-    setDragOffset({
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top
-    });
+    // Only start dragging if clicking on the drag handle or the mascot itself
+    if (e.target === e.currentTarget || (e.target as HTMLElement).closest('[data-drag-handle]')) {
+      e.preventDefault();
+      setIsDragging(true);
+      const rect = mascotRef.current?.getBoundingClientRect();
+      if (rect) {
+        setDragOffset({
+          x: e.clientX - rect.left,
+          y: e.clientY - rect.top
+        });
+      }
+    }
   };
 
   const handleMouseMove = (e: MouseEvent) => {
     if (!isDragging) return;
+    e.preventDefault();
+    
+    const newX = e.clientX - dragOffset.x;
+    const newY = e.clientY - dragOffset.y;
+    
+    // Keep within viewport bounds
+    const maxX = window.innerWidth - (mascotRef.current?.offsetWidth || 0);
+    const maxY = window.innerHeight - (mascotRef.current?.offsetHeight || 0);
+    
     setPosition({
-      x: e.clientX - dragOffset.x,
-      y: e.clientY - dragOffset.y
+      x: Math.max(0, Math.min(newX, maxX)),
+      y: Math.max(0, Math.min(newY, maxY))
     });
   };
 
@@ -82,9 +96,11 @@ export function AIMascot({ onOpenChat, currentPage, isAuthenticated }: AIMascotP
     if (isDragging) {
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
+      document.body.style.userSelect = 'none'; // Prevent text selection while dragging
       return () => {
         document.removeEventListener('mousemove', handleMouseMove);
         document.removeEventListener('mouseup', handleMouseUp);
+        document.body.style.userSelect = '';
       };
     }
   }, [isDragging, dragOffset]);
@@ -98,12 +114,11 @@ export function AIMascot({ onOpenChat, currentPage, isAuthenticated }: AIMascotP
         ref={mascotRef}
         className="fixed z-50 animate-fade-in cursor-move"
         style={{
-          left: position.x || undefined,
-          bottom: position.y || 24,
-          right: position.x ? undefined : 24,
-          top: position.y ? undefined : undefined,
+          left: position.x || window.innerWidth - 80,
+          top: position.y || window.innerHeight - 80,
         }}
         onMouseDown={handleMouseDown}
+        data-drag-handle
       >
         <button
           onClick={() => setIsMinimized(false)}
@@ -111,7 +126,7 @@ export function AIMascot({ onOpenChat, currentPage, isAuthenticated }: AIMascotP
         >
           <Sparkles className="w-6 h-6 sm:w-7 sm:h-7 text-white group-hover:scale-110 transition-transform" />
           <div className="absolute -top-1 -right-1 w-4 h-4 bg-accent rounded-full animate-pulse-gentle"></div>
-          <div className="absolute -bottom-1 -left-1 w-4 h-4 bg-white/20 rounded-full flex items-center justify-center">
+          <div className="absolute -bottom-1 -left-1 w-4 h-4 bg-white/20 rounded-full flex items-center justify-center" title="Drag to move">
             <Move className="w-2 h-2 text-white" />
           </div>
         </button>
@@ -124,12 +139,11 @@ export function AIMascot({ onOpenChat, currentPage, isAuthenticated }: AIMascotP
       ref={mascotRef}
       className="fixed z-50 animate-slide-up cursor-move"
       style={{
-        left: position.x || undefined,
-        bottom: position.y || 24,
-        right: position.x ? undefined : 24,
-        top: position.y ? undefined : undefined,
+        left: position.x || window.innerWidth - 320,
+        top: position.y || window.innerHeight - 200,
       }}
       onMouseDown={handleMouseDown}
+      data-drag-handle
     >
       <Card className="w-72 sm:w-80 rounded-3xl shadow-2xl glass-card border-2 border-primary/20">
         <CardContent className="p-4">
@@ -143,14 +157,19 @@ export function AIMascot({ onOpenChat, currentPage, isAuthenticated }: AIMascotP
                 {randomTip}
               </p>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-6 w-6 flex-shrink-0"
-              onClick={() => setIsMinimized(true)}
-            >
-              <X className="w-4 h-4" />
-            </Button>
+            <div className="flex items-center gap-1">
+              <div className="w-4 h-4 bg-muted/20 rounded flex items-center justify-center cursor-move" title="Drag to move">
+                <Move className="w-2 h-2 text-muted-foreground" />
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 flex-shrink-0"
+                onClick={() => setIsMinimized(true)}
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
           
           <div className="flex gap-2">

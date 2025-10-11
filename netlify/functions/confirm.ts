@@ -39,7 +39,7 @@ export const handler: Handler = async (event, context): Promise<HandlerResponse>
     // Verify the email confirmation token
     const { data, error } = await supabase.auth.verifyOtp({
       token_hash,
-      type: type as any,
+      type: 'email',
       email,
     });
 
@@ -71,7 +71,7 @@ export const handler: Handler = async (event, context): Promise<HandlerResponse>
     console.log('Email confirmed successfully for user:', data.user.email);
 
     // Redirect to email confirmation success page
-    const baseUrl = process.env.URL || 'http://localhost:8888';
+    const baseUrl = process.env.URL || 'https://tisham.netlify.app';
     const location = `${baseUrl}/#email-confirmation-success?email=${encodeURIComponent(email)}`;
     return {
       statusCode: 302,
