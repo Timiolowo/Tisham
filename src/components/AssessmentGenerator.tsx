@@ -4,6 +4,7 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import { Textarea } from "./ui/textarea";
 import { Checkbox } from "./ui/checkbox";
 import { Sparkles, Download, FileText, Loader2, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
@@ -11,6 +12,7 @@ import type { LessonPlan } from "../App";
 import { SharedLayout } from "./SharedLayout";
 import { generateQuiz } from "../lib/groq";
 import { runtimeEnv } from '../lib/runtime-env';
+import { getSubjectsByClass, getTopicsBySubject, getAllCurriculum } from '../lib/curriculum';
 
 // Check if Groq API key is configured
 const isApiKeyConfigured = () => {
@@ -29,65 +31,115 @@ export function AssessmentGenerator({ onNavigate, lessonPlan }: AssessmentGenera
   const [showAnswers, setShowAnswers] = useState(false);
   const [topic, setTopic] = useState(lessonPlan?.topic || "");
   const [subject, setSubject] = useState(lessonPlan?.subject || "");
-  const [questions, setQuestions] = useState<any[]>([]);
+  const [questions, setQuestions] = useState([]);
   const [aiGeneratedContent, setAiGeneratedContent] = useState("");
   const [showRawContent, setShowRawContent] = useState(false);
   const [classLevel, setClassLevel] = useState("JSS 3");
   const [numberOfQuestions, setNumberOfQuestions] = useState(5);
+  const [numberOfQuestionsInput, setNumberOfQuestionsInput] = useState("5");
   const [difficulty, setDifficulty] = useState("medium");
   const [questionTypes, setQuestionTypes] = useState({
     mcq: true,
     short: true,
     essay: false
   });
+  const [additionalNotes, setAdditionalNotes] = useState("");
+  
+  // Dynamic dropdown states
+  const [availableSubjects, setAvailableSubjects] = useState([]);
+  const [availableTopics, setAvailableTopics] = useState([]);
+  const [loadingSubjects, setLoadingSubjects] = useState(false);
+  const [loadingTopics, setLoadingTopics] = useState(false);
+  const [curriculumDataStatus, setCurriculumDataStatus] = useState({
+    loaded: false,
+    totalRecords: 0,
+    classes: [],
+    subjects: [],
+    lastChecked: ''
+  });
 
-  // Function to get subjects based on class level
-  const getSubjectsForClass = (level: string) => {
-    const jssSubjects = [
-      "Mathematics",
-      "English Language", 
-      "Basic Science",
-      "Social Studies",
-      "Computer Science",
-      "AI",
-      "Robotics",
-      "Solar PV",
-      "Entrepreneurship"
-    ];
-    
-    const ssSubjects = [
-      "Mathematics",
-      "English Language",
-      "Physics", 
-      "Chemistry",
-      "Biology",
-      "Computer Science",
-      "AI",
-      "Robotics", 
-      "Solar PV",
-      "Entrepreneurship",
-      "Economics",
-      "Government",
-      "Literature",
-      "Geography",
-      "History"
-    ];
-
-    if (level.startsWith("JSS")) {
-      return jssSubjects;
-    } else if (level.startsWith("SS")) {
-      return ssSubjects;
+  // Function to check curriculum data status
+  const checkCurriculumData = async () => {
+    try {
+      const allCurriculum = await getAllCurriculum();
+      const classes = [...new Set(allCurriculum.map(item => item.class))];
+      const subjects = [...new Set(allCurriculum.map(item => item.subject))];
+      
+      setCurriculumDataStatus({
+        loaded: allCurriculum.length > 0,
+        totalRecords: allCurriculum.length,
+        classes: classes,
+        subjects: subjects,
+        lastChecked: new Date().toLocaleTimeString()
+      });
+    } catch (error) {
+      setCurriculumDataStatus({
+        loaded: false,
+        totalRecords: 0,
+        classes: [],
+        subjects: [],
+        lastChecked: new Date().toLocaleTimeString()
+      });
     }
-    return jssSubjects; // Default to JSS subjects
   };
 
-  // Handle class level change and reset subject if not available
+  // Check curriculum data on component mount
+  useEffect(() => {
+    checkCurriculumData();
+  }, []);
+
+  // Load subjects when class level changes
+  useEffect(() => {
+    const loadSubjects = async () => {
+      if (!classLevel) return;
+      
+      setLoadingSubjects(true);
+      try {
+        const subjects = await getSubjectsByClass(classLevel);
+        setAvailableSubjects(subjects);
+        
+        // Reset subject and topic when class changes
+        setSubject("");
+        setTopic("");
+        setAvailableTopics([]);
+      } catch (error) {
+        setAvailableSubjects([]);
+        toast.error('Failed to load subjects from curriculum');
+      } finally {
+        setLoadingSubjects(false);
+      }
+    };
+
+    loadSubjects();
+  }, [classLevel]);
+
+  // Load topics when subject changes
+  useEffect(() => {
+    const loadTopics = async () => {
+      if (!classLevel || !subject) return;
+      
+      setLoadingTopics(true);
+      try {
+        const topics = await getTopicsBySubject(classLevel, subject);
+        setAvailableTopics(topics);
+        
+        // Reset topic when subject changes
+        setTopic("");
+      } catch (error) {
+        setAvailableTopics([]);
+        toast.error('Failed to load topics from curriculum');
+      } finally {
+        setLoadingTopics(false);
+      }
+    };
+
+    loadTopics();
+  }, [classLevel, subject]);
+
+  // Handle class level change
   const handleClassLevelChange = (newClassLevel: string) => {
     setClassLevel(newClassLevel);
-    const availableSubjects = getSubjectsForClass(newClassLevel);
-    if (!availableSubjects.includes(subject)) {
-      setSubject(availableSubjects[0]); // Set to first available subject
-    }
+    // The useEffect will handle loading subjects and resetting subject/topic
   };
 
   // Handle question type changes
@@ -96,6 +148,17 @@ export function AssessmentGenerator({ onNavigate, lessonPlan }: AssessmentGenera
       ...prev,
       [type]: checked
     }));
+  };
+
+  // Handle number of questions input change
+  const handleNumberOfQuestionsChange = (value: string) => {
+    setNumberOfQuestionsInput(value);
+    
+    // Only update the actual number if it's a valid positive integer
+    const num = parseInt(value);
+    if (!isNaN(num) && num > 0 && num <= 40) {
+      setNumberOfQuestions(num);
+    }
   };
 
   // Default hardcoded questions
@@ -159,17 +222,24 @@ export function AssessmentGenerator({ onNavigate, lessonPlan }: AssessmentGenera
       return;
     }
 
+    // Validate number of questions
+    const numQuestions = parseInt(numberOfQuestionsInput);
+    if (isNaN(numQuestions) || numQuestions < 1 || numQuestions > 40) {
+      toast.error("Please enter a valid number of questions (1-40)");
+      return;
+    }
+
     setGenerated(true);
     setGenerating(true);
 
     // If API key is configured, generate AI questions
     if (isApiKeyConfigured()) {
       try {
-        const generatedContent = await generateQuiz(topic, numberOfQuestions, difficulty, classLevel, questionTypes);
+        const generatedContent = await generateQuiz(topic, numQuestions, difficulty, classLevel, questionTypes, additionalNotes);
         setAiGeneratedContent(generatedContent);
         
         // Parse the AI-generated content into the same format as hardcoded questions
-        const parsedQuestions = parseAIContent(generatedContent, numberOfQuestions);
+        const parsedQuestions = parseAIContent(generatedContent, numQuestions);
         
         // Only show AI questions if we got valid ones
         if (parsedQuestions.length > 0) {
@@ -211,7 +281,7 @@ export function AssessmentGenerator({ onNavigate, lessonPlan }: AssessmentGenera
         
         // Determine question type based on the format
         let questionType = "mcq"; // default
-        let question = {
+        let question: any = {
           type: questionType,
           question: '',
           options: [],
@@ -522,43 +592,65 @@ export function AssessmentGenerator({ onNavigate, lessonPlan }: AssessmentGenera
 
               <div className="space-y-2">
                 <Label htmlFor="subject">Subject</Label>
-                <Select value={subject} onValueChange={setSubject}>
+                <Select value={subject} onValueChange={setSubject} disabled={loadingSubjects}>
                   <SelectTrigger id="subject" className="rounded-xl">
-                    <SelectValue placeholder="Select subject" />
+                    <SelectValue placeholder={loadingSubjects ? "Loading subjects..." : "Select subject"} />
                   </SelectTrigger>
                   <SelectContent>
-                    {getSubjectsForClass(classLevel).map((subjectOption) => (
-                      <SelectItem key={subjectOption} value={subjectOption}>
-                        {subjectOption}
-                      </SelectItem>
-                    ))}
+                    {availableSubjects.length > 0 ? (
+                      availableSubjects.map((subjectOption) => (
+                        <SelectItem key={subjectOption} value={subjectOption}>
+                          {subjectOption}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <div className="px-2 py-1.5 text-sm text-muted-foreground">
+                        {loadingSubjects ? "Loading..." : "No subjects available"}
+                      </div>
+                    )}
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="topic">Topic</Label>
-                <Input 
-                  id="topic" 
-                  placeholder="e.g., Introduction to Robotics"
-                  className="rounded-xl"
-                  value={topic}
-                  onChange={(e) => setTopic(e.target.value)}
-                />
+                <Select value={topic} onValueChange={setTopic} disabled={loadingTopics || !subject}>
+                  <SelectTrigger id="topic" className="rounded-xl">
+                    <SelectValue placeholder={
+                      !subject ? "Select a subject first" : 
+                      loadingTopics ? "Loading topics..." : 
+                      "Select topic"
+                    } />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableTopics.length > 0 ? (
+                      availableTopics.map((topicOption) => (
+                        <SelectItem key={topicOption} value={topicOption}>
+                          {topicOption}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <div className="px-2 py-1.5 text-sm text-muted-foreground">
+                        {loadingTopics ? "Loading..." : !subject ? "Select subject first" : "No topics available"}
+                      </div>
+                    )}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="numberOfQuestions">Number of Questions</Label>
                 <Input 
                   id="numberOfQuestions" 
-                  type="number"
-                  min="1"
-                  max="20"
+                  type="text"
                   placeholder="5"
                   className="rounded-xl"
-                  value={numberOfQuestions}
-                  onChange={(e) => setNumberOfQuestions(parseInt(e.target.value) || 5)}
+                  value={numberOfQuestionsInput}
+                  onChange={(e) => handleNumberOfQuestionsChange(e.target.value)}
                 />
+                <p className="text-xs text-muted-foreground">
+                  Enter a number between 1 and 40
+                </p>
               </div>
 
               <div className="space-y-2">
@@ -611,6 +703,17 @@ export function AssessmentGenerator({ onNavigate, lessonPlan }: AssessmentGenera
                 </div>
               </div>
 
+              <div className="space-y-2">
+                <Label htmlFor="notes">Additional Notes (Optional)</Label>
+                <Textarea 
+                  id="notes"
+                  placeholder="Any specific requirements, focus areas, or instructions for the assessment..."
+                  className="rounded-xl"
+                  rows={3}
+                  value={additionalNotes}
+                  onChange={(e) => setAdditionalNotes(e.target.value)}
+                />
+              </div>
 
               <Button 
                 className="w-full rounded-2xl" 

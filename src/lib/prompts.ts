@@ -129,7 +129,7 @@ Remember: You're not just providing information - you're being a supportive teac
  * Lesson Generation Prompts
  */
 export const getLessonGenerationPrompt = (topic: string, subject: string, classLevel: string, duration: number, language: string = "english", resourceLevel: string = "medium", additionalNotes?: string): PromptConfig => ({
-  system: `You are an expert curriculum developer for Nigerian secondary schools. Create comprehensive, engaging lesson plans that align with the Nigerian curriculum and use local examples and contexts.`,
+  system: `You are an expert curriculum developer for Nigerian secondary schools. Create comprehensive, engaging lesson plans that align with the Nigerian curriculum using examples and contexts.`,
   user: `Create a detailed lesson plan for:
 Topic: ${topic}
 Subject: ${subject}
@@ -175,7 +175,7 @@ Do not use bullet points, Roman numerals, or any other format. Use ONLY the STEP
 - [Simple, relatable example 2 - appropriate for ${classLevel}]
 - [Simple, relatable example 3 - appropriate for ${classLevel}]
 
-Use relatable examples when relevant, and cultural references. Consider the ${resourceLevel} resource level when suggesting materials and activities. Make examples simple and relatable for ${classLevel} students.`,
+Use relatable examples when relevant. Consider the ${resourceLevel} resource level when suggesting materials and activities. Make examples simple and relatable for ${classLevel} students.`,
   temperature: 0.7,
   maxTokens: 4000
 });
@@ -183,10 +183,10 @@ Use relatable examples when relevant, and cultural references. Consider the ${re
 /**
  * Quiz Generation Prompts
  */
-export const getQuizGenerationPrompt = (topic: string, numberOfQuestions: number, difficulty: string, classLevel?: string, questionTypes?: { mcq: boolean; short: boolean; essay: boolean }): PromptConfig => {
+export const getQuizGenerationPrompt = (topic: string, numberOfQuestions: number, difficulty: string, classLevel?: string, questionTypes?: { mcq: boolean; short: boolean; essay: boolean }, additionalNotes?: string): PromptConfig => {
   // Determine which question types to include
   const types = questionTypes || { mcq: true, short: true, essay: false };
-  const selectedTypes = [];
+  const selectedTypes: string[] = [];
   
   if (types.mcq) selectedTypes.push('Multiple Choice Questions (MCQ)');
   if (types.short) selectedTypes.push('Short Answer Questions');
@@ -238,9 +238,8 @@ export const getQuizGenerationPrompt = (topic: string, numberOfQuestions: number
 `;
   }
 
-  return {
-    system: `You are an expert assessment creator for Nigerian secondary schools. Create high-quality quiz questions that test understanding and use Nigerian examples where relevant.`,
-    user: `Create EXACTLY ${numberOfQuestions} ${difficulty} questions about "${topic}" for ${classLevel || 'Nigerian secondary school'} students.
+  // Build the user prompt
+  let userPrompt = `Create EXACTLY ${numberOfQuestions} ${difficulty} questions about "${topic}" for ${classLevel || 'Nigerian secondary school'} students.
 
 Question Types to Include: ${questionTypesText}
 
@@ -250,12 +249,21 @@ Requirements:
 - Create EXACTLY ${numberOfQuestions} questions (no more, no less)
 - Difficulty level: ${difficulty}
 - Target audience: ${classLevel || 'Nigerian secondary school students'}
-- Use Nigerian examples, locations, and cultural references
+- Use relatable examples and references
 - Make questions age-appropriate for ${classLevel || 'secondary school'} students
 - Distribute question types based on what's selected: ${questionTypesText}
 - For MCQ: Each question must have exactly 4 options (A, B, C, D)
 - For Short Answer: Provide clear expected answers and key points
-- For Essay: Include specific instructions and key points to cover`,
+- For Essay: Include specific instructions and key points to cover`;
+
+  // Add additional notes if provided
+  if (additionalNotes && additionalNotes.trim()) {
+    userPrompt += `\n\nAdditional Requirements/Notes: ${additionalNotes.trim()}`;
+  }
+
+  return {
+    system: `You are an expert assessment creator for Nigerian secondary schools. Create high-quality quiz questions that test understanding and use Nigerian examples where relevant.`,
+    user: userPrompt,
     temperature: 0.5,
     maxTokens: 3000
   };
