@@ -3,6 +3,9 @@ import { LandingPage } from "./components/LandingPage";
 import { LoginPage } from "./components/LoginPage";
 import { ForgotPasswordPage } from "./components/ForgotPasswordPage";
 import { SchoolRegistration } from "./components/SchoolRegistration";
+import { RegistrationSuccess } from "./components/RegistrationSuccess";
+import { EmailConfirmationSuccess } from "./components/EmailConfirmationSuccess";
+import { ResetPasswordPage } from "./components/ResetPasswordPage";
 import { TeacherDashboard } from "./components/TeacherDashboard";
 import { LessonGenerator } from "./components/LessonGenerator";
 import { AssessmentGenerator } from "./components/AssessmentGenerator";
@@ -32,6 +35,9 @@ import { SecurityWarning } from "./components/SecurityWarning";
 type Page = 
   | 'landing' 
   | 'register' 
+  | 'registration-success'
+  | 'email-confirmation-success'
+  | 'reset-password'
   | 'login' 
   | 'dashboard' 
   | 'lesson-generator' 
@@ -78,10 +84,16 @@ function AppContent() {
   const [editingResourceId, setEditingResourceId] = useState<string | null>(null);
   const [learningResourceTitle, setLearningResourceTitle] = useState<string>('');
   const [learningResourceId, setLearningResourceId] = useState<string | null>(null);
-  const { user, logout } = useAuth();
+  const [registrationData, setRegistrationData] = useState<{email?: string, schoolCode?: string}>({});
+  const { user, logout, isLoading } = useAuth();
 
-  // URL-based routing
+  // URL-based routing with authentication check
   useEffect(() => {
+    // Don't run authentication checks while still loading
+    if (isLoading) {
+      return;
+    }
+
     const getPageFromURL = (): Page => {
       const path = window.location.pathname;
       const hash = window.location.hash;
@@ -89,7 +101,7 @@ function AppContent() {
       // Handle hash-based routing
       if (hash) {
         const page = hash.substring(1) as Page;
-        if (['landing', 'register', 'login', 'forgot-password', 'dashboard', 'lesson-generator', 'assessment', 'copilot', 'simplify', 'library', 'pathway', 'admin', 'student-dashboard', 'class-management', 'class-details', 'class-chat', 'concept-explorer', 'learn-with-ai', 'teacher-learning', 'certificate', 'my-curriculum', 'edit-resource', 'settings'].includes(page)) {
+        if (['landing', 'register', 'registration-success', 'email-confirmation-success', 'reset-password', 'login', 'forgot-password', 'dashboard', 'lesson-generator', 'assessment', 'copilot', 'simplify', 'library', 'pathway', 'admin', 'student-dashboard', 'class-management', 'class-details', 'class-chat', 'concept-explorer', 'learn-with-ai', 'teacher-learning', 'certificate', 'my-curriculum', 'edit-resource', 'settings'].includes(page)) {
           return page;
         }
       }
@@ -97,6 +109,9 @@ function AppContent() {
       // Handle path-based routing
       if (path === '/' || path === '/landing') return 'landing';
       if (path === '/register') return 'register';
+      if (path === '/registration-success') return 'registration-success';
+      if (path === '/email-confirmation-success') return 'email-confirmation-success';
+      if (path === '/reset-password') return 'reset-password';
       if (path === '/login') return 'login';
       if (path === '/forgot-password') return 'forgot-password';
       if (path === '/dashboard') return 'dashboard';
@@ -123,12 +138,35 @@ function AppContent() {
     };
 
     const page = getPageFromURL();
-    setCurrentPage(page);
+    
+    // Check if the page requires authentication and user is not logged in
+    if (isProtectedPage(page) && !user) {
+      // Redirect to login page
+      setCurrentPage('login');
+      window.history.replaceState({}, '', '/login');
+    } else if (user && (page === 'landing' || page === 'login')) {
+      // If user is logged in and on landing/login page, redirect to dashboard
+      setCurrentPage('dashboard');
+      window.history.replaceState({}, '', '/dashboard');
+    } else {
+      setCurrentPage(page);
+    }
 
     // Listen for browser back/forward buttons
     const handlePopState = () => {
       const page = getPageFromURL();
-      setCurrentPage(page);
+      
+      // Check authentication for the new page
+      if (isProtectedPage(page) && !user) {
+        setCurrentPage('login');
+        window.history.replaceState({}, '', '/login');
+      } else if (user && (page === 'landing' || page === 'login')) {
+        // If user is logged in and on landing/login page, redirect to dashboard
+        setCurrentPage('dashboard');
+        window.history.replaceState({}, '', '/dashboard');
+      } else {
+        setCurrentPage(page);
+      }
     };
 
     window.addEventListener('popstate', handlePopState);
@@ -136,9 +174,9 @@ function AppContent() {
     return () => {
       window.removeEventListener('popstate', handlePopState);
     };
-  }, []);
+  }, [user, isLoading]); // Re-run when user authentication state or loading state changes
 
-  const navigate = (page: Page, role?: UserRole, resourceId?: string, resourceTitle?: string) => {
+  const navigate = (page: Page, role?: UserRole, resourceId?: string, resourceTitle?: string, regData?: {email?: string, schoolCode?: string}) => {
     setCurrentPage(page);
     if (role) setUserRole(role);
     if (resourceId !== undefined) setEditingResourceId(resourceId);
@@ -146,6 +184,7 @@ function AppContent() {
       setLearningResourceTitle(resourceTitle);
       setLearningResourceId(resourceId || null);
     }
+    if (regData) setRegistrationData(regData);
     
     // Update URL to reflect current page
     const url = page === 'landing' ? '/' : `/${page}`;
@@ -160,10 +199,29 @@ function AppContent() {
   };
 
   const handleLogout = async () => {
-    // Call the auth context logout function to clear session
-    await logout();
-    setCurrentPage('landing');
-    setUserRole('teacher');
+    try {
+      // Call the auth context logout function to clear session
+      await logout();
+      
+      // Reset all app state
+      setCurrentPage('landing');
+      setUserRole('teacher');
+      setCurrentLessonPlan(null);
+      setEditingResourceId(undefined);
+      setLearningResourceTitle('');
+      setLearningResourceId(null);
+      
+      // Clear URL and redirect to landing page
+      window.history.replaceState({}, '', '/');
+      
+      // Force a page reload to ensure all state is cleared
+      window.location.reload();
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Even if logout fails, redirect to landing page
+      setCurrentPage('landing');
+      window.history.replaceState({}, '', '/');
+    }
   };
 
   // Check authentication for protected pages
@@ -180,13 +238,38 @@ function AppContent() {
   // Removed automatic redirect - users stay on current page even if session expires
 
   const renderPage = () => {
+    // Show loading state while checking authentication
+    if (isLoading) {
+      return (
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading...</p>
+          </div>
+        </div>
+      );
+    }
+
+    // Check if current page requires authentication
+    if (isProtectedPage(currentPage) && !user) {
+      // Redirect to login page if user is not authenticated
+      navigate('login');
+      return <LoginPage onNavigate={navigate} />;
+    }
+
     switch (currentPage) {
       case 'landing':
-        return <LandingPage onNavigate={navigate} />;
+        return <LandingPage onNavigate={navigate} user={user} />;
       case 'register':
         return <SchoolRegistration onNavigate={navigate} />;
+      case 'registration-success':
+        return <RegistrationSuccess onNavigate={navigate} userRole={userRole} email={registrationData.email} schoolCode={registrationData.schoolCode} />;
+      case 'email-confirmation-success':
+        return <EmailConfirmationSuccess onNavigate={navigate} email={registrationData.email} />;
+      case 'reset-password':
+        return <ResetPasswordPage onNavigate={navigate} />;
       case 'login':
-        return <LoginPage onNavigate={navigate} />;
+        return <LoginPage onNavigate={navigate} user={user} />;
       case 'forgot-password':
         return <ForgotPasswordPage onNavigate={navigate} />;
       case 'dashboard':

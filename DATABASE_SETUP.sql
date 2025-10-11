@@ -1,5 +1,5 @@
 -- ============================================================================
--- TEACHMATE DATABASE SETUP
+-- TISHAM DATABASE SETUP
 -- ============================================================================
 -- This file contains all the necessary SQL commands to set up the TeachMate database
 -- Run these commands in your Supabase SQL Editor

@@ -11,9 +11,10 @@ import { useAuth } from "../contexts/AuthContext";
 
 interface LoginPageProps {
   onNavigate: (page: any, role?: any) => void;
+  user?: any;
 }
 
-export function LoginPage({ onNavigate }: LoginPageProps) {
+export function LoginPage({ onNavigate, user }: LoginPageProps) {
   const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -85,7 +86,7 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
             <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-4 gradient-primary">
               <Sparkles className="w-8 h-8 text-white" />
             </div>
-            <h1 className="text-2xl sm:text-3xl font-bold">TeachMate</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold">Tisham</h1>
             <p className="text-sm text-muted-foreground mt-2">Sign in to continue</p>
           </div>
 
@@ -94,8 +95,12 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
             <CardContent className="p-6">
               <div className="space-y-6">
                 <div className="text-center">
-                  <h3 className="text-lg font-semibold">Welcome Back</h3>
-                  <p className="text-sm text-muted-foreground">Sign in to access your dashboard</p>
+                  <h3 className="text-lg font-semibold">
+                    {user ? `Welcome back, ${user.full_name || user.email}!` : 'Welcome Back'}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    {user ? 'You are already signed in' : 'Sign in to access your dashboard'}
+                  </p>
                 </div>
 
                 {/* Single Login Form */}
@@ -126,12 +131,20 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
                     />
                   </div>
 
-                  <Button type="submit" className="w-full rounded-2xl gradient-primary" size="lg" disabled={isLoading}>
+                  <Button 
+                    type="submit" 
+                    className="w-full rounded-2xl gradient-primary" 
+                    size="lg" 
+                    disabled={isLoading}
+                    onClick={user ? (e) => { e.preventDefault(); onNavigate('dashboard'); } : undefined}
+                  >
                     {isLoading ? (
                       <>
                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                         Signing in...
                       </>
+                    ) : user ? (
+                      'Continue to Dashboard'
                     ) : (
                       'Sign In'
                     )}

@@ -53,7 +53,6 @@ export function StudentDashboard({ onNavigate }: StudentDashboardProps) {
         const leaderboard = await getClassLeaderboard(user.class_id || user.id);
       setLeaderboardData(leaderboard);
       } catch (error) {
-        console.log('No class leaderboard data available');
         setLeaderboardData([]);
       }
       

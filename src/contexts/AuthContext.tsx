@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { supabase, supabaseAdmin, isSupabaseConfigured } from '../lib/supabase';
 import { isAuthenticationAllowed, isAPIAccessAllowed } from '../config/auth';
 
@@ -48,20 +48,25 @@ interface RegisterData {
   parentEmail?: string;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext(undefined);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+export function AuthProvider({ children }: { children: any }) {
+  const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSupabaseEnabled] = useState(isSupabaseConfigured());
   const [isCheckingSession, setIsCheckingSession] = useState(false);
   const [isExportingPDF, setIsExportingPDF] = useState(false);
+  const isCheckingSessionRef = useRef(false);
+  const hasInitializedRef = useRef(false);
   
   // Security warnings removed - no longer displayed
 
   useEffect(() => {
     // Check for existing session on mount only (run once)
-    checkSession();
+    if (!hasInitializedRef.current) {
+      hasInitializedRef.current = true;
+      checkSession();
+    }
 
     // Removed automatic session validation - only logout on explicit user action
 
@@ -69,22 +74,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (isSupabaseEnabled) {
       const { data: { subscription } } = supabase.auth.onAuthStateChange(
         async (event, session) => {
-          console.log('🔐 Auth state change:', event, session ? 'Session exists' : 'No session');
           
           if (event === 'SIGNED_OUT') {
             // User explicitly signed out
-            console.log('🚪 User explicitly signed out, clearing all data');
             setUser(null);
-            localStorage.removeItem('user_data');
+            localStorage.removeItem('tisham_current_user');
             localStorage.removeItem('supabase.auth.token');
             sessionStorage.clear();
             
             // Only redirect on explicit sign out, not on session expiration
             window.location.href = '/';
           } else if (event === 'SIGNED_IN' && session) {
-            // User signed in - only handle if we don't already have a user
-            if (!user) {
-              console.log('🔑 User signed in, fetching profile');
+            // User signed in - only handle if we don't already have a user and not checking session
+            
+            if (!user && !isCheckingSessionRef.current) {
               try {
                 const { data: profile, error } = await supabase
                   .from('profiles')
@@ -94,10 +97,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 
                 if (profile && !error) {
                   setUser(profile);
-                  localStorage.setItem('user_data', JSON.stringify(profile));
+                  localStorage.setItem('tisham_current_user', JSON.stringify(profile));
+                  
+                  // If we're on login/landing page, redirect to dashboard
+                  const currentPath = window.location.hash.substring(1) || window.location.pathname;
+                  if (currentPath === 'login' || currentPath === 'landing' || currentPath === '/') {
+                    window.location.hash = '#dashboard';
+                  }
+                } else {
+                  await supabase.auth.signOut();
                 }
               } catch (error) {
                 console.error('Error fetching profile on sign in:', error);
+                // Clear session if we can't fetch profile
+                await supabase.auth.signOut();
               }
             }
           }
@@ -108,46 +121,90 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         subscription.unsubscribe();
       };
     }
-  }, [isSupabaseEnabled]);
+  }, [isSupabaseEnabled, isCheckingSession]);
 
   const checkSession = async () => {
     // Prevent multiple simultaneous session checks
-    if (isCheckingSession) {
-      console.log('🔍 Session check already in progress, skipping...');
+    if (isCheckingSessionRef.current) {
       return;
     }
-    
+
+    // Prevent multiple calls if already initialized
+    if (hasInitializedRef.current && user) {
+      return;
+    }
+
+    isCheckingSessionRef.current = true;
     setIsCheckingSession(true);
     try {
-      console.log('🔍 Checking session...');
       if (isSupabaseEnabled) {
         // Check localStorage first for stored user
-        const storedUser = localStorage.getItem('user_data');
+        const storedUser = localStorage.getItem('tisham_current_user');
         if (!storedUser) {
-          // No stored user found
-          console.log('❌ No stored user found');
+          // No stored user found - check if there's a Supabase session that should be restored
           setUser(null);
           setIsLoading(false);
+          
+          // Check if there's a valid Supabase session that we should restore
+          try {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+              // Don't clear the session - let the auth state listener handle it
+              // This allows the user to be automatically logged in
+            } else {
+            }
+          } catch (error) {
+          }
+          
           return;
         }
 
         const userData = JSON.parse(storedUser);
-        // Found stored user, validating session
         
-        // Validate session with Supabase (quick check)
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session && session.user.id === userData.id) {
-          // Session valid, using stored user data
-          console.log('✅ Session valid, user logged in');
-          setUser(userData);
-        } else {
-          // Session invalid or expired, clearing stored data but not redirecting
-          console.log('❌ Session invalid or expired, clearing stored data');
-          localStorage.removeItem('user_data');
+        // Validate session with Supabase and fetch fresh profile data
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', userData.id)
+          .single();
+        
+        if (profileError) {
+          console.error('Error fetching profile data:', profileError);
+          // Clear invalid session
+          localStorage.removeItem('tisham_current_user');
           localStorage.removeItem('supabase.auth.token');
           sessionStorage.clear();
           setUser(null);
-          // No automatic redirect - user stays on current page
+          setIsLoading(false);
+          return;
+        }
+        
+        if (profileData) {
+          // Create fresh user data from profile
+          const freshUserData = {
+            id: profileData.id,
+            email: profileData.email,
+            full_name: profileData.full_name,
+            role: profileData.role,
+            school_id: profileData.school_id,
+            teacher_id: profileData.teacher_id,
+            student_id: profileData.student_id,
+            total_xp: profileData.total_xp,
+            streak_days: profileData.streak_days,
+            class_level: profileData.class_level,
+            subjects: profileData.subjects,
+            years_experience: profileData.years_experience
+          };
+          
+          // Set user state and update localStorage with fresh data
+          setUser(freshUserData);
+          localStorage.setItem('tisham_current_user', JSON.stringify(freshUserData));
+        } else {
+          // No profile found, clear session
+          localStorage.removeItem('tisham_current_user');
+          localStorage.removeItem('supabase.auth.token');
+          sessionStorage.clear();
+          setUser(null);
         }
       } else {
         // Use Netlify Functions for production
@@ -172,6 +229,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.error('Session check error:', error);
       localStorage.removeItem('auth_token');
     } finally {
+      isCheckingSessionRef.current = false;
       setIsLoading(false);
       setIsCheckingSession(false);
     }
@@ -248,7 +306,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               
               // Created basic profile
               setUser(newProfile);
-              localStorage.setItem('user_data', JSON.stringify(newProfile));
+              localStorage.setItem('tisham_current_user', JSON.stringify(newProfile));
               return;
             }
             throw new Error(`User profile not found: ${profileError.message}`);
@@ -261,7 +319,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             }
             // Set user and store in localStorage
             setUser(profile);
-            localStorage.setItem('user_data', JSON.stringify(profile));
+            localStorage.setItem('tisham_current_user', JSON.stringify(profile));
           } else {
             throw new Error('User profile not found');
           }
@@ -299,7 +357,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       setUser(profile);
       // Store user data in localStorage for persistence
-      localStorage.setItem('user_data', JSON.stringify(profile));
+      localStorage.setItem('tisham_current_user', JSON.stringify(profile));
       // Login completed successfully
     }
     } catch (error) {
@@ -354,7 +412,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (profile) {
           setUser(profile);
           // Store user data in localStorage for persistence
-          localStorage.setItem('user_data', JSON.stringify(profile));
+          localStorage.setItem('tisham_current_user', JSON.stringify(profile));
         }
         return { user: profile, emailConfirmationRequired: !data.user.email_confirmed_at };
       }
@@ -377,7 +435,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (result.user) {
         setUser(result.user);
         // Store user data in localStorage for persistence
-        localStorage.setItem('user_data', JSON.stringify(result.user));
+        localStorage.setItem('tisham_current_user', JSON.stringify(result.user));
       }
       return result; // Return the full response including emailConfirmationRequired
     }
@@ -412,7 +470,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(null);
       
       // Clear all localStorage items
-      localStorage.removeItem('user_data');
+      localStorage.removeItem('tisham_current_user');
       localStorage.removeItem('auth_token');
       localStorage.removeItem('supabase.auth.token');
       localStorage.removeItem('sb-' + (window as any).__ENV__?.VITE_SUPABASE_URL?.split('//')[1]?.split('.')[0] + '-auth-token');

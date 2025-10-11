@@ -188,7 +188,6 @@ export function SchoolRegistration({ onNavigate }: RegistrationProps) {
          }),
       };
 
-      console.log('Registration data being sent:', registrationData);
       
       // Use confirmation email flow instead of OTP
       const response = await fetch('/.netlify/functions/register-confirm', {
@@ -232,53 +231,13 @@ export function SchoolRegistration({ onNavigate }: RegistrationProps) {
   }
 
   if (registered) {
-    const getSuccessMessage = () => {
-      if (registrationType === 'school' && schoolCode) {
-          return {
-          title: "Registration Successful!",
-          description: "Your school has been registered and data saved. Please check your email and click the confirmation link to activate your account.",
-          buttonText: "Go to Login",
-          showCode: true,
-            codeLabel: "Your School Code",
-          code: schoolCode
-        };
-      }
-      return {
-        title: "Check Your Email!",
-        description: "We've sent a confirmation link to your email address. Please check your inbox and click the link to activate your account.",
-        buttonText: "Go to Login",
-        showCode: false
-      };
+    // Navigate to registration success page with registration data
+    const regData = {
+      email: formData.email,
+      schoolCode: schoolCode
     };
-
-    const success = getSuccessMessage();
-
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 flex items-center justify-center p-4">
-        <Card className="w-full max-w-lg rounded-3xl shadow-2xl">
-          <CardContent className="p-12 text-center">
-            <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
-              <CheckCircle2 className="w-12 h-12 text-primary" />
-            </div>
-            <h2 className="text-base sm:text-base mb-4">{success.title}</h2>
-            <p className="text-muted-foreground mb-8">
-              {success.description}
-            </p>
-            {success.showCode && (
-            <div className="bg-muted p-6 rounded-2xl mb-8">
-              <p className="text-sm text-muted-foreground mb-2">{success.codeLabel}</p>
-              <p className="text-base sm:text-base tracking-wider">{success.code}</p>
-            </div>
-            )}
-            <div className="space-y-3">
-              <Button className="w-full rounded-2xl" size="lg" onClick={() => onNavigate('login')}>
-                  {success.buttonText}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
+    onNavigate('registration-success', registrationType === 'school' ? 'teacher' : registrationType, undefined, undefined, regData);
+    return null;
   }
 
   return (
@@ -297,7 +256,7 @@ export function SchoolRegistration({ onNavigate }: RegistrationProps) {
           <CardHeader className="pb-6">
             <CardTitle className="text-base sm:text-base">Create Account</CardTitle>
             <CardDescription>
-              Join TeachMate as a School, Teacher, or Student
+              Join Tisham as a School, Teacher, or Student
             </CardDescription>
           </CardHeader>
           <CardContent>

@@ -37,7 +37,7 @@ export function SharedSidebar({ onNavigate, userRole, activeMenu, setActiveMenu,
     { id: 'lesson-generator', label: 'Generate Lesson', icon: FileText },
     { id: 'assessment', label: 'Create Assessment', icon: ClipboardList },
     { id: 'simplify', label: 'Simplify / Translate', icon: Languages },
-    { id: 'copilot', label: 'TeachMate', icon: MessageSquare },
+    { id: 'copilot', label: 'Tisham', icon: MessageSquare },
     { id: 'library', label: 'Resource Library', icon: BookOpen },
     { id: 'admin', label: 'School Dashboard', icon: BarChart3 },
     { id: 'pathway', label: 'Learning Pathway', icon: Map },
@@ -80,7 +80,7 @@ export function SharedSidebar({ onNavigate, userRole, activeMenu, setActiveMenu,
             </div>
             {(!sidebarCollapsed || mobile) && (
               <div className="min-w-0">
-                <p className="font-semibold text-sm">TeachMate</p>
+                <p className="font-semibold text-sm">Tisham</p>
                 <p className="text-xs text-muted-foreground">School</p>
               </div>
             )}

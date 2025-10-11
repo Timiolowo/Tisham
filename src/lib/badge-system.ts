@@ -19,7 +19,6 @@ import {
 
 export async function checkAndAwardBadges(studentId: string) {
   if (!isSupabaseConfigured()) {
-    console.log('Mock: Checking badges for student', studentId);
     return [];
   }
 
@@ -78,7 +77,6 @@ export async function checkAndAwardBadges(studentId: string) {
         try {
           await awardBadge(studentId, badge.id);
           newlyAwardedBadges.push(badge);
-          console.log(`Awarded badge "${badge.name}" to student ${studentId}`);
         } catch (error) {
           console.error(`Failed to award badge ${badge.name}:`, error);
         }

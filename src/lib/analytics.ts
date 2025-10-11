@@ -426,7 +426,6 @@ export async function trackLessonCompletion(
   timeSpent: number
 ) {
   if (!isSupabaseConfigured()) {
-    console.log('Mock: Lesson completed');
     return;
   }
 
@@ -459,7 +458,6 @@ export async function trackLessonCompletion(
 
 export async function updateStreak(studentId: string) {
   if (!isSupabaseConfigured()) {
-    console.log('Mock: Streak updated');
     return;
   }
 

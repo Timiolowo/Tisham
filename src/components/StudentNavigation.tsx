@@ -56,7 +56,7 @@ export function StudentNavigation({
             </div>
             {!sidebarCollapsed && (
               <div className="min-w-0">
-                <p className="font-semibold text-sm">TeachMate</p>
+                <p className="font-semibold text-sm">Tisham</p>
                 <p className="text-xs text-muted-foreground">School</p>
               </div>
             )}

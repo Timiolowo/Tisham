@@ -4,7 +4,7 @@
 export const AUTH_CONFIG = {
   ALLOWED_PORTS: ['8888', '443', '80'], // Production and Netlify Dev ports
   BLOCKED_PORTS: ['3000', '5173', '5174', '5175'], // Development ports
-  ALLOWED_HOSTS: ['localhost', '127.0.0.1', 'your-production-domain.com', 'teachmate.netlify.app', 'teachmate.app', 'teeechat.netlify.app'],
+  ALLOWED_HOSTS: ['localhost', '127.0.0.1', 'your-production-domain.com', 'tisham.netlify.app', 'tisham.app', 'teeechat.netlify.app'],
   ENVIRONMENT: import.meta.env.MODE || 'development'
 };
 
@@ -14,7 +14,7 @@ export const isAuthenticationAllowed = (): boolean => {
   
   // Allow production domains (no port restrictions)
   if (currentHost.includes('netlify.app') || 
-      currentHost.includes('teachmate.app') || 
+      currentHost.includes('tisham.app') || 
       currentHost.includes('teeechat.netlify.app') ||
       currentHost.includes('your-production-domain.com')) {
     return true;
@@ -39,7 +39,7 @@ export const isAPIAccessAllowed = (): boolean => {
   
   // Allow production domains (no port restrictions)
   if (currentHost.includes('netlify.app') || 
-      currentHost.includes('teachmate.app') || 
+      currentHost.includes('tisham.app') || 
       currentHost.includes('teeechat.netlify.app') ||
       currentHost.includes('your-production-domain.com')) {
     return true;

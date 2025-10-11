@@ -18,30 +18,53 @@ export const handler: Handler = async (event, context) => {
   }
 
   try {
-    const { email } = JSON.parse(event.body || '{}');
+    const { password, access_token, refresh_token } = JSON.parse(event.body || '{}');
 
-    if (!email) {
+    if (!password || !access_token || !refresh_token) {
       return {
         statusCode: 400,
         headers: { 'Access-Control-Allow-Origin': '*' },
-        body: JSON.stringify({ error: 'Email is required' }),
+        body: JSON.stringify({ error: 'Missing required parameters' }),
+      };
+    }
+
+    if (password.length < 6) {
+      return {
+        statusCode: 400,
+        headers: { 'Access-Control-Allow-Origin': '*' },
+        body: JSON.stringify({ error: 'Password must be at least 6 characters long' }),
       };
     }
 
     // Create Supabase client
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-    // Send password reset email
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${process.env.URL || 'https://tisham.netlify.app'}/#reset-password`,
+    // Set the session with the tokens from the reset link
+    const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
+      access_token,
+      refresh_token,
     });
 
-    if (error) {
-      console.error('Password reset error:', error);
+    if (sessionError || !sessionData.session) {
+      console.error('Session error:', sessionError);
       return {
         statusCode: 400,
         headers: { 'Access-Control-Allow-Origin': '*' },
-        body: JSON.stringify({ error: error.message }),
+        body: JSON.stringify({ error: 'Invalid or expired reset link' }),
+      };
+    }
+
+    // Update the password
+    const { error: updateError } = await supabase.auth.updateUser({
+      password: password
+    });
+
+    if (updateError) {
+      console.error('Password update error:', updateError);
+      return {
+        statusCode: 400,
+        headers: { 'Access-Control-Allow-Origin': '*' },
+        body: JSON.stringify({ error: updateError.message }),
       };
     }
 
@@ -50,11 +73,11 @@ export const handler: Handler = async (event, context) => {
       headers: { 'Access-Control-Allow-Origin': '*' },
       body: JSON.stringify({ 
         success: true, 
-        message: 'Password reset email sent successfully' 
+        message: 'Password updated successfully' 
       }),
     };
   } catch (error) {
-    console.error('Password reset error:', error);
+    console.error('Password update error:', error);
     return {
       statusCode: 500,
       headers: { 'Access-Control-Allow-Origin': '*' },

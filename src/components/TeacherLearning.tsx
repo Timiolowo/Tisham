@@ -402,13 +402,7 @@ Format as JSON with this structure:
                   </CardContent>
                 </Card>
               ) : aiContent ? (
-                <Tabs value={currentTab} onValueChange={setCurrentTab}>
-                  <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="lesson">📖 Lesson</TabsTrigger>
-                    <TabsTrigger value="quiz">🎯 Knowledge Check</TabsTrigger>
-                  </TabsList>
-
-                  <TabsContent value="lesson" className="space-y-6 mt-6">
+                <div className="space-y-6">
                     {/* Overview */}
                     <Card className="rounded-2xl glass-card">
                       <CardHeader>
@@ -484,10 +478,9 @@ Format as JSON with this structure:
                         </div>
                       </CardContent>
                     </Card>
-                  </TabsContent>
 
-                  <TabsContent value="quiz" className="space-y-6 mt-6">
-                    {/* Quiz Questions */}
+                    {/* Quiz Questions - Only show on last topic */}
+                    {currentTopicIndex === selectedModule.topics.length - 1 && (
                     <Card className="rounded-2xl glass-card border-primary/20">
                       <CardHeader>
                         <CardTitle className="flex items-center gap-2">
@@ -495,7 +488,7 @@ Format as JSON with this structure:
                           Knowledge Check
                         </CardTitle>
                         <CardDescription>
-                          Answer all questions correctly to complete this topic
+                            Answer all questions correctly to complete this module
                         </CardDescription>
                       </CardHeader>
                       <CardContent className="space-y-6">
@@ -549,8 +542,8 @@ Format as JSON with this structure:
                         ))}
                       </CardContent>
                     </Card>
-                  </TabsContent>
-                </Tabs>
+                    )}
+                </div>
               ) : null}
 
               {/* Navigation */}
@@ -617,15 +610,15 @@ Format as JSON with this structure:
       {/* Content */}
       <main className="max-w-7xl mx-auto p-4 sm:p-6 space-y-6">
         {/* Stats */}
-        <div className="grid sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <Card className="rounded-2xl glass-card hover-lift">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <BookOpen className="w-6 h-6 text-primary" />
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
                 </div>
                 <div>
-                  <p className="text-base font-bold">{completedModules.length}/{learningModules.length}</p>
+                  <p className="text-sm sm:text-base font-bold">{completedModules.length}/{learningModules.length}</p>
                   <p className="text-xs text-muted-foreground">Modules Completed</p>
                 </div>
               </div>
@@ -633,27 +626,28 @@ Format as JSON with this structure:
           </Card>
 
           <Card className="rounded-2xl glass-card hover-lift">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center">
-                  <Zap className="w-6 h-6 text-accent" />
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-accent/10 flex items-center justify-center">
+                  <Zap className="w-5 h-5 sm:w-6 sm:h-6 text-accent" />
                 </div>
                 <div>
-                  <p className="text-base font-bold">{totalXPEarned}</p>
+                  <p className="text-sm sm:text-base font-bold">{totalXPEarned}</p>
                   <p className="text-xs text-muted-foreground">Total XP Earned</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="rounded-2xl glass-card hover-lift">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-success/10 flex items-center justify-center">
-                  <Trophy className="w-6 h-6 text-success" />
+          {/* Certificate Ready Card - Hidden on mobile */}
+          <Card className="rounded-2xl glass-card hover-lift hidden sm:block">
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-success/10 flex items-center justify-center">
+                  <Trophy className="w-5 h-5 sm:w-6 sm:h-6 text-success" />
                 </div>
                 <div>
-                  <p className="text-base font-bold">{allModulesCompleted ? 'Yes!' : 'Not Yet'}</p>
+                  <p className="text-sm sm:text-base font-bold">{allModulesCompleted ? 'Yes!' : 'Not Yet'}</p>
                   <p className="text-xs text-muted-foreground">Certificate Ready</p>
                 </div>
               </div>
@@ -671,7 +665,7 @@ Format as JSON with this structure:
                     <Award className="w-8 h-8 text-success" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-lg">Congratulations! 🎉</h3>
+                    <h3 className="font-bold text-lg">Congratulations!</h3>
                     <p className="text-sm text-muted-foreground">
                       You've completed all modules! Download your certificate now.
                     </p>

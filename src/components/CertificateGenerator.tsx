@@ -22,7 +22,7 @@ export function CertificateGenerator({ onBack }: CertificateGeneratorProps) {
       month: 'long', 
       day: 'numeric' 
     }),
-    issuer: "TeachMate Nigeria",
+    issuer: "Tisham Nigeria",
     certificateNumber: `TC-${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
     achievements: [
       "Completed 12 hours of AI teaching training",
@@ -181,7 +181,7 @@ export function CertificateGenerator({ onBack }: CertificateGeneratorProps) {
                   <div class="signature">
                     <div style="font-size: 24px; font-weight: bold; color: #3B82F6;">🇳🇬</div>
                     <div class="signature-line">
-                      <strong>TeachMate Nigeria</strong><br/>
+                      <strong>Tisham Nigeria</strong><br/>
                       Authorized Issuer
                     </div>
                   </div>
@@ -296,7 +296,7 @@ export function CertificateGenerator({ onBack }: CertificateGeneratorProps) {
                 <div className="text-center">
                   <div className="text-base mb-2">🇳🇬</div>
                   <div className="border-t-2 border-gray-300 pt-3 mt-6">
-                    <p className="font-semibold text-gray-900">TeachMate Nigeria</p>
+                    <p className="font-semibold text-gray-900">Tisham Nigeria</p>
                     <p className="text-sm text-gray-600">Authorized Issuer</p>
                   </div>
                 </div>

@@ -412,7 +412,6 @@ Think of it like this:
       const explanation = await explainConcept(resourceTitle, "JSS 3");
       setAiExplanation(explanation);
     } catch (error) {
-      console.log('Using default content:', error);
       // Silent fallback to default content
     } finally {
       setIsLoadingExplanation(false);
@@ -436,7 +435,6 @@ Think of it like this:
       const aiMessage: ChatMessage = { role: 'assistant', content: response };
       setChatMessages(prev => [...prev, aiMessage]);
     } catch (error) {
-      console.log('Chat error:', error);
       const errorMessage: ChatMessage = {
         role: 'assistant',
         content: error instanceof Error && (error.message.includes('API key') || error.message.includes('configured'))
@@ -563,7 +561,6 @@ Think of it like this:
                 completed_at: new Date().toISOString()
               });
               
-              console.log('Progress saved to Supabase!');
             } catch (error) {
               console.error('Failed to save quiz results:', error);
               toast.error('Failed to save progress, but you still earned XP!');

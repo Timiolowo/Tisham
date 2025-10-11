@@ -784,3 +784,143 @@ export async function getStudentPerformance(studentId: string) {
 
   return data;
 }
+
+// ============================================================================
+// CURRICULUM FUNCTIONS
+// ============================================================================
+
+export interface Curriculum {
+  id: string;
+  class: string;
+  subject: string;
+  topics: string[];
+  sub_topics: any;
+  created_at: string;
+  updated_at: string;
+}
+
+// Helper function to map user-selected class to curriculum class
+export const getCurriculumClass = (selectedClass: string): string => {
+  if (selectedClass.startsWith('JSS')) {
+    return 'JSS 1-3';
+  } else if (selectedClass.startsWith('SS')) {
+    return 'SS 1-3';
+  }
+  return selectedClass;
+};
+
+export async function getAllCurriculum(): Promise<Curriculum[]> {
+  
+  // Check if user is authenticated
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) {
+    console.error('User not authenticated:', authError);
+    throw new Error('Authentication required to access curriculum data');
+  }
+  
+  
+  const { data, error } = await supabase
+    .from('curriculum')
+    .select('*')
+    .order('class', { ascending: true });
+
+  if (error) {
+    console.error('Error fetching curriculum:', error);
+    return [];
+  }
+
+  return data || [];
+}
+
+export async function getSubjectsByClass(classLevel: string): Promise<string[]> {
+  const curriculumClass = getCurriculumClass(classLevel);
+  
+  
+  // Check if user is authenticated
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) {
+    console.error('User not authenticated:', authError);
+    throw new Error('Authentication required to access curriculum data');
+  }
+  
+  const { data, error } = await supabase
+    .from('curriculum')
+    .select('subject')
+    .eq('class', curriculumClass);
+
+  if (error) {
+    console.error('Error fetching subjects for class:', error);
+    return [];
+  }
+
+
+  // Extract unique subjects
+  const subjects = [...new Set(data?.map(item => item.subject) || [])];
+  return subjects;
+}
+
+export async function getTopicsBySubject(classLevel: string, subject: string): Promise<string[]> {
+  const curriculumClass = getCurriculumClass(classLevel);
+  
+  
+  // Check if user is authenticated
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) {
+    console.error('User not authenticated:', authError);
+    throw new Error('Authentication required to access curriculum data');
+  }
+  
+  const { data, error } = await supabase
+    .from('curriculum')
+    .select('topics')
+    .eq('class', curriculumClass)
+    .eq('subject', subject)
+    .single();
+
+  if (error) {
+    console.error('Error fetching topics for subject:', error);
+    return [];
+  }
+
+  const topics = data?.topics || [];
+  return topics;
+}
+
+// Test function to check if curriculum table exists and is accessible
+export async function testCurriculumTableAccess(): Promise<{success: boolean, error?: string, data?: any}> {
+  try {
+    
+    // Check if Supabase is properly configured
+    if (!supabaseUrl || !supabaseAnonKey) {
+      return { success: false, error: 'Supabase not properly configured - missing URL or API key' };
+    }
+    
+    // Try a simple count query first
+    const { count, error: countError } = await supabase
+      .from('curriculum')
+      .select('*', { count: 'exact', head: true });
+    
+    if (countError) {
+      console.error('Count query failed:', countError);
+      return { success: false, error: `Count query failed: ${countError.message}` };
+    }
+    
+    
+    // Try to fetch one record
+    const { data, error } = await supabase
+      .from('curriculum')
+      .select('*')
+      .limit(1);
+    
+    if (error) {
+      console.error('Select query failed:', error);
+      return { success: false, error: `Select query failed: ${error.message}` };
+    }
+    
+    return { success: true, data: data };
+    
+  } catch (err) {
+    console.error('Unexpected error testing table access:', err);
+    return { success: false, error: `Unexpected error: ${String(err)}` };
+  }
+}

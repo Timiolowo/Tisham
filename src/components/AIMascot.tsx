@@ -26,10 +26,10 @@ export function AIMascot({ onOpenChat, currentPage, isAuthenticated }: AIMascotP
   ];
 
   const landingTips = [
-    "👋 Welcome to TeachMate! Login to start creating amazing lessons!",
+    "👋 Welcome to Tisham! Login to start creating amazing lessons!",
     "🚀 Get started by registering your school to access all features!",
     "💡 AI-powered lesson planning awaits you after login!",
-    "🎯 Join thousands of teachers already using TeachMate!",
+    "🎯 Join thousands of teachers already using Tisham!",
     "⭐ Experience the future of education technology!"
   ];
 
@@ -138,7 +138,7 @@ export function AIMascot({ onOpenChat, currentPage, isAuthenticated }: AIMascotP
               <Sparkles className="w-5 h-5 text-white" />
             </div>
             <div className="flex-1 min-w-0">
-              <h4 className="text-sm font-semibold mb-1">TeachMate, your AI copilot</h4>
+              <h4 className="text-sm font-semibold mb-1">Tishami, your AI copilot</h4>
               <p className="text-xs text-muted-foreground">
                 {randomTip}
               </p>
@@ -162,7 +162,7 @@ export function AIMascot({ onOpenChat, currentPage, isAuthenticated }: AIMascotP
                 handleOpenChat();
               }}
             >
-              {currentPage === 'landing' && !isAuthenticated ? 'Login First' : 'Ask TeachMate'}
+              {currentPage === 'landing' && !isAuthenticated ? 'Login First' : 'Ask Tishami'}
             </Button>
             <Button size="sm" variant="outline" className="rounded-2xl text-xs" onClick={() => setIsMinimized(true)}>
               Got it!

@@ -96,12 +96,12 @@ export function CopilotChat({ onNavigate }: CopilotChatProps) {
     if (isStudent) {
       return {
         role: 'assistant' as const,
-        content: `Hi ${firstName}! I'm TeachMate, your AI learning companion! 🎓\n\nI can help you with:\n\n✅ **Understanding difficult topics** and concepts\n✅ **Homework help** and study guidance\n✅ **Learning strategies** and study tips\n✅ **Nigerian curriculum** explanations\n\nWhat would you like to learn about today?`
+        content: `Hi ${firstName}! I'm Tishami, your AI learning companion! 🎓\n\nI can help you with:\n\n✅ **Understanding difficult topics** and concepts\n✅ **Homework help** and study guidance\n✅ **Learning strategies** and study tips\n✅ **Nigerian curriculum** explanations\n\nWhat would you like to learn about today?`
       };
     } else {
       return {
         role: 'assistant' as const,
-        content: `Hi ${firstName}! I'm TeachMate, your AI teaching assistant! 🎓\n\nI can help you with:\n\n✅ **Lesson planning** and curriculum guidance\n✅ **Student explanations** and homework help\n✅ **Teaching strategies** and classroom management\n✅ **Nigerian educational context** and examples\n\nWhat would you like to know about teaching today?`
+        content: `Hi ${firstName}! I'm Tishami, your AI teaching assistant! 🎓\n\nI can help you with:\n\n✅ **Lesson planning** and curriculum guidance\n✅ **Student explanations** and homework help\n✅ **Teaching strategies** and classroom management\n✅ **Nigerian educational context** and examples\n\nWhat would you like to know about teaching today?`
       };
     }
   };
@@ -166,8 +166,8 @@ export function CopilotChat({ onNavigate }: CopilotChatProps) {
         role: 'assistant',
         content: error instanceof Error && error.message.includes('API key') 
           ? isStudent 
-            ? "🤖 **AI not fully configured**\n\nI'm TeachMate, your AI learning companion! I can help you with:\n\n✅ Understanding difficult topics and concepts\n✅ Homework help and study guidance\n✅ Learning strategies and study tips\n✅ Nigerian curriculum explanations\n\nWhat would you like to learn about? 🎓"
-            : "🤖 **AI not fully configured**\n\nI'm TeachMate, your AI teaching assistant! I can help you with:\n\n✅ Lesson planning and curriculum guidance\n✅ Student explanations and homework help\n✅ Teaching strategies and classroom management\n✅ Nigerian educational context and examples\n\nWhat would you like to know about teaching? 🎓"
+            ? "🤖 **AI not fully configured**\n\nI'm Tishami, your AI learning companion! I can help you with:\n\n✅ Understanding difficult topics and concepts\n✅ Homework help and study guidance\n✅ Learning strategies and study tips\n✅ Nigerian curriculum explanations\n\nWhat would you like to learn about? 🎓"
+            : "🤖 **AI not fully configured**\n\nI'm Tishami, your AI teaching assistant! I can help you with:\n\n✅ Lesson planning and curriculum guidance\n✅ Student explanations and homework help\n✅ Teaching strategies and classroom management\n✅ Nigerian educational context and examples\n\nWhat would you like to know about teaching? 🎓"
           : "I apologize, but I'm having trouble connecting right now. Please try again in a moment. 🙏"
       };
       setMessages(prev => [...prev, errorMessage]);
@@ -363,7 +363,7 @@ export function CopilotChat({ onNavigate }: CopilotChatProps) {
                     <CardContent className="p-3 sm:p-4">
                       <div className="flex items-center gap-2">
                         <Loader2 className="w-4 h-4 animate-spin text-primary" />
-                        <span className="text-sm text-muted-foreground">TeachMate is thinking...</span>
+                        <span className="text-sm text-muted-foreground">Tishami is thinking...</span>
                       </div>
                     </CardContent>
                   </Card>
@@ -375,7 +375,7 @@ export function CopilotChat({ onNavigate }: CopilotChatProps) {
           {/* Input Area - Fixed at bottom of viewport */}
           <div className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t p-3 sm:p-4">
             <div className="max-w-4xl mx-auto w-full">
-              <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-lg">
+              <div className="bg-background rounded-2xl border shadow-lg">
                 <div className="p-3">
                   <div className="flex items-end gap-3">
                     <Button 
@@ -392,7 +392,7 @@ export function CopilotChat({ onNavigate }: CopilotChatProps) {
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         onKeyDown={handleKeyPress}
-                        className="min-h-[40px] sm:min-h-[44px] max-h-24 sm:max-h-32 resize-none rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                        className="min-h-[40px] sm:min-h-[44px] max-h-24 sm:max-h-32 resize-none rounded-xl border bg-background text-foreground text-sm placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                         disabled={isLoading}
                       />
                     </div>
@@ -423,7 +423,7 @@ export function CopilotChat({ onNavigate }: CopilotChatProps) {
     <SharedLayout 
       onNavigate={onNavigate}
       userRole={isStudent ? "student" : "teacher"}
-      title="TeachMate"
+      title="Tisham"
       subtitle={isStudent ? "Your AI Learning Companion" : "Your AI Teaching Assistant"}
       activeMenu="copilot"
       hideHeaderIcons={true}

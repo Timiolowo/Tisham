@@ -1,4 +1,4 @@
-# 🎓 TeachMate - AI-Powered Educational Assistant
+# 🎓 Tisham - AI-Powered Educational Assistant
 
 [![Netlify Status](https://api.netlify.com/api/v1/badges/your-badge-id/deploy-status)](https://app.netlify.com/sites/your-site-name/deploys)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -39,7 +39,7 @@ Nigeria's landmark 2025 curriculum reform has introduced dramatic changes to pri
 
 ## 💡 **Our Solution**
 
-TeachMate directly addresses Nigeria's 2025 curriculum challenges with AI-powered support:
+Tisham directly addresses Nigeria's 2025 curriculum challenges with AI-powered support:
 
 ### 🤖 **AI-Powered Features for New Curriculum**
 - **Smart Lesson Generation**: Create curriculum-aligned lesson plans for new subjects (Digital Literacy, Trade subjects)

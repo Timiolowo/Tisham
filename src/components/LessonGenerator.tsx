@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -9,6 +9,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collap
 import { Sparkles, ChevronDown, Download, Languages, BookOpen, Loader2 } from "lucide-react";
 import type { LessonPlan } from "../App";
 import { saveLesson, isSupabaseConfigured } from "../lib/supabase";
+import { getSubjectsByClass, getTopicsBySubject, getAllCurriculum } from "../lib/curriculum";
 import { useAuth } from "../contexts/AuthContext";
 import { SharedLayout } from "./SharedLayout";
 import { generateLessonPlan } from "../lib/groq";
@@ -24,13 +25,98 @@ export function LessonGenerator({ onNavigate, onSave }: LessonGeneratorProps) {
   const [generating, setGenerating] = useState(false);
   const [generated, setGenerated] = useState(false);
   const [aiGeneratedContent, setAiGeneratedContent] = useState("");
-  const [topic, setTopic] = useState("Introduction to Robotics");
-  const [subject, setSubject] = useState("Computer Science");
-  const [classLevel, setClassLevel] = useState("JSS 3");
+  const [topic, setTopic] = useState("");
+  const [subject, setSubject] = useState("");
+  const [classLevel, setClassLevel] = useState("JSS 1");
   const [duration, setDuration] = useState(40);
   const [language, setLanguage] = useState("english");
   const [resourceLevel, setResourceLevel] = useState("medium");
   const [additionalNotes, setAdditionalNotes] = useState("");
+  
+  // Dynamic dropdown states
+  const [availableSubjects, setAvailableSubjects] = useState<string[]>([]);
+  const [availableTopics, setAvailableTopics] = useState<string[]>([]);
+  const [loadingSubjects, setLoadingSubjects] = useState(false);
+  const [loadingTopics, setLoadingTopics] = useState(false);
+  
+
+  // Function to check curriculum data status
+  const checkCurriculumData = async () => {
+    try {
+      const allCurriculum = await getAllCurriculum();
+      const classes = [...new Set(allCurriculum.map(item => item.class))];
+      const subjects = [...new Set(allCurriculum.map(item => item.subject))];
+      
+      setCurriculumDataStatus({
+        loaded: allCurriculum.length > 0,
+        totalRecords: allCurriculum.length,
+        classes: classes,
+        subjects: subjects,
+        lastChecked: new Date().toLocaleTimeString()
+      });
+    } catch (error) {
+      setCurriculumDataStatus({
+        loaded: false,
+        totalRecords: 0,
+        classes: [],
+        subjects: [],
+        lastChecked: new Date().toLocaleTimeString()
+      });
+    }
+  };
+
+  // Check curriculum data on component mount
+  useEffect(() => {
+    checkCurriculumData();
+  }, []);
+
+  // Load subjects when class level changes
+  useEffect(() => {
+    const loadSubjects = async () => {
+      if (!classLevel) return;
+      
+      setLoadingSubjects(true);
+      try {
+        const subjects = await getSubjectsByClass(classLevel);
+        setAvailableSubjects(subjects);
+        
+        // Reset subject and topic when class changes
+        setSubject("");
+        setTopic("");
+        setAvailableTopics([]);
+      } catch (error) {
+        setAvailableSubjects([]);
+        toast.error('Failed to load subjects from curriculum');
+      } finally {
+        setLoadingSubjects(false);
+      }
+    };
+
+    loadSubjects();
+  }, [classLevel]);
+
+  // Load topics when subject changes
+  useEffect(() => {
+    const loadTopics = async () => {
+      if (!classLevel || !subject) return;
+      
+      setLoadingTopics(true);
+      try {
+        const topics = await getTopicsBySubject(classLevel, subject);
+        setAvailableTopics(topics);
+        
+        // Reset topic when subject changes
+        setTopic("");
+      } catch (error) {
+        setAvailableTopics([]);
+        toast.error('Failed to load topics from curriculum');
+      } finally {
+        setLoadingTopics(false);
+      }
+    };
+
+    loadTopics();
+  }, [classLevel, subject]);
 
   // Function to get subjects based on class level
   const getSubjectsForClass = (level: string) => {
@@ -69,10 +155,7 @@ export function LessonGenerator({ onNavigate, onSave }: LessonGeneratorProps) {
   // Handle class level change and reset subject if not available
   const handleClassLevelChange = (newClassLevel: string) => {
     setClassLevel(newClassLevel);
-    const availableSubjects = getSubjectsForClass(newClassLevel);
-    if (!availableSubjects.includes(subject)) {
-      setSubject(availableSubjects[0]); // Set to first available subject
-    }
+    // The useEffect will handle loading subjects and resetting subject/topic
   };
   
   const [lessonPlanData, setLessonPlanData] = useState<LessonPlan>({
@@ -369,13 +452,6 @@ export function LessonGenerator({ onNavigate, onSave }: LessonGeneratorProps) {
       }
     }
     
-    console.log('Final parsed content:', {
-      objectives,
-      materials,
-      lessonSteps,
-      homework,
-      localExamples
-    });
     
     
     return {
@@ -416,9 +492,7 @@ export function LessonGenerator({ onNavigate, onSave }: LessonGeneratorProps) {
       setAiGeneratedContent(generatedContent);
       
       // Parse the AI content into structured format
-      console.log('AI Generated Content:', generatedContent);
       const parsedContent = parseAIContent(generatedContent, duration);
-      console.log('Parsed Content:', parsedContent);
       
       // Update the lesson plan with parsed AI content
       const updatedLessonPlan: LessonPlan = {
@@ -438,7 +512,6 @@ export function LessonGenerator({ onNavigate, onSave }: LessonGeneratorProps) {
       onSave(updatedLessonPlan);
       toast.success("Lesson plan generated successfully!");
     } catch (error) {
-      console.error('Lesson generation error:', error);
       toast.error("Failed to generate lesson plan. Please check your API key configuration.");
     } finally {
       setGenerating(false);
@@ -464,7 +537,6 @@ export function LessonGenerator({ onNavigate, onSave }: LessonGeneratorProps) {
       });
       toast.success("Lesson plan saved to Supabase!");
     } catch (error) {
-      console.error('Failed to save lesson:', error);
       toast.error("Failed to save to database, but saved locally!");
     }
   };
@@ -498,29 +570,46 @@ export function LessonGenerator({ onNavigate, onSave }: LessonGeneratorProps) {
 
                 <div className="space-y-2">
                   <Label htmlFor="subject">Subject</Label>
-                  <Select value={subject} onValueChange={setSubject}>
+                  <Select value={subject} onValueChange={setSubject} disabled={loadingSubjects}>
                     <SelectTrigger id="subject" className="rounded-xl">
-                      <SelectValue placeholder="Select subject" />
+                      <SelectValue placeholder={loadingSubjects ? "Loading subjects..." : "Select subject"} />
                     </SelectTrigger>
                     <SelectContent>
-                      {getSubjectsForClass(classLevel).map((subjectOption) => (
+                      {availableSubjects.length > 0 ? (
+                        availableSubjects.map((subjectOption) => (
                         <SelectItem key={subjectOption} value={subjectOption}>
                           {subjectOption}
                         </SelectItem>
-                      ))}
+                        ))
+                      ) : (
+                        <div className="px-2 py-1.5 text-sm text-muted-foreground">
+                          {loadingSubjects ? "Loading..." : "No subjects available"}
+                        </div>
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="topic">Topic</Label>
-                  <Input 
-                    id="topic" 
-                    placeholder="e.g., Introduction to Robotics"
-                    className="rounded-xl"
-                    value={topic}
-                    onChange={(e) => setTopic(e.target.value)}
-                  />
+                  <Select value={topic} onValueChange={setTopic} disabled={loadingTopics || !subject}>
+                    <SelectTrigger id="topic" className="rounded-xl">
+                      <SelectValue placeholder={loadingTopics ? "Loading topics..." : !subject ? "Select subject first" : "Select topic"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableTopics.length > 0 ? (
+                        availableTopics.map((topicOption) => (
+                          <SelectItem key={topicOption} value={topicOption}>
+                            {topicOption}
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <div className="px-2 py-1.5 text-sm text-muted-foreground">
+                          {loadingTopics ? "Loading..." : !subject ? "Select subject first" : "No topics available"}
+                        </div>
+                      )}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">

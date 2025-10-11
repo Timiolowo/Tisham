@@ -45,6 +45,23 @@ window.__ENV__ = {
   // Write the runtime environment script to the dist folder
   fs.writeFileSync(path.join('dist', 'runtime-env.js'), runtimeEnvScript);
   
+  // Ensure curriculum data is copied to public folder
+  const publicDataDir = path.join('dist', 'data');
+  if (!fs.existsSync(publicDataDir)) {
+    fs.mkdirSync(publicDataDir, { recursive: true });
+  }
+  
+  // Copy curriculum data to dist/data folder
+  const curriculumSource = path.join('public', 'data', 'curriculum.json');
+  const curriculumDest = path.join('dist', 'data', 'curriculum.json');
+  
+  if (fs.existsSync(curriculumSource)) {
+    fs.copyFileSync(curriculumSource, curriculumDest);
+    console.log('✅ Curriculum data copied to dist/data/');
+  } else {
+    console.warn('⚠️  Curriculum data not found in public/data/, using embedded data');
+  }
+  
   // Update index.html to include the runtime environment script
   const indexPath = path.join('dist', 'index.html');
   let indexContent = fs.readFileSync(indexPath, 'utf8');

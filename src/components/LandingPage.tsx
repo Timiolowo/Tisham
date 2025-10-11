@@ -7,9 +7,10 @@ import { ScrollReveal } from "./ScrollReveal";
 
 interface LandingPageProps {
   onNavigate: (page: any, role?: any) => void;
+  user?: any;
 }
 
-export function LandingPage({ onNavigate }: LandingPageProps) {
+export function LandingPage({ onNavigate, user }: LandingPageProps) {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
       {/* Header */}
@@ -19,7 +20,7 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
             <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
               <Sparkles className="w-6 h-6 text-primary-foreground" />
             </div>
-            <span className="text-lg font-semibold">TeachMate</span>
+            <span className="text-lg font-semibold">Tisham</span>
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
             <ThemeToggle />
@@ -46,8 +47,8 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
               Adapt to the new national curriculum with AI-powered lesson planning, real-time assistance, and multilingual support for secondary schools across Nigeria.
             </p>
             <div className="flex gap-4">
-              <Button size="lg" className="rounded-2xl" onClick={() => onNavigate('login')}>
-                Login
+              <Button size="lg" className="rounded-2xl" onClick={() => onNavigate(user ? 'dashboard' : 'login')}>
+                {user ? `Continue to Account` : 'Login'}
               </Button>
             </div>
             <div className="flex items-center gap-6 pt-4">
@@ -161,10 +162,10 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
               <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
                 <Sparkles className="w-5 h-5 text-primary-foreground" />
               </div>
-              <span className="text-lg font-semibold">TeachMate</span>
+              <span className="text-lg font-semibold">Tisham</span>
             </div>
             <p className="text-muted-foreground text-sm">
-              © 2025 TeachMate. Built for Nigerian Education.
+              © 2025 Tisham. Built for Nigerian Education.
             </p>
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-full text-sm font-medium">
               <span className="text-primary">🏆</span>

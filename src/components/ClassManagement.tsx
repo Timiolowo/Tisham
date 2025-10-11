@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { 
   Users, UserPlus, Share2, Copy,
   BookOpen, ClipboardList, Search, MoreVertical, Trash2, MessageCircle,
-  Plus, GraduationCap
+  Plus, GraduationCap, RefreshCw
 } from "lucide-react";
 import { SharedLayout } from "./SharedLayout";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
@@ -23,6 +23,7 @@ import {
 } from "./ui/dropdown-menu";
 import { getTeacherClasses, createClass, isSupabaseConfigured } from "../lib/supabase";
 import { useAuth } from "../contexts/AuthContext";
+import { isAPIAccessAllowed } from "../config/auth";
 
 interface ClassManagementProps {
   onNavigate: (page: any, role?: any) => void;
@@ -36,6 +37,7 @@ export function ClassManagement({ onNavigate }: ClassManagementProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [supabaseClasses, setSupabaseClasses] = useState<any[]>([]);
   const [isLoadingClasses, setIsLoadingClasses] = useState(false);
+  const [isCreatingClass, setIsCreatingClass] = useState(false);
   
   // Invite student form state
   const [inviteForm, setInviteForm] = useState({
@@ -57,17 +59,18 @@ export function ClassManagement({ onNavigate }: ClassManagementProps) {
   
   // Load classes from Supabase
   useEffect(() => {
+    
     if (isSupabaseConfigured() && user && user.role === 'teacher') {
       loadClasses();
+    } else {
     }
-  }, [user]);
+  }, [user, user?.id, user?.role]);
 
-  // Test Supabase connection
+  // Test Supabase connection and load classes on mount
   useEffect(() => {
     const testSupabaseConnection = async () => {
       if (isSupabaseConfigured()) {
         try {
-          console.log('Testing Supabase connection...');
           // Test basic connection by checking if we can access the classes table
           const { supabase } = await import('../lib/supabase');
           const { data, error } = await supabase
@@ -78,7 +81,10 @@ export function ClassManagement({ onNavigate }: ClassManagementProps) {
           if (error) {
             console.error('Supabase connection test failed:', error);
           } else {
-            console.log('Supabase connection test successful');
+            // If connection is successful and we have a user, try loading classes
+            if (user && user.role === 'teacher') {
+              loadClasses();
+            }
           }
         } catch (error) {
           console.error('Supabase connection test error:', error);
@@ -87,24 +93,40 @@ export function ClassManagement({ onNavigate }: ClassManagementProps) {
     };
     
     testSupabaseConnection();
-  }, []);
+  }, [user]);
 
   const loadClasses = async () => {
-    if (!user) return;
+    if (!user) {
+      return;
+    }
+    
+    
     setIsLoadingClasses(true);
     try {
-      console.log('Loading classes for teacher:', user.id);
-      console.log('User role:', user.role);
-      console.log('Supabase configured:', isSupabaseConfigured());
+      // Test direct Supabase query first
+      const { supabase } = await import('../lib/supabase');
       
+      // First, let's see if there are ANY classes in the database
+      const { data: allClasses, error: allClassesError } = await supabase
+        .from('classes')
+        .select('*');
+      
+      
+      // Now query for this specific teacher
+      const { data: directData, error: directError } = await supabase
+        .from('classes')
+        .select('*')
+        .eq('teacher_id', user.id);
+      
+      
+      // Now try the function
       const classes = await getTeacherClasses(user.id);
-      console.log('Loaded classes:', classes);
-      console.log('Number of classes found:', classes.length);
       
       setSupabaseClasses(classes);
     } catch (error) {
       console.error('Failed to load classes:', error);
       console.error('Error details:', error);
+      console.error('Error stack:', error.stack);
     } finally {
       setIsLoadingClasses(false);
     }
@@ -146,6 +168,7 @@ export function ClassManagement({ onNavigate }: ClassManagementProps) {
   const handleCreateClass = async () => {
     if (!user) return;
     
+    setIsCreatingClass(true);
     try {
       const classData = {
         name: newClass.name,
@@ -158,11 +181,9 @@ export function ClassManagement({ onNavigate }: ClassManagementProps) {
         is_active: true
       };
 
-      console.log('Creating class with data:', classData);
       const createdClass = await createClass(classData);
       
       if (createdClass) {
-        console.log('Class created successfully:', createdClass);
         toast.success(`Class "${createdClass.name}" created! Class Code: ${createdClass.class_code}`);
         setShowCreateClassDialog(false);
         setNewClass({
@@ -174,12 +195,13 @@ export function ClassManagement({ onNavigate }: ClassManagementProps) {
           description: ""
         });
         // Refresh the classes list immediately
-        console.log('Refreshing classes list after creation...');
         await loadClasses();
       }
     } catch (error) {
       console.error('Failed to create class:', error);
       toast.error("Failed to create class. Please try again.");
+    } finally {
+      setIsCreatingClass(false);
     }
   };
 
@@ -333,16 +355,12 @@ export function ClassManagement({ onNavigate }: ClassManagementProps) {
         </div>
 
         {/* Main Content */}
-        <Tabs defaultValue="classes" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-1 rounded-2xl p-1">
-            <TabsTrigger value="classes" className="rounded-xl">Classes</TabsTrigger>
-          </TabsList>
-
-
-          <TabsContent value="classes" className="space-y-4 animate-fade-in">
+        <div className="space-y-6">
+          <div className="space-y-4 animate-fade-in">
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-semibold">Your Classes</h3>
-              <Dialog open={showCreateClassDialog} onOpenChange={setShowCreateClassDialog}>
+              <div className="flex gap-2">
+                <Dialog open={showCreateClassDialog} onOpenChange={setShowCreateClassDialog}>
                 <DialogTrigger asChild>
                   <Button className="rounded-xl gradient-primary">
                     <Plus className="w-4 h-4 mr-2" />
@@ -449,10 +467,19 @@ export function ClassManagement({ onNavigate }: ClassManagementProps) {
                       <Button 
                         onClick={handleCreateClass} 
                         className="flex-1 rounded-xl gradient-primary"
-                        disabled={!newClass.name || !newClass.subject || !newClass.classLevel}
+                        disabled={!newClass.name || !newClass.subject || !newClass.classLevel || isCreatingClass}
                       >
+                        {isCreatingClass ? (
+                          <>
+                            <div className="w-4 h-4 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                            Creating...
+                          </>
+                        ) : (
+                          <>
                         <GraduationCap className="w-4 h-4 mr-2" />
                         Create Class
+                          </>
+                        )}
                       </Button>
                       <Button 
                         variant="outline" 
@@ -465,9 +492,72 @@ export function ClassManagement({ onNavigate }: ClassManagementProps) {
                   </div>
                 </DialogContent>
               </Dialog>
+              </div>
             </div>
             
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* Debug Information */}
+              <div className="col-span-full p-4 bg-yellow-50 border border-yellow-200 rounded-lg mb-4">
+                <h4 className="font-semibold text-yellow-800 mb-2">Debug Information:</h4>
+                <div className="text-sm text-yellow-700 space-y-1">
+                  <p>User ID: {user?.id || 'No user ID'}</p>
+                  <p>User Role: {user?.role || 'No role'}</p>
+                  <p>User Email: {user?.email || 'No email'}</p>
+                  <p>User School ID: {user?.school_id || 'No school ID'}</p>
+                  <p>Current Port: {window.location.port}</p>
+                  <p>Current Host: {window.location.hostname}</p>
+                  <p>API Access Allowed: {isAPIAccessAllowed() ? 'Yes' : 'No'}</p>
+                  <p>Supabase Configured: {isSupabaseConfigured() ? 'Yes' : 'No'}</p>
+                  <p>Loading Classes: {isLoadingClasses ? 'Yes' : 'No'}</p>
+                  <p>Classes Count: {supabaseClasses.length}</p>
+                  <p>Classes Data: {JSON.stringify(supabaseClasses, null, 2)}</p>
+                </div>
+                <div className="mt-3 flex gap-2">
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={loadClasses}
+                    disabled={isLoadingClasses}
+                    className="text-xs"
+                  >
+                    {isLoadingClasses ? 'Loading...' : 'Manual Load Classes'}
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={async () => {
+                      
+                      // Test direct Supabase import
+                      try {
+                        const { supabase } = await import('../lib/supabase');
+                        
+                        // Test basic query
+                        const { data, error } = await supabase
+                          .from('classes')
+                          .select('*')
+                          .limit(5);
+                        
+                      } catch (error) {
+                        console.error('Direct query failed:', error);
+                      }
+                    }}
+                    className="text-xs"
+                  >
+                    Test Direct Query
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={() => {
+                      alert(`To fix the class loading issue:\n\n1. You're currently on port ${window.location.port}\n2. API access is only allowed on port 8888 for localhost\n3. Please run: npm run dev:fullstack\n4. Or access the app at: http://localhost:8888\n\nThis is a security restriction to prevent API access on development ports.`);
+                    }}
+                    className="text-xs bg-red-50 text-red-700 border-red-200"
+                  >
+                    Fix Port Issue
+                  </Button>
+                </div>
+              </div>
+              
               {/* Display classes from Supabase */}
               {isLoadingClasses ? (
                 <div className="col-span-full flex items-center justify-center py-8">
@@ -488,60 +578,59 @@ export function ClassManagement({ onNavigate }: ClassManagementProps) {
                 </div>
               ) : (
                 supabaseClasses.map((classItem) => (
-                <Card key={classItem.id} className="rounded-2xl glass-card hover-lift hover-glow">
-                  <CardHeader>
-                    <CardTitle className="text-base">{classItem.name}</CardTitle>
-                    <CardDescription className="flex items-center gap-2">
-                      <Users className="w-4 h-4" />
-                      {classItem.students || 0} students
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="p-3 bg-muted rounded-xl">
-                      <p className="text-xs text-muted-foreground mb-1">Class Code</p>
-                      <div className="flex items-center justify-between">
-                        <code className="text-sm font-mono font-semibold">{classItem.code || classItem.class_code}</code>
-                        <Button
+                  <Card key={classItem.id} className="rounded-2xl glass-card hover-lift hover-glow">
+                    <CardHeader>
+                      <CardTitle className="text-base">{classItem.name}</CardTitle>
+                      <CardDescription className="flex items-center gap-2">
+                        <Users className="w-4 h-4" />
+                        {classItem.students || 0} students
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div className="p-3 bg-muted rounded-xl">
+                        <p className="text-xs text-muted-foreground mb-1">Class Code</p>
+                        <div className="flex items-center justify-between">
+                          <code className="text-sm font-mono font-semibold">{classItem.code || classItem.class_code}</code>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => {
+                              navigator.clipboard.writeText(classItem.code || classItem.class_code);
+                              toast.success("Code copied!");
+                            }}
+                          >
+                            <Copy className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button 
+                          className="flex-1 rounded-xl" 
                           size="sm"
-                          variant="ghost"
                           onClick={() => {
-                            navigator.clipboard.writeText(classItem.code || classItem.class_code);
-                            toast.success("Code copied!");
+                            onNavigate?.('class-details', { classId: classItem.id });
                           }}
                         >
-                          <Copy className="w-3 h-3" />
+                          View Details
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          className="flex-1 rounded-xl" 
+                          size="sm"
+                          onClick={() => onNavigate?.('class-chat')}
+                        >
+                          <MessageCircle className="w-3 h-3 mr-1" />
+                          Chat
                         </Button>
                       </div>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button 
-                        className="flex-1 rounded-xl" 
-                        size="sm"
-                        onClick={() => {
-                          onNavigate?.('class-details', { classId: classItem.id });
-                        }}
-                      >
-                        View Details
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        className="flex-1 rounded-xl" 
-                        size="sm"
-                        onClick={() => onNavigate?.('class-chat')}
-                      >
-                        <MessageCircle className="w-3 h-3 mr-1" />
-                        Chat
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
                 ))
               )}
             </div>
-          </TabsContent>
-
-        </Tabs>
-    </main>
+          </div>
+        </div>
+      </main>
   );
 
   return (

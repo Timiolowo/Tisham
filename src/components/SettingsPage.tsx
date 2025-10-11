@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -38,6 +38,7 @@ export function SettingsPage({ onBack, onLogout, onNavigate, userRole = 'teacher
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [school, setSchool] = useState<any>(null);
+  const hasFetchedSchoolRef = useRef(false);
   
   // Define isStudent based on user role
   const isStudent = user?.role === 'student';
@@ -65,31 +66,25 @@ export function SettingsPage({ onBack, onLogout, onNavigate, userRole = 'teacher
       setSubjects(user.subjects || []);
       setYearsExperience(user.years_experience || 0);
       
-      // Fetch school information if user has school_id
-      if (user.school_id) {
+      // Fetch school information if user has school_id and we haven't fetched it yet
+      if (user.school_id && !hasFetchedSchoolRef.current) {
+        hasFetchedSchoolRef.current = true;
         fetchSchoolInfo();
-      } else {
+      } else if (!user.school_id) {
         setLoading(false);
       }
     }
-  }, [user]);
+  }, [user?.id]); // Only depend on user ID, not the entire user object
 
   const fetchSchoolInfo = async () => {
     try {
-      console.log('=== FETCHING SCHOOL INFO ===');
-      console.log('User ID:', user?.id);
-      console.log('User role:', user?.role);
-      console.log('School ID:', user?.school_id);
-      console.log('Full user object:', user);
       
       if (!user?.school_id) {
-        console.log('❌ No school_id found for user');
         setSchool(null);
         setLoading(false);
         return;
       }
 
-      console.log('🔍 Querying schools table with school_id:', user.school_id);
       
       const { data: schoolData, error } = await supabase
         .from('schools')
@@ -107,7 +102,6 @@ export function SettingsPage({ onBack, onLogout, onNavigate, userRole = 'teacher
         });
         setSchool(null);
       } else {
-        console.log('✅ School data fetched successfully:', schoolData);
         setSchool(schoolData);
       }
     } catch (error) {
