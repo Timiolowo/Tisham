@@ -227,7 +227,7 @@ curriculum (
 ```mermaid
 graph TB
     %% Frontend Layer
-    subgraph "Frontend (React + TypeScript)"
+    subgraph Frontend["Frontend (React + TypeScript)"]
         A[Landing Page] --> B[Authentication]
         B --> C[Role-Based Dashboards]
         C --> D[Teacher Dashboard]
@@ -250,16 +250,16 @@ graph TB
     end
     
     %% Backend Services
-    subgraph "Backend Services (Supabase)"
+    subgraph Backend["Backend Services (Supabase)"]
         R[Authentication Service]
-        S[Database (PostgreSQL)]
+        S[Database PostgreSQL]
         T[Real-time Subscriptions]
         U[File Storage]
         V[Edge Functions]
     end
     
     %% AI Services
-    subgraph "AI Integration (Groq)"
+    subgraph AI["AI Integration (Groq)"]
         W[Lesson Plan Generation]
         X[Assessment Creation]
         Y[Content Localization]
@@ -267,9 +267,9 @@ graph TB
     end
     
     %% External Services
-    subgraph "External Services"
+    subgraph External["External Services"]
         AA[Email Service]
-        BB[CDN (Netlify)]
+        BB[CDN Netlify]
         CC[Analytics]
     end
     
@@ -344,7 +344,7 @@ sequenceDiagram
 
 ```mermaid
 graph LR
-    subgraph "React Components"
+    subgraph React["React Components"]
         A[App.tsx] --> B[AuthContext]
         A --> C[ThemeProvider]
         A --> D[SharedLayout]
@@ -369,7 +369,7 @@ graph LR
         I --> R[Analytics]
     end
     
-    subgraph "UI Components"
+    subgraph UI["UI Components"]
         S[Button]
         T[Input]
         U[Card]
@@ -378,7 +378,7 @@ graph LR
         X[Chart]
     end
     
-    subgraph "Services"
+    subgraph Services["Services"]
         Y[Supabase Client]
         Z[Groq API]
         AA[Analytics]
@@ -406,26 +406,26 @@ graph LR
 
 ```mermaid
 graph TB
-    subgraph "Authentication Layer"
+    subgraph Auth["Authentication Layer"]
         A[User Login] --> B[Email Verification]
         B --> C[JWT Token Generation]
         C --> D[Role Assignment]
     end
     
-    subgraph "Authorization Layer"
+    subgraph Authz["Authorization Layer"]
         E[Route Guards] --> F[Component Permissions]
         F --> G[API Access Control]
         G --> H[Database RLS Policies]
     end
     
-    subgraph "Data Protection"
+    subgraph Data["Data Protection"]
         I[Input Validation]
         J[SQL Injection Prevention]
         K[XSS Protection]
         L[CSRF Protection]
     end
     
-    subgraph "Infrastructure Security"
+    subgraph Infra["Infrastructure Security"]
         M[HTTPS Enforcement]
         N[API Rate Limiting]
         O[Environment Variables]
@@ -488,11 +488,44 @@ POST /api/generate/content - Generate educational content
 
 ```mermaid
 erDiagram
+    SCHOOLS {
+        uuid id PK
+        text name
+        text school_type
+        text state
+        text school_code UK
+    }
+    
+    PROFILES {
+        uuid id PK
+        text email
+        text full_name
+        text role
+        uuid school_id FK
+        text school_code
+    }
+    
+    CLASSES {
+        uuid id PK
+        text name
+        text subject
+        text class_level
+        uuid teacher_id FK
+        uuid school_id FK
+        text class_code UK
+    }
+    
+    CURRICULUM {
+        uuid id PK
+        text class
+        text subject
+        text[] topics
+        jsonb sub_topics
+    }
+    
     SCHOOLS ||--o{ PROFILES : "employs"
     SCHOOLS ||--o{ CLASSES : "contains"
-    
     PROFILES ||--o{ CLASSES : "teaches"
-    
     CURRICULUM ||--o{ CLASSES : "guides"
 ```
 
