@@ -105,8 +105,8 @@ Tisham directly addresses Nigeria's 2025 curriculum challenges with AI-powered s
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/team-rosh/teacher-copilot.git
-   cd teacher-copilot
+   git clone https://github.com/Timiolowo/Tisham.git
+   cd Tisham
    ```
 
 2. **Install dependencies**
@@ -217,6 +217,21 @@ VITE_GROQ_API_KEY=your_production_groq_key
 **Language Support**: Translations and cultural context in local languages
 **Response Time**: Fast generation of educational content
 **Content Consistency**: Maintains educational standards across all generated materials
+
+## ⚠️ **Current Limitations**
+
+### **🤖 AI Rate Limits**
+**API Quota Restrictions**: Since most features are AI-generated (lesson plans, assessments, learning content), users may encounter rate limits during high usage periods
+**Fallback Content**: When rate limits are reached, the system provides fallback content to ensure continuous functionality
+**Multiple API Keys**: We support multiple API keys for better reliability, but users may still experience temporary limitations during peak usage
+
+### **🌐 Internet Dependency**
+**Online-Only Features**: AI-powered features require internet connectivity
+**Real-time Processing**: Content generation happens in real-time and depends on external AI services
+
+### **📱 Mobile Optimization**
+**Touch Interactions**: Some advanced features may require desktop for optimal experience
+**Screen Size**: Complex content generation interfaces work best on larger screens
 
 ## 🚧 **Future Improvements**
 

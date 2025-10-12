@@ -11,7 +11,7 @@ To make authentication work perfectly, you need to set up Supabase:
 3. Click "New Project"
 4. Choose your organization
 5. Enter project details:
-   - **Name**: `teacher-copilot`
+   - **Name**: `tisham`
    - **Database Password**: Choose a strong password
    - **Region**: Choose closest to your users
 

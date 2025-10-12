@@ -626,13 +626,21 @@ export function LessonGenerator({ onNavigate, onSave }: LessonGeneratorProps) {
                   <Label htmlFor="topic">Topic</Label>
                   <Select value={topic} onValueChange={setTopic} disabled={loadingTopics || !subject}>
                     <SelectTrigger id="topic" className="rounded-xl">
-                      <SelectValue placeholder={loadingTopics ? "Loading topics..." : !subject ? "Select subject first" : "Select topic"} />
+                      <SelectValue placeholder={loadingTopics ? "Loading topics..." : !subject ? "Select subject first" : "Select topic"}>
+                        {topic && (
+                          <span className="truncate max-w-[200px] sm:max-w-none" title={topic}>
+                            {topic}
+                          </span>
+                        )}
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       {availableTopics.length > 0 ? (
                         availableTopics.map((topicOption) => (
                           <SelectItem key={topicOption} value={topicOption}>
-                            {topicOption}
+                            <span className="block truncate max-w-[200px] sm:max-w-none" title={topicOption}>
+                              {topicOption}
+                            </span>
                           </SelectItem>
                         ))
                       ) : (
@@ -655,9 +663,6 @@ export function LessonGenerator({ onNavigate, onSave }: LessonGeneratorProps) {
                       value={durationInput}
                       onChange={(e) => handleDurationChange(e.target.value)}
                     />
-                    <p className="text-xs text-muted-foreground">
-                      Enter duration in minutes (e.g., 40, 60, 90)
-                    </p>
                   </div>
 
                   <div className="space-y-2">

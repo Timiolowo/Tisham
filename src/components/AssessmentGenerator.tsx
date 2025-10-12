@@ -626,13 +626,21 @@ export function AssessmentGenerator({ onNavigate, lessonPlan }: AssessmentGenera
                       !subject ? "Select a subject first" : 
                       loadingTopics ? "Loading topics..." : 
                       "Select topic"
-                    } />
+                    }>
+                      {topic && (
+                        <span className="truncate max-w-[200px] sm:max-w-none" title={topic}>
+                          {topic}
+                        </span>
+                      )}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     {availableTopics.length > 0 ? (
                       availableTopics.map((topicOption) => (
                         <SelectItem key={topicOption} value={topicOption}>
-                          {topicOption}
+                          <span className="block truncate max-w-[200px] sm:max-w-none" title={topicOption}>
+                            {topicOption}
+                          </span>
                         </SelectItem>
                       ))
                     ) : (

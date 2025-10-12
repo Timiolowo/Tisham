@@ -71,6 +71,21 @@ export function AIMascot({ onOpenChat, currentPage, isAuthenticated }: AIMascotP
     }
   };
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    // Only start dragging if touching the drag handle or the mascot itself
+    if (e.target === e.currentTarget || (e.target as HTMLElement).closest('[data-drag-handle]')) {
+      e.preventDefault();
+      setIsDragging(true);
+      const rect = mascotRef.current?.getBoundingClientRect();
+      if (rect && e.touches[0]) {
+        setDragOffset({
+          x: e.touches[0].clientX - rect.left,
+          y: e.touches[0].clientY - rect.top
+        });
+      }
+    }
+  };
+
   const handleMouseMove = (e: MouseEvent) => {
     if (!isDragging) return;
     e.preventDefault();
@@ -88,7 +103,30 @@ export function AIMascot({ onOpenChat, currentPage, isAuthenticated }: AIMascotP
     });
   };
 
+  const handleTouchMove = (e: TouchEvent) => {
+    if (!isDragging) return;
+    e.preventDefault();
+    
+    if (e.touches[0]) {
+      const newX = e.touches[0].clientX - dragOffset.x;
+      const newY = e.touches[0].clientY - dragOffset.y;
+      
+      // Keep within viewport bounds
+      const maxX = window.innerWidth - (mascotRef.current?.offsetWidth || 0);
+      const maxY = window.innerHeight - (mascotRef.current?.offsetHeight || 0);
+      
+      setPosition({
+        x: Math.max(0, Math.min(newX, maxX)),
+        y: Math.max(0, Math.min(newY, maxY))
+      });
+    }
+  };
+
   const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleTouchEnd = () => {
     setIsDragging(false);
   };
 
@@ -96,10 +134,14 @@ export function AIMascot({ onOpenChat, currentPage, isAuthenticated }: AIMascotP
     if (isDragging) {
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
+      document.addEventListener('touchmove', handleTouchMove, { passive: false });
+      document.addEventListener('touchend', handleTouchEnd);
       document.body.style.userSelect = 'none'; // Prevent text selection while dragging
       return () => {
         document.removeEventListener('mousemove', handleMouseMove);
         document.removeEventListener('mouseup', handleMouseUp);
+        document.removeEventListener('touchmove', handleTouchMove);
+        document.removeEventListener('touchend', handleTouchEnd);
         document.body.style.userSelect = '';
       };
     }
@@ -118,6 +160,7 @@ export function AIMascot({ onOpenChat, currentPage, isAuthenticated }: AIMascotP
           top: position.y || window.innerHeight - 80,
         }}
         onMouseDown={handleMouseDown}
+        onTouchStart={handleTouchStart}
         data-drag-handle
       >
         <button
@@ -143,6 +186,7 @@ export function AIMascot({ onOpenChat, currentPage, isAuthenticated }: AIMascotP
         top: position.y || window.innerHeight - 200,
       }}
       onMouseDown={handleMouseDown}
+      onTouchStart={handleTouchStart}
       data-drag-handle
     >
       <Card className="w-72 sm:w-80 rounded-3xl shadow-2xl glass-card border-2 border-primary/20">
