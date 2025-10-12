@@ -7,16 +7,24 @@
 
 An intelligent educational platform that empowers Nigerian teachers with AI-powered tools for lesson planning, content creation, and student engagement. Built with modern web technologies and designed specifically for the Nigerian educational context.
 
+## 🎯 **Name Inspiration**
+
+**Tisham** comes from the Nigerian Pidgin phrase **"Teach am"** (meaning "Teach him" in standard English). We wanted a name that captures our mission to help teachers educate Nigerian students effectively.
+
+**Tishami** is our smart assistant's name. We added "i" to Tisham, and since "mi" means "my" in Yoruba, Tishami becomes **"My Teacher"**. It's a fun mix of Pidgin, English, and Yoruba that shows what our app is all about: teaching.
+
+These names represent our goal of helping teachers do their job better while giving students their own personal learning companion.
+
 ## 🚀 **Live Demo**
 [**View Live Application**](https://tisham.netlify.app)
 
 ## 👥 **Team Rosh**
 
-| Member | Role | GitHub |
-|--------|------|--------|
-| **Timilehin Olowolafe** | Lead Developer & AI Integration | [@timilehin](https://github.com/timilehin) |
-| **Adebola Rabiu** | Frontend Development & UI/UX | [@adebola](https://github.com/adebola) |
-| **Anuoluwapo Tenibiaje** | Backend Development & Database | [@anuoluwapo](https://github.com/anuoluwapo) |
+| Member | Role | LinkedIn |
+|--------|------|----------|
+| **Timilehin Olowolafe** | UI/UX, ML/AI Developer | [@timilafe](https://www.linkedin.com/in/timilafe) |
+| **Adebola Rabiu** | ML/Data Engineer | [@adebola](https://www.linkedin.com/in/adebola-rabiu-2619011a1) |
+| **Anuoluwapo Tenibiaje** | Data Analyst/Project Manager | [@anuoluwapo](https://www.linkedin.com/in/anuoluwaport) |
 
 ## 🎯 **Problem Statement**
 
@@ -30,10 +38,10 @@ Nigeria's landmark 2025 curriculum reform has introduced dramatic changes to pri
 **Skills-Based Learning**: Shift from theory-heavy to practical, competency-based education
 
 ### **🚨 Critical Teacher Readiness Gaps**
-**Digital Skills Crisis**: Only 4% of primary teachers meet minimum standards (vs 40% in Kenya)
-**Infrastructure Gaps**: 60% of schools lack reliable electricity, only 5.7% have computers
-**Teacher Shortages**: 50% shortfall in qualified teachers, especially in STEM and ICT
-**Large Class Sizes**: Average 1:35 ratio, often 50+ students per teacher
+**Digital Skills Crisis**: Many primary teachers struggle with digital literacy requirements
+**Infrastructure Gaps**: Significant number of schools lack reliable electricity and computer access
+**Teacher Shortages**: Shortfall in qualified teachers, especially in STEM and ICT subjects
+**Large Class Sizes**: High student-to-teacher ratios in many schools
 **Language Barriers**: Need for Hausa, Igbo, Yoruba content with local cultural relevance
 **Vocational Skills Gap**: Teachers lack hands-on experience in new trade subjects
 
@@ -260,10 +268,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ### **🎯 Hackathon Impact**
 Our solution directly addresses the critical challenges identified in Nigeria's 2025 curriculum reform:
-- **Teacher Readiness Gap**: Only 4% of teachers meet minimum standards
-- **Infrastructure Challenges**: 60% of schools lack reliable electricity
+- **Teacher Readiness Gap**: Many teachers need support with new curriculum requirements
+- **Infrastructure Challenges**: Schools face electricity and technology access issues
 - **New Subject Areas**: Digital Literacy, Trade subjects, AI concepts
-- **Large Class Sizes**: Average 1:35 ratio, often 50+ students per teacher
+- **Large Class Sizes**: High student-to-teacher ratios in many schools
 - **Language Barriers**: Need for Hausa, Igbo, Yoruba content with local context
 
 ### **🚀 Innovation Highlights**
