@@ -215,14 +215,28 @@ curriculum (
 - **JWT Authentication** with automatic token refresh
 - **Email Verification** with OTP for account activation
 - **Password Reset** with secure token handling
-- **API Rate Limiting** to prevent abuse
 - **Input Validation** and sanitization
 - **HTTPS Enforcement** for all communications
+- **API Key Management** with secure environment variable handling
 
 
 ## 🏗️ **Project Architecture**
 
 ### **System Architecture Overview**
+
+The system architecture provides a high-level view of Tisham's technical infrastructure, showing how different system components interact to deliver the educational platform. This diagram illustrates the separation of concerns between frontend user interfaces, backend services, AI processing, and external integrations.
+
+**System Components:**
+- **Frontend Layer**: React-based user interfaces with role-based dashboards for teachers, students, and administrators
+- **Backend Services**: Supabase-powered backend providing authentication, database, real-time features, and file storage
+- **AI Integration**: Groq AI services for content generation, assessment creation, and intelligent assistance
+- **External Services**: Third-party integrations for email delivery, content distribution, and analytics
+
+**Data Flow Patterns:**
+- **User Interactions**: Frontend components handle user input and display responses
+- **AI Processing**: Content generation requests flow from frontend to AI services and back
+- **Data Persistence**: All user data and generated content is stored in the PostgreSQL database
+- **Real-time Features**: Live communication and updates through Supabase real-time subscriptions
 
 ```mermaid
 graph TB
@@ -307,6 +321,13 @@ graph TB
 
 ### **Data Flow Architecture**
 
+The data flow architecture illustrates how information moves through the Tisham system during key operations. This diagram shows the sequence of interactions between different system components, demonstrating the real-time communication patterns and data processing workflows.
+
+**Key Flow Patterns:**
+- **Lesson Plan Generation**: Shows how teachers request AI-generated content through the frontend, which coordinates with curriculum data and AI services
+- **Real-time Communication**: Demonstrates how messages flow through the system with instant delivery to all class members
+- **Data Persistence**: Illustrates how generated content is saved and retrieved from the database
+
 ```mermaid
 sequenceDiagram
     participant T as Teacher
@@ -341,6 +362,19 @@ sequenceDiagram
 ```
 
 ### **Component Architecture**
+
+The component architecture demonstrates the hierarchical structure of the Tisham application, showing how React components are organized and how they interact with services. This diagram illustrates the separation of concerns between UI components, business logic, and external services.
+
+**Architecture Layers:**
+- **React Components**: Core application components organized by feature and role-based dashboards
+- **UI Components**: Reusable design system components built on Radix UI primitives
+- **Services**: External service integrations for data management, AI processing, and analytics
+
+**Key Relationships:**
+- **Context Providers**: App-level state management through AuthContext and ThemeProvider
+- **Layout System**: SharedLayout and SharedSidebar provide consistent navigation
+- **Role-Based Dashboards**: Separate interfaces for teachers, students, and administrators
+- **Service Integration**: Components connect to Supabase for data, Groq for AI, and analytics services
 
 ```mermaid
 graph LR
@@ -404,6 +438,17 @@ graph LR
 
 ### **Security Architecture**
 
+The security architecture illustrates the multi-layered security approach implemented in Tisham, showing how different security measures work together to protect user data and system integrity. This diagram demonstrates the defense-in-depth strategy with multiple security layers.
+
+**Security Layers:**
+- **Authentication Layer**: User identity verification through email-based login with OTP verification and JWT token management
+- **Authorization Layer**: Role-based access control with route guards, component permissions, and database-level security policies
+- **Data Protection**: Input validation and protection against common web vulnerabilities like SQL injection, XSS, and CSRF attacks
+- **Infrastructure Security**: Network-level security with HTTPS enforcement and secure configuration management
+
+**Security Flow:**
+The diagram shows how security measures cascade from user authentication through to infrastructure protection, ensuring comprehensive coverage of potential attack vectors while maintaining a seamless user experience.
+
 ```mermaid
 graph TB
     subgraph Auth["Authentication Layer"]
@@ -427,9 +472,9 @@ graph TB
     
     subgraph Infra["Infrastructure Security"]
         M[HTTPS Enforcement]
-        N[API Rate Limiting]
-        O[Environment Variables]
-        P[Secure Headers]
+        N[Environment Variables]
+        O[Secure Headers]
+        P[API Key Management]
     end
     
     A --> E
@@ -584,8 +629,8 @@ VITE_MIXPANEL_TOKEN=your_mixpanel_token
 - **JWT Token Expiry**: 24 hours with refresh
 - **Password Requirements**: 8+ chars, mixed case, numbers
 - **Session Timeout**: 30 minutes of inactivity
-- **Rate Limiting**: 100 requests/minute per user
 - **OTP Expiry**: 10 minutes
+- **API Key Security**: Secure environment variable management
 
 #### **Data Protection**
 - **Encryption at Rest**: AES-256
@@ -598,8 +643,8 @@ VITE_MIXPANEL_TOKEN=your_mixpanel_token
 - **HTTPS Enforcement**: HSTS headers
 - **CSP Headers**: Strict content security policy
 - **CORS Configuration**: Restricted to allowed origins
-- **API Versioning**: Semantic versioning with deprecation notices
-- **Monitoring**: 24/7 security monitoring and alerting
+- **API Key Management**: Secure environment variable handling
+- **Error Handling**: Graceful fallbacks for API failures
 
 ## 🚀 **Quick Start**
 
