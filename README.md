@@ -28,14 +28,23 @@ These names represent our goal of helping teachers do their job better while giv
 
 ## 🎯 **Problem Statement**
 
-Nigeria's landmark 2025 curriculum reform has introduced dramatic changes to primary and secondary education, but teachers face critical readiness gaps:
+### **📚 Nigeria's 2025 Curriculum Reform Challenge**
+In September 2025, Nigeria initiated the rollout of a new national curriculum for primary and secondary schools, aiming to reduce subject overload and emphasize practical, skill-based learning. This reform, led by the Federal Ministry of Education, NERDC, and UBEC, seeks to better prepare students for the 21st-century workforce.
 
-### **📚 New Curriculum Challenges (2025 Reform)**
-**Subject Overload Reduction**: From 17+ subjects to 9-13 in primary, 18+ to 12-14 in JSS
-**Digital Literacy Mandate**: Compulsory Basic Digital Literacy from Primary 4
-**New Trade Subjects**: 6 practical areas (Solar PV, Fashion, Livestock, Beauty, Computer Hardware, Horticulture)
-**Integrated Subjects**: Citizenship & Heritage Studies, Nigerian History reintroduction
-**Skills-Based Learning**: Shift from theory-heavy to practical, competency-based education
+**Key Changes:**
+- **Subject Overload Reduction**: From 17+ subjects to 9-13 in primary, 18+ to 12-14 in JSS
+- **Digital Literacy Mandate**: Compulsory Basic Digital Literacy from Primary 4
+- **New Trade Subjects**: 6 practical areas (Solar PV, Fashion, Livestock, Beauty, Computer Hardware, Horticulture)
+- **Skills-Based Learning**: Shift from theory-heavy to practical, competency-based education
+
+### **🇳🇬 Nigerian Educational Challenges**
+The challenge is particularly acute in Nigeria, where significant disparities in educational access and quality persist:
+
+- **Infrastructure Gaps**: Many schools lack reliable electricity and computer access
+- **Teacher Shortages**: Shortfall in qualified teachers, especially in STEM and ICT subjects
+- **Large Class Sizes**: High student-to-teacher ratios in many schools
+- **Language Barriers**: Need for Hausa, Igbo, Yoruba content with local cultural relevance
+- **Digital Skills Gap**: Many teachers struggle with digital literacy requirements
 
 ### **🚨 Critical Teacher Readiness Gaps**
 **Digital Skills Crisis**: Many primary teachers struggle with digital literacy requirements
@@ -47,20 +56,30 @@ Nigeria's landmark 2025 curriculum reform has introduced dramatic changes to pri
 
 ## 💡 **Our Solution**
 
-Tisham directly addresses Nigeria's 2025 curriculum challenges with AI-powered support:
+Tisham is an AI-powered, data-informed solution that assists educators in adapting to and effectively delivering the revised 2025 curriculum:
 
-### 🤖 **Smart Features for New Curriculum**
-**Smart Lesson Generation**: Create curriculum-aligned lesson plans for new subjects (Digital Literacy, Trade subjects)
-**Content Simplification**: Adapt complex topics to different learning levels (JSS1-JSS3, SSS1-SSS3)
-**Multi-language Support**: Generate content in English, Hausa, Igbo, and Yoruba with local cultural context
-**Assessment Creation**: Generate competency-based quizzes and tests automatically
-**Concept Explanation**: Smart tutor for new subjects like Solar PV, Computer Hardware, AI basics
+### 🤖 **AI-Assisted Teaching Support**
+**Lesson Plan Generation**: Create curriculum-aligned lesson plans, teaching aids, and contextual examples for new and existing subjects
+**Digital Skill Support**: Provide guidance for emerging areas (AI, robotics, solar PV, entrepreneurship)
+**Assessment Creation**: Generate competency-based quizzes and tests automatically with customizable question types
+**Real-time Classroom Support**: Tishami, our AI assistant, provides instant assistance for curriculum questions and teaching strategies
+
+### 🎯 **Personalized Teacher Learning**
+**Learning Pathways**: Create personalized teacher learning pathways for upskilling in new subject areas
+**Progress Tracking**: Monitor teacher development across new subjects with analytics and recommendations
+**Professional Development**: Structured modules help teachers develop digital skills and adapt to new teaching methods
+
+### 🌍 **Accessibility & Inclusion**
+**Multilingual Support**: Generate content in English, Hausa, Igbo, and Yoruba with local cultural context
+**Low-Resource Optimization**: Designed for schools with limited ICT facilities and unreliable internet
+**Mobile-First Design**: Works seamlessly on smartphones, tablets, and computers
+**Offline Functionality**: Printable assessments and materials for use without internet connectivity
 
 ### 🏫 **School Management System**
-**Multi-role System**: School Admin, Teacher, and Student dashboards
-**Class Management**: Create classes with unique codes for easy student enrollment
-**Real-time Communication**: Built-in chat system for teacher-student interaction
-**Progress Tracking**: Monitor student performance and engagement across classes
+**Multi-role System**: School Admin, Teacher, and Student dashboards with role-based access
+**Class Management**: Create classes with unique codes for easy student enrollment and tracking
+**Student Identification**: Unique student identification system to support personalized learning
+**Progress Analytics**: Monitor student performance and engagement across classes
 
 ### 📚 **Educational Tools**
 **Web-Based Platform**: Accessible through any device with internet connection
@@ -72,26 +91,482 @@ Tisham directly addresses Nigeria's 2025 curriculum challenges with AI-powered s
 ## 🛠️ **Technology Stack**
 
 ### **Frontend**
-**React 18** with TypeScript
-**Vite** for fast development and building
-**Tailwind CSS** for styling
-**Radix UI** for accessible components
-**Lucide React** for icons
+- **React 18** with TypeScript for type-safe development
+- **Vite** for fast development and building with HMR
+- **Tailwind CSS** for utility-first styling and responsive design
+- **Radix UI** for accessible component primitives
+- **Lucide React** for consistent iconography
+- **React Router** for client-side routing and navigation
 
 ### **Backend & Database**
-**Supabase** for database and authentication
-**Netlify Functions** for serverless API
-**Row Level Security (RLS)** for data protection
+- **Supabase** for PostgreSQL database and authentication
+- **Netlify Functions** for serverless API endpoints
+- **Row Level Security (RLS)** for granular data protection
+- **Real-time subscriptions** for live updates and chat
+- **File storage** for educational resources and user uploads
 
-### **Smart Integration**
-**Groq API** for fast smart inference
-**Custom prompts** optimized for Nigerian educational context
-**Multiple smart models** for different use cases
+### **AI Integration**
+- **Groq API** for fast AI inference and content generation
+- **Custom prompts** optimized for Nigerian educational context
+- **Multiple AI models** for different use cases (lesson plans, assessments, chat)
+- **Rate limiting** and fallback mechanisms for reliability
 
-### **Deployment**
-**Netlify** for hosting and CI/CD
-**Environment-based configuration**
-**Secure API key management**
+### **Deployment & Infrastructure**
+- **Netlify** for hosting, CI/CD, and edge functions
+- **Environment-based configuration** with secure variable management
+- **CDN distribution** for global content delivery
+- **Automated deployments** with preview environments
+
+## 🗄️ **Database Architecture**
+
+### **Core Tables Structure**
+
+#### **🏫 Schools & Administration**
+```sql
+-- Schools table for institutional management
+schools (
+  id UUID PRIMARY KEY,
+  name TEXT NOT NULL,
+  school_type TEXT NOT NULL,
+  state TEXT NOT NULL,
+  address TEXT,
+  contact_email TEXT,
+  contact_phone TEXT,
+  admin_name TEXT,
+  school_code TEXT UNIQUE NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+)
+```
+
+#### **👥 User Profiles**
+```sql
+-- Unified profiles table for all user types
+profiles (
+  id UUID REFERENCES auth.users(id) PRIMARY KEY,
+  email TEXT NOT NULL,
+  full_name TEXT NOT NULL,
+  role TEXT NOT NULL CHECK (role IN ('school_admin', 'teacher', 'student')),
+  school_id UUID REFERENCES schools(id),
+  school_code TEXT,
+  
+  -- Teacher specific fields
+  subjects TEXT[],
+  years_experience INTEGER DEFAULT 0,
+  teacher_id TEXT,
+  
+  -- Student specific fields
+  student_id TEXT,
+  class_level TEXT,
+  parent_email TEXT,
+  total_xp INTEGER DEFAULT 0,
+  streak_days INTEGER DEFAULT 0,
+  badges_earned INTEGER DEFAULT 0,
+  
+  -- Common fields
+  avatar_url TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+)
+```
+
+#### **📚 Classes**
+```sql
+-- Classes with unique codes for enrollment
+classes (
+  id UUID PRIMARY KEY,
+  name TEXT NOT NULL,
+  subject TEXT NOT NULL,
+  class_level TEXT NOT NULL,
+  school_year TEXT NOT NULL,
+  max_students INTEGER DEFAULT 30,
+  description TEXT,
+  teacher_id UUID REFERENCES profiles(id),
+  school_id UUID REFERENCES schools(id),
+  class_code TEXT UNIQUE NOT NULL,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+)
+```
+
+#### **📖 Curriculum**
+```sql
+-- Nigerian curriculum structure
+curriculum (
+  id UUID PRIMARY KEY,
+  class VARCHAR(100) NOT NULL, -- JSS 1, JSS 2, etc.
+  subject VARCHAR(100) NOT NULL, -- Mathematics, English, etc.
+  topics TEXT[] NOT NULL, -- Main topics array
+  sub_topics JSONB NOT NULL DEFAULT '[]'::jsonb -- Nested subtopics
+)
+```
+
+### **🔐 Security & Access Control**
+
+#### **Row Level Security (RLS) Policies**
+- **User Isolation**: Users can only access their own data
+- **School Isolation**: Users can only access data from their school
+- **Role-Based Access**: Different permissions for admins, teachers, and students
+- **Class-Based Access**: Teachers manage their classes, students access enrolled classes
+- **Resource Protection**: Automatic filtering based on user permissions
+
+#### **Key Security Features**
+- **JWT Authentication** with automatic token refresh
+- **Email Verification** with OTP for account activation
+- **Password Reset** with secure token handling
+- **API Rate Limiting** to prevent abuse
+- **Input Validation** and sanitization
+- **HTTPS Enforcement** for all communications
+
+
+## 🏗️ **Project Architecture**
+
+### **System Architecture Overview**
+
+```mermaid
+graph TB
+    %% Frontend Layer
+    subgraph "Frontend (React + TypeScript)"
+        A[Landing Page] --> B[Authentication]
+        B --> C[Role-Based Dashboards]
+        C --> D[Teacher Dashboard]
+        C --> E[Student Dashboard]
+        C --> F[Admin Dashboard]
+        
+        D --> G[Lesson Generator]
+        D --> H[Assessment Creator]
+        D --> I[Class Management]
+        D --> J[Resource Library]
+        
+        E --> K[Learning Materials]
+        E --> L[Quizzes & Tests]
+        E --> M[Progress Tracking]
+        E --> N[Chat & Communication]
+        
+        F --> O[School Management]
+        F --> P[User Management]
+        F --> Q[Analytics & Reports]
+    end
+    
+    %% Backend Services
+    subgraph "Backend Services (Supabase)"
+        R[Authentication Service]
+        S[Database (PostgreSQL)]
+        T[Real-time Subscriptions]
+        U[File Storage]
+        V[Edge Functions]
+    end
+    
+    %% AI Services
+    subgraph "AI Integration (Groq)"
+        W[Lesson Plan Generation]
+        X[Assessment Creation]
+        Y[Content Localization]
+        Z[Chat Assistant]
+    end
+    
+    %% External Services
+    subgraph "External Services"
+        AA[Email Service]
+        BB[CDN (Netlify)]
+        CC[Analytics]
+    end
+    
+    %% Data Flow
+    G --> W
+    H --> X
+    I --> S
+    J --> U
+    K --> S
+    L --> S
+    M --> S
+    N --> T
+    
+    W --> S
+    X --> S
+    Y --> S
+    Z --> T
+    
+    B --> R
+    R --> AA
+    S --> BB
+    Q --> CC
+    
+    %% Styling
+    classDef frontend fill:#e1f5fe
+    classDef backend fill:#f3e5f5
+    classDef ai fill:#fff3e0
+    classDef external fill:#e8f5e8
+    
+    class A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q frontend
+    class R,S,T,U,V backend
+    class W,X,Y,Z ai
+    class AA,BB,CC external
+```
+
+### **Data Flow Architecture**
+
+```mermaid
+sequenceDiagram
+    participant T as Teacher
+    participant F as Frontend
+    participant S as Supabase
+    participant G as Groq AI
+    participant D as Database
+    
+    Note over T,D: Lesson Plan Generation Flow
+    
+    T->>F: Select class, subject, topic
+    F->>S: Request curriculum data
+    S->>D: Query curriculum table
+    D-->>S: Return topics & subtopics
+    S-->>F: Send curriculum data
+    
+    F->>G: Send AI prompt with context
+    G-->>F: Return structured lesson plan
+    F->>S: Save lesson to database
+    S->>D: Insert lesson record
+    D-->>S: Confirm save
+    S-->>F: Return success
+    F-->>T: Display generated lesson
+    
+    Note over T,D: Real-time Chat Flow
+    
+    T->>F: Send message
+    F->>S: Publish to real-time channel
+    S->>D: Store message
+    S-->>F: Broadcast to class members
+    F-->>T: Display message
+```
+
+### **Component Architecture**
+
+```mermaid
+graph LR
+    subgraph "React Components"
+        A[App.tsx] --> B[AuthContext]
+        A --> C[ThemeProvider]
+        A --> D[SharedLayout]
+        
+        D --> E[SharedSidebar]
+        D --> F[Main Content]
+        
+        F --> G[TeacherDashboard]
+        F --> H[StudentDashboard]
+        F --> I[AdminDashboard]
+        
+        G --> J[LessonGenerator]
+        G --> K[AssessmentGenerator]
+        G --> L[ClassManagement]
+        
+        H --> M[ClassChat]
+        H --> N[StudentProgress]
+        H --> O[DailyChallenges]
+        
+        I --> P[UserManagement]
+        I --> Q[SchoolSettings]
+        I --> R[Analytics]
+    end
+    
+    subgraph "UI Components"
+        S[Button]
+        T[Input]
+        U[Card]
+        V[Modal]
+        W[Table]
+        X[Chart]
+    end
+    
+    subgraph "Services"
+        Y[Supabase Client]
+        Z[Groq API]
+        AA[Analytics]
+        BB[Storage]
+    end
+    
+    J --> Y
+    K --> Z
+    M --> Y
+    N --> Y
+    P --> Y
+    Q --> Y
+    R --> AA
+    
+    classDef component fill:#e3f2fd
+    classDef ui fill:#f1f8e9
+    classDef service fill:#fff8e1
+    
+    class A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q component
+    class S,T,U,V,W,X ui
+    class Y,Z,AA,BB service
+```
+
+### **Security Architecture**
+
+```mermaid
+graph TB
+    subgraph "Authentication Layer"
+        A[User Login] --> B[Email Verification]
+        B --> C[JWT Token Generation]
+        C --> D[Role Assignment]
+    end
+    
+    subgraph "Authorization Layer"
+        E[Route Guards] --> F[Component Permissions]
+        F --> G[API Access Control]
+        G --> H[Database RLS Policies]
+    end
+    
+    subgraph "Data Protection"
+        I[Input Validation]
+        J[SQL Injection Prevention]
+        K[XSS Protection]
+        L[CSRF Protection]
+    end
+    
+    subgraph "Infrastructure Security"
+        M[HTTPS Enforcement]
+        N[API Rate Limiting]
+        O[Environment Variables]
+        P[Secure Headers]
+    end
+    
+    A --> E
+    D --> F
+    H --> I
+    I --> J
+    J --> K
+    K --> L
+    L --> M
+    M --> N
+    N --> O
+    O --> P
+    
+    classDef auth fill:#ffebee
+    classDef authz fill:#e8f5e8
+    classDef data fill:#e3f2fd
+    classDef infra fill:#fff3e0
+    
+    class A,B,C,D auth
+    class E,F,G,H authz
+    class I,J,K,L data
+    class M,N,O,P infra
+```
+
+## 🔧 **Technical Specifications**
+
+### **API Endpoints**
+
+#### **Authentication Endpoints**
+```typescript
+// User Registration & Login
+POST /auth/register - Register new user with role
+POST /auth/login - User authentication
+POST /auth/logout - User logout
+POST /auth/verify-email - Email verification with OTP
+POST /auth/reset-password - Password reset request
+POST /auth/update-password - Update user password
+
+// School & Class Management
+POST /api/schools - Create new school
+GET /api/schools/:id - Get school details
+POST /api/classes - Create new class
+GET /api/classes/:id - Get class details
+POST /api/classes/:id/enroll - Enroll student in class
+```
+
+#### **AI Content Generation**
+```typescript
+// AI-powered content generation
+POST /api/generate/lesson-plan - Generate AI lesson plan
+POST /api/generate/assessment - Generate AI assessment
+POST /api/generate/content - Generate educational content
+```
+
+### **Database Schema Relationships**
+
+```mermaid
+erDiagram
+    SCHOOLS ||--o{ PROFILES : "employs"
+    SCHOOLS ||--o{ CLASSES : "contains"
+    
+    PROFILES ||--o{ CLASSES : "teaches"
+    
+    CURRICULUM ||--o{ CLASSES : "guides"
+```
+
+### **Environment Variables**
+
+```env
+# Supabase Configuration
+VITE_SUPABASE_URL=your_supabase_project_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+VITE_SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+
+# AI Services
+VITE_GROQ_API_KEY=your_groq_api_key
+VITE_GROQ_API_KEY_2=backup_groq_api_key
+
+# Application Configuration
+VITE_APP_NAME=Tisham
+VITE_APP_VERSION=1.0.0
+VITE_APP_ENVIRONMENT=development
+
+# Email Configuration (Netlify Functions)
+SENDGRID_API_KEY=your_sendgrid_api_key
+FROM_EMAIL=noreply@tisham.netlify.app
+
+# Analytics (Optional)
+VITE_GOOGLE_ANALYTICS_ID=your_ga_id
+VITE_MIXPANEL_TOKEN=your_mixpanel_token
+```
+
+### **Performance Metrics**
+
+#### **Frontend Performance**
+- **First Contentful Paint**: < 1.5s
+- **Largest Contentful Paint**: < 2.5s
+- **Cumulative Layout Shift**: < 0.1
+- **First Input Delay**: < 100ms
+- **Bundle Size**: < 500KB (gzipped)
+
+#### **Backend Performance**
+- **API Response Time**: < 200ms (95th percentile)
+- **Database Query Time**: < 100ms (average)
+- **Real-time Message Latency**: < 50ms
+- **File Upload Speed**: > 1MB/s
+- **Concurrent Users**: 1000+ supported
+
+#### **AI Service Performance**
+- **Lesson Plan Generation**: < 10s
+- **Assessment Creation**: < 5s
+- **Chat Response Time**: < 2s
+- **Content Localization**: < 3s
+- **Success Rate**: > 95%
+
+### **Security Specifications**
+
+#### **Authentication & Authorization**
+- **JWT Token Expiry**: 24 hours with refresh
+- **Password Requirements**: 8+ chars, mixed case, numbers
+- **Session Timeout**: 30 minutes of inactivity
+- **Rate Limiting**: 100 requests/minute per user
+- **OTP Expiry**: 10 minutes
+
+#### **Data Protection**
+- **Encryption at Rest**: AES-256
+- **Encryption in Transit**: TLS 1.3
+- **Data Retention**: 7 years for educational records
+- **Backup Frequency**: Daily automated backups
+- **GDPR Compliance**: Full data portability and deletion
+
+#### **Infrastructure Security**
+- **HTTPS Enforcement**: HSTS headers
+- **CSP Headers**: Strict content security policy
+- **CORS Configuration**: Restricted to allowed origins
+- **API Versioning**: Semantic versioning with deprecation notices
+- **Monitoring**: 24/7 security monitoring and alerting
 
 ## 🚀 **Quick Start**
 
@@ -128,7 +603,10 @@ Tisham directly addresses Nigeria's 2025 curriculum challenges with AI-powered s
    ```
 
 4. **Set up the database**
-   - Run the SQL commands in `DATABASE_SETUP.sql` in your Supabase SQL Editor
+   - Run the SQL commands in `src/supabase/schema.sql` in your Supabase SQL Editor
+   - This will create all necessary tables, indexes, and RLS policies
+   - Run `curriculum_table.sql` to set up the Nigerian curriculum data structure
+   - Import curriculum data using `curriculum_data_insert.sql` (optional)
 
 5. **Start development server**
    ```bash
