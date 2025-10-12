@@ -60,6 +60,15 @@ export function ForgotPasswordPage({ onNavigate }: ForgotPasswordPageProps) {
             <p className="text-sm text-muted-foreground mb-8">
               Click the link in the email to reset your password. The link will expire in 1 hour.
             </p>
+            <p className="text-xs text-muted-foreground mb-6">
+              Having trouble? Contact our support team at{' '}
+              <a 
+                href="mailto:otimilehinoladipupo@gmail.com" 
+                className="text-primary hover:underline font-medium"
+              >
+                otimilehinoladipupo@gmail.com
+              </a>
+            </p>
             <div className="space-y-3">
               <Button 
                 className="w-full rounded-2xl" 
@@ -142,6 +151,16 @@ export function ForgotPasswordPage({ onNavigate }: ForgotPasswordPageProps) {
             >
               ← Back to Home
             </Button>
+            <br />
+            <p className="text-xs text-muted-foreground">
+              Need help? Contact us at{' '}
+              <a 
+                href="mailto:otimilehinoladipupo@gmail.com" 
+                className="text-primary hover:underline font-medium"
+              >
+                otimilehinoladipupo@gmail.com
+              </a>
+            </p>
           </div>
         </CardContent>
       </Card>

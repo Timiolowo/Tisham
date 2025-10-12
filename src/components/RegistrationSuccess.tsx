@@ -124,7 +124,13 @@ export function RegistrationSuccess({ onNavigate, userRole = 'teacher', email, s
 
           <div className="text-center">
             <p className="text-xs text-muted-foreground">
-              Need help? Contact our support team
+              Need help? Contact our support team at{' '}
+              <a 
+                href="mailto:otimilehinoladipupo@gmail.com" 
+                className="text-primary hover:underline font-medium"
+              >
+                otimilehinoladipupo@gmail.com
+              </a>
             </p>
           </div>
         </CardContent>

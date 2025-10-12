@@ -11,6 +11,7 @@ interface EmailConfirmationSuccessProps {
 
 export function EmailConfirmationSuccess({ onNavigate, email }: EmailConfirmationSuccessProps) {
   const [confirmedEmail, setConfirmedEmail] = useState<string | undefined>(email);
+  const [countdown, setCountdown] = useState(20);
 
   useEffect(() => {
     // Get email from URL parameters if not provided as prop
@@ -22,6 +23,21 @@ export function EmailConfirmationSuccess({ onNavigate, email }: EmailConfirmatio
       }
     }
   }, [confirmedEmail]);
+
+  useEffect(() => {
+    // Auto-redirect countdown
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          onNavigate('login');
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [onNavigate]);
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background flex items-center justify-center p-4">
       {/* Theme Toggle */}
@@ -54,6 +70,12 @@ export function EmailConfirmationSuccess({ onNavigate, email }: EmailConfirmatio
             <p className="text-sm text-muted-foreground">
               You can now sign in to your Tisham account and start using all the features.
             </p>
+            
+            <div className="bg-primary/10 rounded-xl p-3 border border-primary/20">
+              <p className="text-sm text-primary font-medium text-center">
+                Redirecting to login in {countdown} seconds...
+              </p>
+            </div>
           </div>
 
           <div className="space-y-3">
@@ -62,7 +84,7 @@ export function EmailConfirmationSuccess({ onNavigate, email }: EmailConfirmatio
               className="w-full rounded-2xl gradient-primary"
               size="lg"
             >
-              Continue to Sign In
+              Continue to Sign In {countdown > 0 && `(${countdown}s)`}
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
             
@@ -77,7 +99,13 @@ export function EmailConfirmationSuccess({ onNavigate, email }: EmailConfirmatio
 
           <div className="text-center">
             <p className="text-xs text-muted-foreground">
-              Having trouble? Contact our support team for assistance.
+              Having trouble? Contact our support team at{' '}
+              <a 
+                href="mailto:otimilehinoladipupo@gmail.com" 
+                className="text-primary hover:underline font-medium"
+              >
+                otimilehinoladipupo@gmail.com
+              </a>
             </p>
           </div>
         </CardContent>
