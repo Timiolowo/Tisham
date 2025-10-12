@@ -294,10 +294,10 @@ graph TB
     Q --> CC
     
     %% Styling
-    classDef frontend fill:#e1f5fe
-    classDef backend fill:#f3e5f5
-    classDef ai fill:#fff3e0
-    classDef external fill:#e8f5e8
+    classDef frontend fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000
+    classDef backend fill:#f3e5f5,stroke:#4a148c,stroke-width:2px,color:#000
+    classDef ai fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
+    classDef external fill:#e8f5e8,stroke:#1b5e20,stroke-width:2px,color:#000
     
     class A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q frontend
     class R,S,T,U,V backend
@@ -393,9 +393,9 @@ graph LR
     Q --> Y
     R --> AA
     
-    classDef component fill:#e3f2fd
-    classDef ui fill:#f1f8e9
-    classDef service fill:#fff8e1
+    classDef component fill:#e3f2fd,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef ui fill:#f1f8e9,stroke:#33691e,stroke-width:2px,color:#000
+    classDef service fill:#fff8e1,stroke:#f57c00,stroke-width:2px,color:#000
     
     class A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q component
     class S,T,U,V,W,X ui
@@ -443,10 +443,10 @@ graph TB
     N --> O
     O --> P
     
-    classDef auth fill:#ffebee
-    classDef authz fill:#e8f5e8
-    classDef data fill:#e3f2fd
-    classDef infra fill:#fff3e0
+    classDef auth fill:#ffebee,stroke:#c62828,stroke-width:2px,color:#000
+    classDef authz fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef data fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#000
+    classDef infra fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
     
     class A,B,C,D auth
     class E,F,G,H authz
