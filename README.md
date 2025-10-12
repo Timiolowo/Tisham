@@ -1,6 +1,6 @@
 # 🎓 Tisham - AI-Powered Educational Assistant
 
-[![Netlify Status](https://api.netlify.com/api/v1/badges/your-badge-id/deploy-status)](https://app.netlify.com/sites/your-site-name/deploys)
+[![Netlify Status]([![Netlify Status](https://api.netlify.com/api/v1/badges/14dcf031-c3d2-45a2-aa67-5c2f5f33794f/deploy-status)](https://app.netlify.com/projects/tisham/deploys))
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 > **Built for Datafeast 2025 Hackathon** 🏆
