@@ -73,8 +73,8 @@ export function AdminDashboard({ onBack, onNavigate }: AdminDashboardProps) {
     <SharedLayout 
       onNavigate={onNavigate}
       userRole="teacher"
-      title="School Dashboard"
-      subtitle="School activity and performance"
+      title={`Welcome, ${user?.full_name || user?.email?.split('@')[0] || 'Admin'}.`}
+      subtitle="Tishami is ready and active for you."
       activeMenu="admin"
       hideHeaderIcons={true}
     >

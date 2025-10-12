@@ -31,8 +31,8 @@ export function TeacherDashboard({ onNavigate }: TeacherDashboardProps) {
       <div className="bg-gradient-to-r from-primary/10 via-secondary/10 to-accent/10 rounded-xl p-4 border border-primary/20">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-base font-medium mb-1">Welcome back, {firstName}!</h1>
-            <p className="text-sm text-muted-foreground">Ready to create amazing lessons with AI? Let's get started!</p>
+            <h1 className="text-base font-medium mb-1">Welcome, {firstName}.</h1>
+            <p className="text-sm text-muted-foreground">Tishami is ready and active for you.</p>
           </div>
         </div>
       </div>

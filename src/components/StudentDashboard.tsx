@@ -215,8 +215,8 @@ export function StudentDashboard({ onNavigate }: StudentDashboardProps) {
     <SharedLayout 
       onNavigate={onNavigate}
       userRole="student"
-      title={`Hello ${user?.full_name || user?.email?.split('@')[0] || 'Student'}`}
-      subtitle=""
+      title={`Welcome, ${user?.full_name || user?.email?.split('@')[0] || 'Student'}.`}
+      subtitle="Tishami is ready and active for you."
       activeMenu="dashboard"
       hideHeaderIcons={true}
     >

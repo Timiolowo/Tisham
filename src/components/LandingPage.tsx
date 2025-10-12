@@ -20,7 +20,7 @@ export function LandingPage({ onNavigate, user }: LandingPageProps) {
             <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
               <Sparkles className="w-6 h-6 text-primary-foreground" />
             </div>
-            <span className="text-lg font-semibold">Tisham</span>
+            <span className="text-base font-semibold">Tisham</span>
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
             <ThemeToggle />
@@ -40,10 +40,10 @@ export function LandingPage({ onNavigate, user }: LandingPageProps) {
             <div className="inline-block px-4 py-2 bg-secondary/10 text-secondary rounded-full">
               Your everyday teaching partner
             </div>
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight">
               Empowering Teachers from Chalkboard to Chatbot
             </h1>
-            <p className="text-lg sm:text-xl text-muted-foreground leading-relaxed">
+            <p className="text-base sm:text-lg text-muted-foreground leading-relaxed">
               Adapt to the new national curriculum with AI-powered lesson planning, real-time assistance, and multilingual support for secondary schools across Nigeria.
             </p>
             <div className="flex gap-4">
@@ -76,8 +76,8 @@ export function LandingPage({ onNavigate, user }: LandingPageProps) {
       {/* How It Works */}
       <section className="container mx-auto px-4 py-16">
         <div className="text-center mb-12">
-          <h2 className="text-2xl sm:text-3xl font-bold mb-4">How It Works</h2>
-          <p className="text-lg text-muted-foreground">Four powerful features to transform your teaching</p>
+          <h2 className="text-xl sm:text-2xl font-bold mb-4">How It Works</h2>
+          <p className="text-base text-muted-foreground">Four powerful features to transform your teaching</p>
         </div>
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card className="rounded-2xl shadow-lg hover:shadow-xl transition-shadow border-2 hover:border-primary/20">
@@ -85,8 +85,8 @@ export function LandingPage({ onNavigate, user }: LandingPageProps) {
               <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center mb-4">
                 <BookOpen className="w-8 h-8 text-primary" />
               </div>
-              <CardTitle className="text-xl mb-3">Lesson Generation</CardTitle>
-              <CardDescription className="text-base leading-relaxed">
+              <CardTitle className="text-lg mb-3">Lesson Generation</CardTitle>
+              <CardDescription className="text-sm leading-relaxed">
                 Generate comprehensive lesson plans aligned with the new curriculum in seconds. 
                 Include local examples, activities, and assessments.
               </CardDescription>
@@ -98,8 +98,8 @@ export function LandingPage({ onNavigate, user }: LandingPageProps) {
               <div className="w-14 h-14 bg-secondary/10 rounded-2xl flex items-center justify-center mb-4">
                 <MessageSquare className="w-8 h-8 text-secondary" />
               </div>
-              <CardTitle className="text-xl mb-3">Real-Time Copilot</CardTitle>
-              <CardDescription className="text-base leading-relaxed">
+              <CardTitle className="text-lg mb-3">Real-Time Copilot</CardTitle>
+              <CardDescription className="text-sm leading-relaxed">
                 Get instant help with explanations, translations to local languages, 
                 and teaching suggestions. Your AI teaching assistant is always ready.
               </CardDescription>
@@ -111,8 +111,8 @@ export function LandingPage({ onNavigate, user }: LandingPageProps) {
               <div className="w-14 h-14 bg-accent/10 rounded-2xl flex items-center justify-center mb-4">
                 <TrendingUp className="w-8 h-8 text-accent" />
               </div>
-              <CardTitle className="text-xl mb-3">Student Engagement</CardTitle>
-              <CardDescription className="text-base leading-relaxed">
+              <CardTitle className="text-lg mb-3">Student Engagement</CardTitle>
+              <CardDescription className="text-sm leading-relaxed">
                 Create assessments, track progress, and provide personalized learning materials. 
                 Students can access resources and get AI help anytime.
               </CardDescription>
@@ -124,8 +124,8 @@ export function LandingPage({ onNavigate, user }: LandingPageProps) {
               <div className="w-14 h-14 bg-green-500/10 rounded-2xl flex items-center justify-center mb-4">
                 <ClipboardList className="w-8 h-8 text-green-500" />
               </div>
-              <CardTitle className="text-xl mb-3">Assessment Generator</CardTitle>
-              <CardDescription className="text-base leading-relaxed">
+              <CardTitle className="text-lg mb-3">Assessment Generator</CardTitle>
+              <CardDescription className="text-sm leading-relaxed">
                 Create quizzes, tests, and exams automatically. Generate questions aligned with curriculum 
                 and difficulty levels for comprehensive student evaluation.
               </CardDescription>
@@ -139,8 +139,8 @@ export function LandingPage({ onNavigate, user }: LandingPageProps) {
       <section className="container mx-auto px-4 py-16">
         <Card className="rounded-3xl bg-gradient-to-r from-primary to-secondary text-white shadow-2xl">
           <CardContent className="p-8 sm:p-12 text-center">
-            <h2 className="text-2xl sm:text-3xl font-bold mb-4">Get Started Today</h2>
-            <p className="text-lg mb-8 opacity-90">
+            <h2 className="text-xl sm:text-2xl font-bold mb-4">Get Started Today</h2>
+            <p className="text-base mb-8 opacity-90">
               Transform your classroom with AI-powered teaching tools
             </p>
             <Button 
@@ -162,7 +162,7 @@ export function LandingPage({ onNavigate, user }: LandingPageProps) {
               <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
                 <Sparkles className="w-5 h-5 text-primary-foreground" />
               </div>
-              <span className="text-lg font-semibold">Tisham</span>
+              <span className="text-base font-semibold">Tisham</span>
             </div>
             <p className="text-muted-foreground text-sm">
               © 2025 Tisham. Built for Nigerian Education.

@@ -278,7 +278,7 @@ export const getLearningPathwayPrompt = (topic: string, moduleTitle: string): Pr
 
 Please provide:
 1. A dynamic, short title that captures the essence of this specific topic
-2. Main content (3-4 paragraphs) that directly teaches the concept - no introduction or "this module will guide you" language
+2. Main content (2-3 paragraphs) that directly teaches the concept - no introduction or "this module will guide you" language
 3. 5 key points that explain the core concepts teachers must understand about this topic
 4. 4 detailed practical applications with specific steps and examples teachers can implement in Nigerian classrooms
 5. 3 detailed real-world examples with specific outcomes from Nigerian education context

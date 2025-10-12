@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Button } from "./ui/button";
 import { 
   Home, BookOpen, Trophy, TrendingUp, Settings, 
-  Sparkles, X, Zap, Menu, Bell, User
+  Sparkles, X, Zap, Menu, Bell, User, ChevronRight
 } from "lucide-react";
 import { Progress } from "./ui/progress";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "./ui/sheet";
@@ -49,7 +49,7 @@ export function StudentNavigation({
         <div className="flex items-center justify-between">
           <div 
             className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
-            onClick={() => setSidebarCollapsed(false)}
+            onClick={() => onNavigate('landing')}
           >
             <div className="w-8 h-8 gradient-primary rounded-lg flex items-center justify-center flex-shrink-0">
               <Sparkles className="w-5 h-5 text-white" />
@@ -61,16 +61,20 @@ export function StudentNavigation({
               </div>
             )}
           </div>
-          {!sidebarCollapsed && (
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="w-6 h-6"
-              onClick={() => setSidebarCollapsed(true)}
-            >
+          
+          {/* Expand/Collapse buttons */}
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="w-6 h-6"
+            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+          >
+            {sidebarCollapsed ? (
+              <ChevronRight className="w-4 h-4" />
+            ) : (
               <X className="w-4 h-4" />
-            </Button>
-          )}
+            )}
+          </Button>
         </div>
       </div>
 

@@ -3,7 +3,7 @@ import { Button } from "./ui/button";
 import { 
   Home, FileText, ClipboardList, Languages, MessageSquare, 
   BookOpen, BarChart3, Map, Settings, Bell, User, Menu,
-  Sparkles, Clock, BookMarked, Award, Users, X, Brain
+  Sparkles, Clock, BookMarked, Award, Users, X, Brain, ChevronRight
 } from "lucide-react";
 
 interface SharedSidebarProps {
@@ -73,7 +73,7 @@ export function SharedSidebar({ onNavigate, userRole, activeMenu, setActiveMenu,
         <div className="flex items-center justify-between">
           <div 
             className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
-            onClick={() => !mobile && handleSidebarToggle(false)}
+            onClick={() => onNavigate('landing')}
           >
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center flex-shrink-0">
               <Sparkles className="w-5 h-5 text-primary-foreground" />
@@ -85,14 +85,20 @@ export function SharedSidebar({ onNavigate, userRole, activeMenu, setActiveMenu,
               </div>
             )}
           </div>
-          {!mobile && !sidebarCollapsed && (
+          
+          {/* Expand/Collapse buttons */}
+          {!mobile && (
             <Button 
               variant="ghost" 
               size="icon" 
               className="w-6 h-6"
-              onClick={() => handleSidebarToggle(true)}
+              onClick={() => handleSidebarToggle(!sidebarCollapsed)}
             >
-              <X className="w-4 h-4" />
+              {sidebarCollapsed ? (
+                <ChevronRight className="w-4 h-4" />
+              ) : (
+                <X className="w-4 h-4" />
+              )}
             </Button>
           )}
         </div>

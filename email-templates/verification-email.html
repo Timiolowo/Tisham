@@ -1,212 +1,153 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Verify Your Account</title>
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background-color: #ffffff;
-            line-height: 1.5;
-            color: #374151;
-        }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            background-color: #ffffff;
-        }
-        .header {
-            padding: 40px 40px 20px 40px;
-            text-align: center;
-            border-bottom: 1px solid #e5e7eb;
-        }
-        .logo {
-            font-size: 24px;
-            font-weight: 700;
-            color: #111827;
-            margin: 0 0 8px 0;
-        }
-        .tagline {
-            color: #6b7280;
-            font-size: 14px;
-            margin: 0;
-        }
-        .content {
-            padding: 40px;
-        }
-        .title {
-            color: #111827;
-            font-size: 28px;
-            font-weight: 600;
-            margin: 0 0 16px 0;
-            text-align: center;
-        }
-        .subtitle {
-            color: #6b7280;
-            font-size: 16px;
-            margin: 0 0 32px 0;
-            text-align: center;
-        }
-        .verification-section {
-            background-color: #f9fafb;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            padding: 32px;
-            text-align: center;
-            margin: 32px 0;
-        }
-        .verification-label {
-            color: #6b7280;
-            font-size: 14px;
-            font-weight: 500;
-            margin: 0 0 12px 0;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        .verification-code {
-            background-color: #111827;
-            color: #ffffff;
-            font-size: 32px;
-            font-weight: 700;
-            letter-spacing: 4px;
-            padding: 20px 24px;
-            border-radius: 6px;
-            margin: 0;
-            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
-            display: inline-block;
-        }
-        .instructions {
-            background-color: #ffffff;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            padding: 24px;
-            margin: 32px 0;
-        }
-        .instructions-title {
-            color: #111827;
-            font-size: 16px;
-            font-weight: 600;
-            margin: 0 0 16px 0;
-        }
-        .instructions-list {
-            color: #4b5563;
-            margin: 0;
-            padding-left: 20px;
-        }
-        .instructions-list li {
-            margin-bottom: 8px;
-            line-height: 1.6;
-        }
-        .security-note {
-            background-color: #fef3c7;
-            border-left: 4px solid #f59e0b;
-            padding: 16px 20px;
-            margin: 24px 0;
-            border-radius: 0 6px 6px 0;
-        }
-        .security-note p {
-            color: #92400e;
-            font-size: 14px;
-            margin: 0;
-            line-height: 1.5;
-        }
-        .footer {
-            padding: 32px 40px;
-            background-color: #f9fafb;
-            border-top: 1px solid #e5e7eb;
-            text-align: center;
-        }
-        .footer-text {
-            color: #9ca3af;
-            font-size: 14px;
-            margin: 0 0 8px 0;
-        }
-        .footer-email {
-            color: #6b7280;
-            font-size: 12px;
-            margin: 0;
-        }
-        .divider {
-            height: 1px;
-            background-color: #e5e7eb;
-            margin: 24px 0;
-        }
-        .button {
-            display: inline-block;
-            background-color: #111827;
-            color: #ffffff;
-            text-decoration: none;
-            padding: 12px 24px;
-            border-radius: 6px;
-            font-weight: 500;
-            font-size: 14px;
-            margin: 16px 0;
-        }
-        .button:hover {
-            background-color: #374151;
-        }
-        @media (max-width: 600px) {
-            .container {
-                margin: 0;
-            }
-            .header, .content, .footer {
-                padding: 24px 20px;
-            }
-            .verification-code {
-                font-size: 24px;
-                letter-spacing: 2px;
-                padding: 16px 20px;
-            }
-            .title {
-                font-size: 24px;
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verify Your Account - Tishami</title>
+  <style>
+    body {
+      margin: 0;
+      background-color: #f9fafb;
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      color: #1f2937;
+    }
+    .container {
+      max-width: 520px;
+      margin: 40px auto;
+      background-color: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+      overflow: hidden;
+    }
+    .header {
+      text-align: center;
+      padding: 32px 24px 20px 24px;
+      background-color: #2563eb;
+      color: #ffffff;
+    }
+    .logo {
+      font-size: 22px;
+      font-weight: 700;
+      margin: 0;
+    }
+    .tagline {
+      font-size: 13px;
+      opacity: 0.9;
+      margin-top: 4px;
+    }
+    .content {
+      padding: 32px 28px;
+    }
+    .title {
+      font-size: 20px;
+      font-weight: 600;
+      text-align: center;
+      margin: 0 0 10px 0;
+      color: #111827;
+    }
+    .subtitle {
+      font-size: 14px;
+      color: #6b7280;
+      text-align: center;
+      margin: 0 0 24px 0;
+    }
+    .verify-box {
+      background-color: #f3f4f6;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 28px;
+      text-align: center;
+      margin: 24px 0;
+    }
+    .button {
+      display: inline-block;
+      background-color: #2563eb;
+      color: #ffffff;
+      text-decoration: none;
+      padding: 12px 28px;
+      border-radius: 6px;
+      font-size: 15px;
+      font-weight: 500;
+    }
+    .button:hover {
+      background-color: #1d4ed8;
+    }
+    .instructions {
+      margin: 20px 0;
+      font-size: 14px;
+      color: #4b5563;
+      line-height: 1.6;
+      text-align: center;
+    }
+    .security-note {
+      background-color: #fef9c3;
+      border-left: 4px solid #facc15;
+      padding: 14px 18px;
+      border-radius: 0 6px 6px 0;
+      margin: 24px 0;
+    }
+    .security-note p {
+      font-size: 13px;
+      color: #92400e;
+      margin: 0;
+    }
+    .footer {
+      text-align: center;
+      padding: 20px;
+      border-top: 1px solid #e5e7eb;
+      background-color: #f9fafb;
+    }
+    .footer-text {
+      font-size: 12px;
+      color: #9ca3af;
+      margin: 0;
+    }
+    .footer-email {
+      font-size: 11px;
+      color: #6b7280;
+      margin-top: 4px;
+    }
+    @media (max-width: 500px) {
+      .container { margin: 20px; }
+      .button { font-size: 14px; padding: 10px 20px; }
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <div class="logo">Tisham</div>
-            <div class="tagline">AI-Powered Education Platform</div>
-        </div>
-        
-        <div class="content">
-            <h1 class="title">Verify Your Account</h1>
-            <p class="subtitle">Complete your registration to access your Tisham dashboard</p>
-            
-            <div class="verification-section">
-                <p class="verification-label">Click the button below to verify your account</p>
-                <a href="{{ .ConfirmationURL }}" class="button">Verify My Account</a>
-            </div>
-            
-            <div class="instructions">
-                <h3 class="instructions-title">What happens next:</h3>
-                <ol class="instructions-list">
-                    <li>Click the "Verify My Account" button above</li>
-                    <li>You'll be redirected to a confirmation page</li>
-                    <li>Then you can sign in to your Tisham dashboard</li>
-                    <li>Start exploring all the amazing features!</li>
-                </ol>
-            </div>
-            
-            <div class="security-note">
-                <p><strong>Security Notice:</strong> This verification link expires in 10 minutes. If you didn't create a Tisham account, please ignore this email.</p>
-            </div>
-            
-            <div class="divider"></div>
-            
-            <p style="color: #6b7280; font-size: 14px; text-align: center; margin: 0;">
-                Having trouble? Check your spam folder or contact our support team at <a href="mailto:otimilehinoladipupo@gmail.com" style="color: #3b82f6; text-decoration: underline;">otimilehinoladipupo@gmail.com</a>.
-            </p>
-        </div>
-        
-        <div class="footer">
-            <p class="footer-text">© 2024 Tisham. All rights reserved.</p>
-            <p class="footer-email">This email was sent to {{ .Email }}</p>
-        </div>
+  <div class="container">
+    <div class="header">
+      <h1 class="logo">Tishami</h1>
+      <p class="tagline">AI-Powered Education Platform</p>
     </div>
+
+    <div class="content">
+      <h2 class="title">Verify Your Account</h2>
+      <p class="subtitle">Welcome to Tishami! Please verify your email to activate your account.</p>
+
+      <div class="verify-box">
+        <a href="{{ .ConfirmationURL }}" class="button">Verify My Account</a>
+      </div>
+
+      <div class="instructions">
+        If the button above doesn’t work, copy and paste the link below into your browser:<br><br>
+        <span style="font-size: 13px; color: #2563eb; word-break: break-word;">{{ .ConfirmationURL }}</span>
+      </div>
+
+      <div class="security-note">
+        <p><strong>Note:</strong> This link will expire in 10 minutes. If you didn’t sign up for Tishami, please ignore this message.</p>
+      </div>
+
+      <!-- Support section -->
+      <div class="instructions">
+        Need support?
+        <a href="mailto:otimilehinoladipupo@gmail.com" style="color: #2563eb; text-decoration: none;">Contact us</a>
+      </div>
+    </div>
+
+    <div class="footer">
+      <p class="footer-text">© 2025 Tishami. All rights reserved.</p>
+      <p class="footer-email">Sent to {{ .Email }}</p>
+    </div>
+  </div>
 </body>
 </html>
