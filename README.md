@@ -834,7 +834,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 **Event**: Datafeast 2025  
 **Team**: Team Rosh  
 **Track**: Education Technology  
-**Duration**: 48 hours  
 **Status**: 🚀 **Ready for Demo**
 
 ### **🎯 Hackathon Impact**
